@@ -1,0 +1,28 @@
+=== find /workspace (excl .git) ===
+/workspace
+/workspace/docs
+/workspace/docs/adr
+/workspace/docs/architecture
+/workspace/docs/logging
+/workspace/docs/monitoring
+/workspace/docs/networking
+/workspace/docs/operations
+/workspace/docs/quality
+/workspace/docs/runbooks
+/workspace/docs/security
+/workspace/docs/services
+/workspace/.git
+/workspace/inventory
+/workspace/inventory/raw
+/workspace/inventory/raw/agent-environment-probe.txt
+/workspace/inventory/raw/audit-timestamp.txt
+/workspace/inventory/raw/git-baseline.txt
+/workspace/README.md
+/workspace/scripts
+/workspace/scripts/inventory
+=== ~/.ssh ===
+ls: cannot access '/home/ubuntu/.ssh': No such file or directory
+=== docker ===
+docker: not found
+=== env SSH/ATLAS/HOST ===
+HOSTNAME=cursor

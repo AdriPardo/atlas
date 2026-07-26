@@ -1,0 +1,10 @@
+# Host inventory may contain network topology and redacted-but-sensitive paths
+inventory/raw/host/
+
+# Local secrets — never commit
+.env
+**/.env
+*.pem
+*.key
+**/credentials*
+**/secrets*

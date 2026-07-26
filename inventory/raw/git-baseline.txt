@@ -1,0 +1,13 @@
+repo: https://github.com/AdriPardo/atlas
+branch_audited: master @ bf519096a0fb07b68f74f7f36b8b2688a8342696
+files_in_repo:
+- README.md (# atlas)
+agent_host: cursor (Linux 6.12.94+)
+agent_user: ubuntu
+docker_cli: not installed
+ssh_keys: none in ~/.ssh
+ssh_config: absent
+ssh_auth_sock: unset
+environment.json: absent
+cloud_environment: null
+private_worker: false
