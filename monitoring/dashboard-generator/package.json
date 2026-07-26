@@ -1,0 +1,31 @@
+{
+  "name": "@atlas/dashboard-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Grafana Foundation SDK generator for Atlas Operations Center",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "generate": "tsx src/main.ts",
+    "test": "vitest run",
+    "lint": "eslint src tests",
+    "format": "prettier --write \"src/**/*.{ts,json,md}\" \"tests/**/*.{ts,json}\" \"README.md\"",
+    "format:check": "prettier --check \"src/**/*.{ts,json,md}\" \"tests/**/*.{ts,json}\" \"README.md\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@grafana/grafana-foundation-sdk": "0.0.18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/node": "^22.13.10",
+    "eslint": "^9.22.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1",
+    "vitest": "^3.0.9"
+  }
+}
