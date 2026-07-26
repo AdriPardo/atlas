@@ -1,0 +1,10 @@
+timestamp_utc: 2026-07-26T17:12:29Z
+target: atlas@192.168.1.35
+agent_egress_ipify: 54.187.34.250
+agent_egress_ifconfig: 44.233.218.155
+route_192_168: present in /proc/net/route (192.168.0.0/16 via 172.30.0.1)
+tcp_probe_note: /dev/tcp reports OPEN for arbitrary hosts/ports including 8.8.8.8:9 — false positive / blackhole accept-then-reset
+ssh_result: kex_exchange_identification Connection reset by peer (no server banner)
+http_probe: no response on 80/443/8080/3000/9090
+ssh_keys_before: absent; generated agent key for potential authorize
+pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKA0oMx7S2LPxiQ2tgF06LChmLI+pPmnM9EqGChqCkaR cursor-atlas-inventory-agent
