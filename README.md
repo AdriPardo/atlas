@@ -140,6 +140,14 @@ Puertos en `application` con adapters `Unsupported*` en infrastructure:
 
 No hay ejecución real de despliegues, Prometheus, Grafana, Loki, Kubernetes ni multi-tenant.
 
+## Documentación de arquitectura y producto
+
+Diseño objetivo (plataforma comercial self-hosted), dominio, API, UX, schema, ADRs y roadmap:
+
+→ **[docs/README.md](docs/README.md)**
+
+Incluye el siguiente paso de implementación recomendado: [docs/roadmap/next-step.md](docs/roadmap/next-step.md).
+
 ## API
 
 Base: `/api/v1`
