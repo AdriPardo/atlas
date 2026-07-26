@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { listDeployments } from '../../api/deployments';
 import { ErrorState, LoadingState, PageHeader, formatDateTime } from '../../components/PageHelpers';
 import { DeploymentStatusChip } from '../../components/StatusChip';
@@ -120,7 +121,13 @@ export function DeploymentsListPage() {
                   </TableRow>
                 ) : (
                   data?.content.map((deployment) => (
-                    <TableRow key={deployment.id} hover>
+                    <TableRow
+                      key={deployment.id}
+                      hover
+                      component={RouterLink}
+                      to={`/deployments/${deployment.id}`}
+                      sx={{ textDecoration: 'none', cursor: 'pointer' }}
+                    >
                       <TableCell>
                         <Typography variant="body2" fontFamily="monospace">
                           {deployment.id.slice(0, 8)}…

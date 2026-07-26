@@ -9,6 +9,7 @@ import {
 } from '../pages/applications/ApplicationFormPage';
 import { ApplicationsListPage } from '../pages/applications/ApplicationsListPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { DeploymentDetailPage } from '../pages/deployments/DeploymentDetailPage';
 import { DeploymentsListPage } from '../pages/deployments/DeploymentsListPage';
 import { HostDetailPage } from '../pages/hosts/HostDetailPage';
 import { HostsListPage } from '../pages/hosts/HostsListPage';
@@ -89,6 +90,14 @@ export function AppRoutes() {
           element={
             <ProtectedLayout>
               <DeploymentsListPage />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/deployments/:id"
+          element={
+            <ProtectedLayout>
+              <DeploymentDetailPage />
             </ProtectedLayout>
           }
         />

@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: atlas-platform
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+atlas:
+  security:
+    jwt:
+      secret: ${ATLAS_JWT_SECRET:change-me-change-me-change-me-change-me-32b}
+      expiration-minutes: ${ATLAS_JWT_EXPIRATION_MINUTES:480}
+
+logging:
+  level:
+    root: INFO
+    com.atlas.platform: INFO
