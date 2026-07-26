@@ -1,7 +1,10 @@
 package com.atlas.infrastructure.persistence.jpa.entity;
 
+import com.atlas.domain.host.ConnectionType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
@@ -28,6 +31,19 @@ public class HostJpaEntity {
 
     @Column(nullable = false)
     private boolean online;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "connection_type", nullable = false, length = 16)
+    private ConnectionType connectionType;
+
+    @Column(name = "ssh_user", length = 128)
+    private String sshUser;
+
+    @Column(name = "ssh_port", nullable = false)
+    private int sshPort;
+
+    @Column(name = "ssh_private_key_secret_id")
+    private UUID sshPrivateKeySecretId;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -81,6 +97,38 @@ public class HostJpaEntity {
 
     public void setOnline(boolean online) {
         this.online = online;
+    }
+
+    public ConnectionType getConnectionType() {
+        return connectionType;
+    }
+
+    public void setConnectionType(ConnectionType connectionType) {
+        this.connectionType = connectionType;
+    }
+
+    public String getSshUser() {
+        return sshUser;
+    }
+
+    public void setSshUser(String sshUser) {
+        this.sshUser = sshUser;
+    }
+
+    public int getSshPort() {
+        return sshPort;
+    }
+
+    public void setSshPort(int sshPort) {
+        this.sshPort = sshPort;
+    }
+
+    public UUID getSshPrivateKeySecretId() {
+        return sshPrivateKeySecretId;
+    }
+
+    public void setSshPrivateKeySecretId(UUID sshPrivateKeySecretId) {
+        this.sshPrivateKeySecretId = sshPrivateKeySecretId;
     }
 
     public Instant getCreatedAt() {

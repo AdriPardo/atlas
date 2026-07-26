@@ -29,8 +29,15 @@ services:
       ATLAS_DB_URL: jdbc:postgresql://postgres:5432/atlas
       ATLAS_DB_USERNAME: atlas
       ATLAS_DB_PASSWORD: atlas
+      ATLAS_WORKER_ENABLED: ${ATLAS_WORKER_ENABLED:-true}
+      ATLAS_WORKSPACE_DIR: /var/lib/atlas/workspaces
     ports:
       - "8080:8080"
+    volumes:
+      - atlas_workspaces:/var/lib/atlas/workspaces
+      # SECURITY: mounting the Docker socket lets Atlas LOCAL hosts control the host engine.
+      # Uncomment only on trusted single-tenant installs when you want in-place compose deploys.
+      # - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,6 +65,7 @@ services:
 
 volumes:
   atlas_pg_data:
+  atlas_workspaces:
 
 networks:
   public:

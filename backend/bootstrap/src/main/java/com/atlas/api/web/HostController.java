@@ -5,13 +5,16 @@ import com.atlas.api.dto.common.PageResponses;
 import com.atlas.api.dto.request.CreateHostRequest;
 import com.atlas.api.dto.request.UpdateHostRequest;
 import com.atlas.api.dto.response.HostResponse;
+import com.atlas.api.dto.response.JobResponse;
 import com.atlas.api.mapper.ApiMapper;
 import com.atlas.application.host.CreateHostUseCase;
 import com.atlas.application.host.DeleteHostUseCase;
 import com.atlas.application.host.GetHostUseCase;
 import com.atlas.application.host.ListHostsUseCase;
+import com.atlas.application.host.SyncHostUseCase;
 import com.atlas.application.host.UpdateHostUseCase;
 import com.atlas.application.shared.PageQuery;
+import com.atlas.domain.host.ConnectionType;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
@@ -37,6 +40,7 @@ public class HostController {
     private final ListHostsUseCase listHostsUseCase;
     private final UpdateHostUseCase updateHostUseCase;
     private final DeleteHostUseCase deleteHostUseCase;
+    private final SyncHostUseCase syncHostUseCase;
     private final ApiMapper apiMapper;
 
     @PostMapping
@@ -46,7 +50,11 @@ public class HostController {
                 request.ip(),
                 request.operatingSystem(),
                 request.dockerVersion(),
-                request.online()));
+                request.online(),
+                request.connectionType() == null ? ConnectionType.LOCAL : request.connectionType(),
+                request.sshUser(),
+                request.sshPort(),
+                request.sshPrivateKeySecretId()));
         return ResponseEntity.created(URI.create("/api/v1/hosts/" + host.getId()))
                 .body(apiMapper.toHostResponse(host));
     }
@@ -77,8 +85,18 @@ public class HostController {
                         request.ip(),
                         request.operatingSystem(),
                         request.dockerVersion(),
-                        request.online()));
+                        request.online(),
+                        request.connectionType() == null ? ConnectionType.LOCAL : request.connectionType(),
+                        request.sshUser(),
+                        request.sshPort(),
+                        request.sshPrivateKeySecretId()));
         return ResponseEntity.ok(apiMapper.toHostResponse(host));
+    }
+
+    @PostMapping("/{id}/sync")
+    public ResponseEntity<JobResponse> sync(@PathVariable UUID id) {
+        var job = syncHostUseCase.execute(id);
+        return ResponseEntity.accepted().body(apiMapper.toJobResponse(job));
     }
 
     @DeleteMapping("/{id}")

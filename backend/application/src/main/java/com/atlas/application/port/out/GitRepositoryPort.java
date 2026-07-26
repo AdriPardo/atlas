@@ -1,11 +1,18 @@
 package com.atlas.application.port.out;
 
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.function.Consumer;
+
 /**
- * Future port for Git clone/pull operations. Not used by MVP use cases.
+ * Git clone/fetch into a local workspace directory.
  */
 public interface GitRepositoryPort {
 
-    void clone(String repositoryUrl, String branch, String targetDirectory);
-
-    void pull(String workingDirectory, String branch);
+    void cloneOrUpdate(
+            String repositoryUrl,
+            String branch,
+            Path targetDirectory,
+            Optional<String> accessToken,
+            Consumer<String> logSink);
 }

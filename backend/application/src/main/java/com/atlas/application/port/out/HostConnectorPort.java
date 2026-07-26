@@ -1,13 +1,14 @@
 package com.atlas.application.port.out;
 
-import java.util.UUID;
+import com.atlas.domain.host.Host;
 
 /**
- * Future port for SSH/remote host connectivity. Not used by MVP use cases.
+ * Inspects a registered host (LOCAL Docker engine or SSH).
  */
 public interface HostConnectorPort {
 
-    HostConnectionInfo connect(UUID hostId);
+    HostInspection inspect(Host host);
 
-    record HostConnectionInfo(UUID hostId, String sessionId) {}
+    record HostInspection(
+            String reportedHostname, String operatingSystem, String dockerVersion, boolean reachable) {}
 }

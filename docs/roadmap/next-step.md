@@ -1,45 +1,43 @@
 # Siguiente paso de implementación
 
-## Recomendación única
+## Estado del último incremento (completado)
 
-**Implementar el camino de deploy real mínimo (núcleo de v0.3→v0.4): cola de jobs en PostgreSQL + worker + adapters Git/SSH-Docker que conviertan un `Deployment` de registro manual en una ejecución real de `docker compose` en un Host.**
+**v0.3 + v0.4 — Deploy real mínimo** ya está en el árbol:
 
-## Por qué es el paso más rentable
+- Tabla `jobs` + claim `FOR UPDATE SKIP LOCKED`, worker embebido (`atlas.worker.enabled`, mismo proceso API).
+- Secrets cifrados AES (`ATLAS_SECRETS_MASTER_KEY`) + campos SSH en Host (`LOCAL|SSH`).
+- `SYNC_HOST` y `DEPLOY_SERVICE` con adapters reales (JGit, docker compose local/SSH); `Unsupported*` solo si `atlas.adapters.real-enabled=false`.
+- UI: Deploy (elige host) → detalle con poll de logs; Sync en host.
 
-1. **Desbloquea la promesa del producto** — hoy Atlas “administra” pero no despliega; sin esto sigue siendo un inventario con SSO.
-2. **Reutiliza el dominio MVP** — `Deployment`, `Host`, `Application`/`Service` y los puertos `Unsupported*` ya existen; no requiere big-bang Project todavía (puede ir en paralelo o justo antes como v0.2 corto).
-3. **Justifica workers sin over-engineering** — Postgres `SKIP LOCKED` ([ADR-0005](../decisions/ADR-0005-workers-and-job-queue.md)); Redis aún no.
-4. **Máximo aprendizaje de infra real** — credenciales, redes Docker, Traefik labels, fallos parciales: alimenta el resto del diseño (Secrets, Logs, Alerts).
-5. **Demo comercial** — un compose que pasa a RUNNING desde la UI es la prueba de que Atlas no es un toy.
+## Recomendación única (siguiente)
+
+**Migración Application → Project + Service (v0.2 formal del roadmap), con alias de API `/applications` durante la transición.**
+
+## Por qué es el paso más rentable ahora
+
+1. **El camino de deploy ya existe** — seguir construyendo pipelines, RBAC y observability encima del vocabulario `Application` encarece el rename (ADR-0004).
+2. **Alineación comercial** — el operador y la doc hablan de Projects/Services; la UI/API aún no.
+3. **Observabilidad (v0.5) es el siguiente valor de producto**, pero diagnosticar flota sin el modelo mental Project/Service genera deuda de naming en listados, ACL y pipelines.
+4. **Alcance acotado** — migración Flyway + alias REST + redirects UI; no toca el worker ni Authentik.
 
 ## Alcance concreto del incremento
 
-1. Tabla `jobs` + use cases enqueue/claim.
-2. Worker process o perfil Spring que procese `DEPLOY_SERVICE` y `SYNC_HOST`.
-3. Adapter SSH/Docker: sync host metadata; `compose pull/up` en path remoto o via Docker context.
-4. Adapter Git: clone/fetch branch al workspace del host o del worker.
-5. Actualizar `Deployment.status` + `logs` durante la ejecución.
-6. UI: botón **Deploy** en detalle + poll de estado/logs (sin rediseño grande).
-7. Tests de integración del job claim; test del adapter con Testcontainers Docker si es viable, o contract test del puerto.
+1. Tablas `projects` / `services` (o rename controlado) + seed Organization (1 fila).
+2. API `/api/v1/projects`, `/api/v1/services`; mantener `/applications` como alias deprecado.
+3. UI rename + redirects desde rutas `/applications`.
+4. Jobs/Deployments referencian Service (o mantienen FK con vista de compatibilidad).
+5. Tests de migración + contrato OpenAPI.
 
 ## Qué no hacer en este incremento
 
-- No marketplace, no multi-tenant, no Kafka, no rewrite a Project (salvo que se elija un spike v0.2 de un día para renombrar API).
-- No Billing, no AI, no Portainer-complete.
-- No exponer backend sin Traefik.
+- No marketplace, no multi-tenant, no Redis/Kafka.
+- No reescribir el worker ni los adapters de deploy.
+- No Billing / AI.
 
-## Orden sugerido si se parte el trabajo
+## Alternativa cercana (si se prioriza demo ops)
 
-```text
-A. jobs table + worker skeleton (v0.3 slice)
-B. Secrets mínimos para SSH key / Git token
-C. SYNC_HOST real
-D. DEPLOY_SERVICE real end-to-end
-E. (siguiente) migración Project/Service formal
-```
+**v0.5 Runtime visibility** (containers por host, logs, deep-links Grafana/Loki) — elegirla solo si el rename Project puede esperar 1–2 sprints y la prioridad es diagnosticar deploys fallidos sin SSH.
 
 ## Definición de éxito
 
-> Desde la UI, un operador elige Application/Service + Host, pulsa Deploy, y en menos de unos minutos el stack compose está arriba en el host con logs visibles y status `SUCCEEDED` o `FAILED` honestos — sin SSH manual.
-
-Cuando este diseño se valide, **ese** es el primer ticket de implementación.
+> El operador trabaja solo en “Projects/Services”; deploys existentes siguen funcionando; `/applications` responde con deprecation clara.

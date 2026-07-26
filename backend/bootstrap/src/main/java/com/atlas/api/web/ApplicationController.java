@@ -3,14 +3,17 @@ package com.atlas.api.web;
 import com.atlas.api.dto.common.PageResponse;
 import com.atlas.api.dto.common.PageResponses;
 import com.atlas.api.dto.request.CreateApplicationRequest;
+import com.atlas.api.dto.request.DeployApplicationRequest;
 import com.atlas.api.dto.request.UpdateApplicationRequest;
 import com.atlas.api.dto.response.ApplicationResponse;
+import com.atlas.api.dto.response.DeployResponse;
 import com.atlas.api.mapper.ApiMapper;
 import com.atlas.application.application.CreateApplicationUseCase;
 import com.atlas.application.application.DeleteApplicationUseCase;
 import com.atlas.application.application.GetApplicationUseCase;
 import com.atlas.application.application.ListApplicationsUseCase;
 import com.atlas.application.application.UpdateApplicationUseCase;
+import com.atlas.application.deployment.DeployApplicationUseCase;
 import com.atlas.application.shared.PageQuery;
 import com.atlas.domain.application.ApplicationStatus;
 import jakarta.validation.Valid;
@@ -38,6 +41,7 @@ public class ApplicationController {
     private final ListApplicationsUseCase listApplicationsUseCase;
     private final UpdateApplicationUseCase updateApplicationUseCase;
     private final DeleteApplicationUseCase deleteApplicationUseCase;
+    private final DeployApplicationUseCase deployApplicationUseCase;
     private final ApiMapper apiMapper;
 
     @PostMapping
@@ -67,6 +71,17 @@ public class ApplicationController {
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
         var result = listApplicationsUseCase.execute(name, status, new PageQuery(page, size, sort));
         return ResponseEntity.ok(PageResponses.from(result, apiMapper::toApplicationResponse));
+    }
+
+    @PostMapping("/{id}/deploy")
+    public ResponseEntity<DeployResponse> deploy(
+            @PathVariable UUID id, @Valid @RequestBody DeployApplicationRequest request) {
+        var result = deployApplicationUseCase.execute(id, request.hostId());
+        return ResponseEntity.accepted()
+                .body(new DeployResponse(
+                        result.deployment().getId(),
+                        result.job().getId(),
+                        result.deployment().getStatus().name()));
     }
 
     @PutMapping("/{id}")

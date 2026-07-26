@@ -4,8 +4,17 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Alert, Box, Button, FormControlLabel, Stack, Switch, TextField } from '@mui/material'
-import { hostsApi } from '../../shared/api/endpoints'
+import {
+  Alert,
+  Box,
+  Button,
+  FormControlLabel,
+  MenuItem,
+  Stack,
+  Switch,
+  TextField,
+} from '@mui/material'
+import { hostsApi, secretsApi } from '../../shared/api/endpoints'
 import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
@@ -16,6 +25,10 @@ const schema = z.object({
   operatingSystem: z.string().min(1).max(150),
   dockerVersion: z.string().max(100).optional(),
   online: z.boolean(),
+  connectionType: z.enum(['LOCAL', 'SSH']),
+  sshUser: z.string().max(128).optional(),
+  sshPort: z.coerce.number().int().min(1).max(65535),
+  sshPrivateKeySecretId: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -32,22 +45,34 @@ export function HostFormPage() {
     enabled: isEdit,
   })
 
+  const secretsQuery = useQuery({
+    queryKey: ['secrets'],
+    queryFn: () => secretsApi.list(),
+  })
+
   const {
     register,
     handleSubmit,
     control,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       hostname: '',
-      ip: '',
-      operatingSystem: '',
+      ip: '127.0.0.1',
+      operatingSystem: 'linux',
       dockerVersion: '',
       online: false,
+      connectionType: 'LOCAL',
+      sshUser: '',
+      sshPort: 22,
+      sshPrivateKeySecretId: '',
     },
   })
+
+  const connectionType = watch('connectionType')
 
   useEffect(() => {
     if (detailQuery.data) {
@@ -57,13 +82,23 @@ export function HostFormPage() {
         operatingSystem: detailQuery.data.operatingSystem,
         dockerVersion: detailQuery.data.dockerVersion,
         online: detailQuery.data.online,
+        connectionType: detailQuery.data.connectionType ?? 'LOCAL',
+        sshUser: detailQuery.data.sshUser ?? '',
+        sshPort: detailQuery.data.sshPort ?? 22,
+        sshPrivateKeySecretId: detailQuery.data.sshPrivateKeySecretId ?? '',
       })
     }
   }, [detailQuery.data, reset])
 
   const mutation = useMutation({
-    mutationFn: (values: FormValues) =>
-      isEdit ? hostsApi.update(id!, values) : hostsApi.create(values),
+    mutationFn: (values: FormValues) => {
+      const body = {
+        ...values,
+        sshUser: values.sshUser || null,
+        sshPrivateKeySecretId: values.sshPrivateKeySecretId || null,
+      }
+      return isEdit ? hostsApi.update(id!, body) : hostsApi.create(body)
+    },
     onSuccess: async (host) => {
       await queryClient.invalidateQueries({ queryKey: ['hosts'] })
       await queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
@@ -110,6 +145,35 @@ export function HostFormPage() {
               helperText={errors.ip?.message}
               {...register('ip')}
             />
+            <TextField select label="Connection type" defaultValue="LOCAL" {...register('connectionType')}>
+              <MenuItem value="LOCAL">LOCAL (Docker on Atlas server)</MenuItem>
+              <MenuItem value="SSH">SSH</MenuItem>
+            </TextField>
+            {connectionType === 'SSH' && (
+              <>
+                <TextField label="SSH user" {...register('sshUser')} />
+                <TextField
+                  label="SSH port"
+                  type="number"
+                  error={!!errors.sshPort}
+                  helperText={errors.sshPort?.message}
+                  {...register('sshPort')}
+                />
+                <TextField
+                  select
+                  label="SSH private key secret"
+                  defaultValue=""
+                  {...register('sshPrivateKeySecretId')}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  {(secretsQuery.data ?? []).map((secret) => (
+                    <MenuItem key={secret.id} value={secret.id}>
+                      {secret.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </>
+            )}
             <TextField
               label="Operating system"
               error={!!errors.operatingSystem}

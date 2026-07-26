@@ -1,20 +1,24 @@
 package com.atlas.infrastructure.adapter.future;
 
 import com.atlas.application.port.out.GitRepositoryPort;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.function.Consumer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "atlas.adapters.real-enabled", havingValue = "false")
 public class UnsupportedGitRepository implements GitRepositoryPort {
 
     @Override
-    public void clone(String repositoryUrl, String branch, String targetDirectory) {
+    public void cloneOrUpdate(
+            String repositoryUrl,
+            String branch,
+            Path targetDirectory,
+            Optional<String> accessToken,
+            Consumer<String> logSink) {
         throw new UnsupportedOperationException(
-                "Git clone is not implemented in the MVP. Repository: " + repositoryUrl);
-    }
-
-    @Override
-    public void pull(String workingDirectory, String branch) {
-        throw new UnsupportedOperationException(
-                "Git pull is not implemented in the MVP. Directory: " + workingDirectory);
+                "Git clone is disabled (atlas.adapters.real-enabled=false). Repository: " + repositoryUrl);
     }
 }

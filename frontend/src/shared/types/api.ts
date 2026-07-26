@@ -15,6 +15,12 @@ export type DeploymentStatus =
   | 'FAILED'
   | 'CANCELLED'
 
+export type ConnectionType = 'LOCAL' | 'SSH'
+
+export type JobStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED'
+
+export type JobType = 'DEPLOY_SERVICE' | 'SYNC_HOST'
+
 export interface PageResponse<T> {
   content: T[]
   page: number
@@ -50,6 +56,10 @@ export interface Host {
   operatingSystem: string
   dockerVersion: string
   online: boolean
+  connectionType: ConnectionType
+  sshUser: string | null
+  sshPort: number
+  sshPrivateKeySecretId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -64,6 +74,36 @@ export interface Deployment {
   logs: string
   createdAt: string
   updatedAt: string
+}
+
+export interface Job {
+  id: string
+  type: JobType
+  payload: string
+  status: JobStatus
+  attempts: number
+  maxAttempts: number
+  availableAt: string
+  lockedAt: string | null
+  lockedBy: string | null
+  startedAt: string | null
+  finishedAt: string | null
+  lastError: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SecretMeta {
+  id: string
+  name: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DeployResponse {
+  deploymentId: string
+  jobId: string
+  status: string
 }
 
 export interface DashboardStats {

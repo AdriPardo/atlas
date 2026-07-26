@@ -3,10 +3,14 @@ package com.atlas.api.mapper;
 import com.atlas.api.dto.response.ApplicationResponse;
 import com.atlas.api.dto.response.DeploymentResponse;
 import com.atlas.api.dto.response.HostResponse;
+import com.atlas.api.dto.response.JobResponse;
+import com.atlas.api.dto.response.SecretResponse;
 import com.atlas.api.dto.response.UserResponse;
 import com.atlas.domain.application.Application;
 import com.atlas.domain.deployment.Deployment;
 import com.atlas.domain.host.Host;
+import com.atlas.domain.job.Job;
+import com.atlas.domain.secret.Secret;
 import com.atlas.domain.user.User;
 import org.mapstruct.Mapper;
 
@@ -18,6 +22,10 @@ public interface ApiMapper {
     HostResponse toHostResponse(Host host);
 
     DeploymentResponse toDeploymentResponse(Deployment deployment);
+
+    JobResponse toJobResponse(Job job);
+
+    SecretResponse toSecretResponse(Secret secret);
 
     UserResponse toUserResponse(User user);
 }

@@ -30,7 +30,8 @@ class DeleteHostUseCaseTest {
     @Test
     void rejectsDeleteWhenDeploymentsExist() {
         UUID id = UUID.randomUUID();
-        when(hostRepository.findById(id)).thenReturn(Optional.of(Host.create("h1", "10.0.0.1", "linux", "26", true)));
+        when(hostRepository.findById(id))
+                .thenReturn(Optional.of(Host.create("h1", "10.0.0.1", "linux", "26", true, null, null, null, null)));
         when(deploymentRepository.existsByHostId(id)).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> useCase.execute(id));

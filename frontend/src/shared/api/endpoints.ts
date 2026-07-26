@@ -2,10 +2,13 @@ import { api } from './client'
 import type {
   Application,
   DashboardStats,
+  DeployResponse,
   Deployment,
   Host,
+  Job,
   LoginResponse,
   PageResponse,
+  SecretMeta,
   User,
 } from '../types/api'
 
@@ -30,6 +33,8 @@ export const applicationsApi = {
   update: (id: string, body: Partial<Application>) =>
     api.put<Application>(`/applications/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/applications/${id}`),
+  deploy: (id: string, hostId: string) =>
+    api.post<DeployResponse>(`/applications/${id}/deploy`, { hostId }).then((r) => r.data),
 }
 
 export const hostsApi = {
@@ -40,6 +45,7 @@ export const hostsApi = {
   update: (id: string, body: Partial<Host>) =>
     api.put<Host>(`/hosts/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/hosts/${id}`),
+  sync: (id: string) => api.post<Job>(`/hosts/${id}/sync`).then((r) => r.data),
 }
 
 export const deploymentsApi = {
@@ -51,4 +57,16 @@ export const deploymentsApi = {
   update: (id: string, body: Partial<Deployment>) =>
     api.put<Deployment>(`/deployments/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/deployments/${id}`),
+}
+
+export const jobsApi = {
+  list: (params?: Record<string, string | number | undefined>) =>
+    api.get<PageResponse<Job>>('/jobs', { params }).then((r) => r.data),
+  get: (id: string) => api.get<Job>(`/jobs/${id}`).then((r) => r.data),
+}
+
+export const secretsApi = {
+  list: () => api.get<SecretMeta[]>('/secrets').then((r) => r.data),
+  create: (body: { name: string; value: string }) =>
+    api.post<SecretMeta>('/secrets', body).then((r) => r.data),
 }

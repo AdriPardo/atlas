@@ -1,0 +1,123 @@
+package com.atlas.infrastructure.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "atlas")
+public class AtlasProperties {
+
+    private final Worker worker = new Worker();
+    private final Workspace workspace = new Workspace();
+    private final Docker docker = new Docker();
+    private final Secrets secrets = new Secrets();
+    private final Adapters adapters = new Adapters();
+
+    public Worker getWorker() {
+        return worker;
+    }
+
+    public Workspace getWorkspace() {
+        return workspace;
+    }
+
+    public Docker getDocker() {
+        return docker;
+    }
+
+    public Secrets getSecrets() {
+        return secrets;
+    }
+
+    public Adapters getAdapters() {
+        return adapters;
+    }
+
+    public static class Worker {
+        private boolean enabled = true;
+        private long pollIntervalMs = 2000;
+        private int batchSize = 5;
+        private String id = "atlas-worker";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public long getPollIntervalMs() {
+            return pollIntervalMs;
+        }
+
+        public void setPollIntervalMs(long pollIntervalMs) {
+            this.pollIntervalMs = pollIntervalMs;
+        }
+
+        public int getBatchSize() {
+            return batchSize;
+        }
+
+        public void setBatchSize(int batchSize) {
+            this.batchSize = batchSize;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+    }
+
+    public static class Workspace {
+        private String dir = "/var/lib/atlas/workspaces";
+
+        public String getDir() {
+            return dir;
+        }
+
+        public void setDir(String dir) {
+            this.dir = dir;
+        }
+    }
+
+    public static class Docker {
+        private String host = "";
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
+        }
+    }
+
+    public static class Secrets {
+        private String masterKey = "";
+
+        public String getMasterKey() {
+            return masterKey;
+        }
+
+        public void setMasterKey(String masterKey) {
+            this.masterKey = masterKey;
+        }
+    }
+
+    public static class Adapters {
+        /**
+         * When false, Unsupported* stubs are used (useful for API-only tests without Docker/Git).
+         */
+        private boolean realEnabled = true;
+
+        public boolean isRealEnabled() {
+            return realEnabled;
+        }
+
+        public void setRealEnabled(boolean realEnabled) {
+            this.realEnabled = realEnabled;
+        }
+    }
+}

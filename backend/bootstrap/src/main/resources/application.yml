@@ -46,6 +46,20 @@ atlas:
       enabled: ${ATLAS_AUTHENTIK_ENABLED:false}
       # Group name substring → ADMIN; everyone else → OPERATOR (Authentik: pipe-separated groups).
       admin-group: ${ATLAS_AUTHENTIK_ADMIN_GROUP:Atlas Admins}
+  worker:
+    # Same process as API for MVP. Split later with SPRING_PROFILES_ACTIVE=worker + atlas.worker.enabled=true only on worker.
+    enabled: ${ATLAS_WORKER_ENABLED:true}
+    poll-interval-ms: ${ATLAS_WORKER_POLL_INTERVAL_MS:2000}
+    batch-size: ${ATLAS_WORKER_BATCH_SIZE:5}
+    id: ${ATLAS_WORKER_ID:atlas-worker}
+  workspace:
+    dir: ${ATLAS_WORKSPACE_DIR:${java.io.tmpdir}/atlas-workspaces}
+  docker:
+    host: ${ATLAS_DOCKER_HOST:}
+  secrets:
+    master-key: ${ATLAS_SECRETS_MASTER_KEY:}
+  adapters:
+    real-enabled: ${ATLAS_ADAPTERS_REAL_ENABLED:true}
 
 springdoc:
   api-docs:

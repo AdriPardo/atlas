@@ -76,6 +76,34 @@ public class Deployment {
         apply(status, startedAt, finishedAt, logs, Instant.now());
     }
 
+    public void markRunning() {
+        Instant now = Instant.now();
+        apply(DeploymentStatus.RUNNING, startedAt == null ? now : startedAt, null, logs, now);
+    }
+
+    public void appendLog(String chunk) {
+        if (chunk == null || chunk.isBlank()) {
+            return;
+        }
+        String next = logs == null || logs.isBlank() ? chunk : logs + "\n" + chunk;
+        apply(status, startedAt, finishedAt, next, Instant.now());
+    }
+
+    public void markSucceeded() {
+        Instant now = Instant.now();
+        apply(DeploymentStatus.SUCCEEDED, startedAt == null ? now : startedAt, now, logs, now);
+    }
+
+    public void markFailed(String reason) {
+        Instant now = Instant.now();
+        if (reason != null && !reason.isBlank()) {
+            String next = logs == null || logs.isBlank() ? reason : logs + "\n" + reason;
+            apply(DeploymentStatus.FAILED, startedAt == null ? now : startedAt, now, next, now);
+            return;
+        }
+        apply(DeploymentStatus.FAILED, startedAt == null ? now : startedAt, now, logs, now);
+    }
+
     private void apply(
             DeploymentStatus status,
             Instant startedAt,

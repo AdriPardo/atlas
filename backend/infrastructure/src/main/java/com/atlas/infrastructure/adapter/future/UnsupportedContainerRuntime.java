@@ -1,26 +1,36 @@
 package com.atlas.infrastructure.adapter.future;
 
 import com.atlas.application.port.out.ContainerRuntimePort;
+import com.atlas.domain.host.Host;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.function.Consumer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "atlas.adapters.real-enabled", havingValue = "false")
 public class UnsupportedContainerRuntime implements ContainerRuntimePort {
 
     @Override
-    public void up(String composeFilePath, String workingDirectory) {
+    public void composeUp(
+            Host host,
+            Path workingDirectory,
+            String composeFilePath,
+            Optional<String> sshPrivateKeyPem,
+            Consumer<String> logSink) {
         throw new UnsupportedOperationException(
-                "Container runtime up is not implemented in the MVP. Compose: " + composeFilePath);
+                "Container runtime is disabled (atlas.adapters.real-enabled=false). Compose: " + composeFilePath);
     }
 
     @Override
-    public void down(String composeFilePath, String workingDirectory) {
+    public void composeDown(
+            Host host,
+            Path workingDirectory,
+            String composeFilePath,
+            Optional<String> sshPrivateKeyPem,
+            Consumer<String> logSink) {
         throw new UnsupportedOperationException(
-                "Container runtime down is not implemented in the MVP. Compose: " + composeFilePath);
-    }
-
-    @Override
-    public String logs(String composeFilePath, String workingDirectory) {
-        throw new UnsupportedOperationException(
-                "Container runtime logs are not implemented in the MVP. Compose: " + composeFilePath);
+                "Container runtime is disabled (atlas.adapters.real-enabled=false). Compose: " + composeFilePath);
     }
 }

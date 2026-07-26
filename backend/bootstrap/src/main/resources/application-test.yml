@@ -19,3 +19,11 @@ atlas:
     authentik:
       enabled: true
       admin-group: Atlas Admins
+  worker:
+    enabled: false
+  adapters:
+    real-enabled: false
+  secrets:
+    master-key: test-secrets-master-key-32chars!!
+  workspace:
+    dir: ${java.io.tmpdir}/atlas-test-workspaces

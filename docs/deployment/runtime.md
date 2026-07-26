@@ -20,12 +20,23 @@ VM / host Docker
   ├─ observability stack (existente)
   └─ atlas stack
        ├─ frontend (public network)
-       ├─ backend (internal)
-       ├─ worker (internal)     ← añadir cuando haya jobs reales
-       ├─ postgres (internal)   ← o DB compartida con DB name `atlas`
-       └─ redis (internal)      ← desde fase B
+       ├─ backend+worker (internal)  ← MVP: worker embebido en el mismo proceso
+       ├─ worker (internal)          ← opcional: proceso/replica separado más adelante
+       ├─ postgres (internal)        ← o DB compartida con DB name `atlas`
+       └─ redis (internal)           ← desde fase B
 ```
 
+### Worker embebido (MVP) vs proceso separado
+
+Por defecto `ATLAS_WORKER_ENABLED=true` en el mismo contenedor/proceso API (`JobWorkerScheduler` + `@Scheduled`).
+
+Para separar más adelante:
+
+1. Replica API: `ATLAS_WORKER_ENABLED=false`
+2. Replica worker: mismo jar, `ATLAS_WORKER_ENABLED=true` (puede omitir exposición HTTP o usar perfil `worker`)
+3. Ambos comparten Postgres; el claim `SKIP LOCKED` evita doble ejecución
+
+No hace falta un segundo Dockerfile todavía.
 ## Redes
 
 | Red | Quién |
@@ -37,7 +48,7 @@ Backend **no** publicado a Internet; solo vía proxy UI o router Traefik interno
 
 ## Configuración
 
-Variables: ver `.env.example` (`ATLAS_DB_*`, `ATLAS_JWT_*`, `ATLAS_AUTHENTIK_*`, admin seed, CORS).
+Variables: ver `.env.example` (`ATLAS_DB_*`, `ATLAS_JWT_*`, `ATLAS_AUTHENTIK_*`, `ATLAS_SECRETS_MASTER_KEY`, `ATLAS_WORKER_*`, `ATLAS_WORKSPACE_DIR`, admin seed, CORS).
 
 Perfil `docker`: SSO on. Secretos de producción distintos de defaults.
 

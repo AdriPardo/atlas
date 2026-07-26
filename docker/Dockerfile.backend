@@ -5,7 +5,11 @@ RUN ./gradlew :bootstrap:bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-RUN addgroup -S atlas && adduser -S atlas -G atlas
+# docker CLI needed for LOCAL compose deploys when /var/run/docker.sock is mounted
+RUN apk add --no-cache docker-cli docker-cli-compose \
+    && addgroup -S atlas && adduser -S atlas -G atlas \
+    && mkdir -p /var/lib/atlas/workspaces \
+    && chown -R atlas:atlas /var/lib/atlas
 COPY --from=build /workspace/bootstrap/build/libs/atlas.jar /app/atlas.jar
 USER atlas
 EXPOSE 8080

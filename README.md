@@ -120,25 +120,37 @@ Los tests de integración usan Testcontainers (PostgreSQL).
 ## MVP incluido
 
 - Login JWT local + SSO Authentik ForwardAuth (roles `ADMIN`, `OPERATOR`)
-- CRUD Applications
-- CRUD Hosts
-- CRUD Deployments (registro manual / estado simulado)
-- Dashboard con contadores
-- Perfil de usuario
-- Paginación, ordenación y filtros en listados
-- Manejo global de errores API
-- Seed del usuario administrador
-- Auto-provision de usuarios SSO
+- CRUD Applications / Hosts / Deployments
+- **Deploy real**: `POST /applications/{id}/deploy` → job `DEPLOY_SERVICE` → Git clone + `docker compose up`
+- **Sync host**: `POST /hosts/{id}/sync` → job `SYNC_HOST`
+- Cola Postgres (`jobs`, `SKIP LOCKED`) + worker embebido (`ATLAS_WORKER_ENABLED`)
+- Secrets cifrados AES (`ATLAS_SECRETS_MASTER_KEY`); hosts `LOCAL` | `SSH`
+- Dashboard, perfil, paginación, seed admin, auto-provision SSO
 
-## Preparado, no implementado
+## Desplegar una app desde la UI (LOCAL)
 
-Puertos en `application` con adapters `Unsupported*` en infrastructure:
+1. Arranca stack (`docker compose up --build`). Para LOCAL deploys desde el contenedor, descomenta el mount de `/var/run/docker.sock` en `docker-compose.yml` (solo en installs de confianza).
+2. Crea un **Host** con `connectionType=LOCAL`, IP `127.0.0.1`, OS placeholder (p.ej. `linux`).
+3. Pulsa **Sync** en el detalle del host (rellena Docker/OS si el socket/CLI están reachable).
+4. Crea una **Application** apuntando a un repo **público** con `docker-compose.yml` (o crea secret `git.token` vía `POST /api/v1/secrets` para privados).
+5. En el detalle de la app → **Deploy** → elige el host → se abre el deployment con logs en vivo.
+6. Criterio de éxito: status `SUCCEEDED` o `FAILED` con logs honestos.
 
-- `HostConnectorPort` (SSH / conectividad remota)
-- `GitRepositoryPort` (clone / pull)
-- `ContainerRuntimePort` (docker compose up/down/logs)
+**SSH:** crea un secret con la private key PEM, asócialo al host (`sshPrivateKeySecretId`), `connectionType=SSH`, user/port/IP correctos. Sin secret, el deploy falla de forma explícita.
 
-No hay ejecución real de despliegues, Prometheus, Grafana, Loki, Kubernetes ni multi-tenant.
+## Desarrollo local sin Compose backend
+
+`./gradlew :bootstrap:bootRun` en el host con Docker instalado usa el engine local para hosts `LOCAL` (sin montar socket).
+
+### Separar worker más adelante
+
+Misma imagen jar: API con `ATLAS_WORKER_ENABLED=false`, replica worker con `true`. Ver [ADR-0009](docs/decisions/ADR-0009-embedded-worker.md).
+
+## Preparado / extensible
+
+Adapters reales detrás de puertos hexagonales; stubs `Unsupported*` si `ATLAS_ADAPTERS_REAL_ENABLED=false`.
+
+No hay todavía: Project/Service rename, Prometheus/Grafana/Loki first-class, Kubernetes, multi-tenant.
 
 ## Documentación de arquitectura y producto
 
@@ -146,7 +158,7 @@ Diseño objetivo (plataforma comercial self-hosted), dominio, API, UX, schema, A
 
 → **[docs/README.md](docs/README.md)**
 
-Incluye el siguiente paso de implementación recomendado: [docs/roadmap/next-step.md](docs/roadmap/next-step.md).
+Siguiente paso recomendado: [docs/roadmap/next-step.md](docs/roadmap/next-step.md).
 
 ## API
 
@@ -156,9 +168,11 @@ Base: `/api/v1`
 |---------|--------|
 | Auth | `POST /auth/login`, `GET/POST /auth/sso` |
 | Me | `GET /me`, `GET /dashboard/stats` |
-| Applications | `GET/POST /applications`, `GET/PUT/DELETE /applications/{id}` |
-| Hosts | `GET/POST /hosts`, `GET/PUT/DELETE /hosts/{id}` |
+| Applications | `GET/POST /applications`, `GET/PUT/DELETE /applications/{id}`, `POST /applications/{id}/deploy` |
+| Hosts | `GET/POST /hosts`, `GET/PUT/DELETE /hosts/{id}`, `POST /hosts/{id}/sync` |
 | Deployments | `GET/POST /deployments`, `GET/PUT/DELETE /deployments/{id}` |
+| Jobs | `GET /jobs`, `GET /jobs/{id}` |
+| Secrets | `GET/POST /secrets` (valores nunca se listan) |
 
 Autenticación: header `Authorization: Bearer <token>` (emitido por `/login` o `/sso`).
 
@@ -171,8 +185,10 @@ Ver [`.env.example`](.env.example):
 - `ATLAS_JWT_EXPIRATION`
 - `ATLAS_CORS_ORIGINS`
 - `ATLAS_ADMIN_USERNAME` / `ATLAS_ADMIN_PASSWORD`
-- `ATLAS_AUTHENTIK_ENABLED` (`false` local; perfil `docker` → `true` por defecto)
-- `ATLAS_AUTHENTIK_ADMIN_GROUP` (default `Atlas Admins`)
+- `ATLAS_AUTHENTIK_ENABLED` / `ATLAS_AUTHENTIK_ADMIN_GROUP`
+- `ATLAS_SECRETS_MASTER_KEY`
+- `ATLAS_WORKER_ENABLED` / `ATLAS_WORKSPACE_DIR` / `ATLAS_DOCKER_HOST`
+- `ATLAS_ADAPTERS_REAL_ENABLED`
 - `SPRING_PROFILES_ACTIVE` (`local` \| `docker` \| `test`)
 
 ## IDE
