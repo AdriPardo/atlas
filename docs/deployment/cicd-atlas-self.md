@@ -117,3 +117,7 @@ Archivo: [`.github/workflows/deploy-production.yml`](../../.github/workflows/dep
 - Triggers: `push` a `master`, `workflow_dispatch`
 
 Si faltan secretos, el job falla al inicio con un mensaje claro (no despliega a medias).
+
+## Nota runner en la misma VM
+
+El workflow escribe la clave y `UserKnownHostsFile` en rutas dedicadas (`~/.ssh/atlas_deploy*`) y **no** sobrescribe `~/.ssh/known_hosts`, para no romper `git fetch` hacia GitHub cuando el runner corre como el mismo usuario `atlas`.

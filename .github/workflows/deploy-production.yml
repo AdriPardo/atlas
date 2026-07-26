@@ -16,7 +16,7 @@ jobs:
   deploy:
     name: Deploy to production VM
     # Self-hosted runner required: production host is on a private LAN.
-    # Label the runner: self-hosted, linux, atlas-prod
+    # Label the runner: self-hosted, Linux, atlas-prod
     runs-on: [self-hosted, Linux, atlas-prod]
     timeout-minutes: 45
 
@@ -42,17 +42,20 @@ jobs:
           ATLAS_DEPLOY_SSH_KEY: ${{ secrets.ATLAS_DEPLOY_SSH_KEY }}
           ATLAS_DEPLOY_KNOWN_HOSTS: ${{ secrets.ATLAS_DEPLOY_KNOWN_HOSTS }}
         run: |
+          # Use a dedicated known_hosts file — never overwrite ~/.ssh/known_hosts
+          # (runner may share the deploy user home on the same VM).
           install -m 700 -d ~/.ssh
           umask 077
           printf '%s\n' "$ATLAS_DEPLOY_SSH_KEY" > ~/.ssh/atlas_deploy
           chmod 600 ~/.ssh/atlas_deploy
+          KH=~/.ssh/atlas_deploy_known_hosts
           if [ -n "${ATLAS_DEPLOY_KNOWN_HOSTS:-}" ]; then
-            printf '%s\n' "$ATLAS_DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            printf '%s\n' "$ATLAS_DEPLOY_KNOWN_HOSTS" > "$KH"
           else
-            ssh-keyscan -T 10 -H "$ATLAS_DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null \
+            ssh-keyscan -T 10 -H "$ATLAS_DEPLOY_HOST" > "$KH" 2>/dev/null \
               || echo "::warning::ssh-keyscan failed; set secret ATLAS_DEPLOY_KNOWN_HOSTS"
           fi
-          chmod 644 ~/.ssh/known_hosts
+          chmod 644 "$KH"
 
       - name: Deploy over SSH
         env:
@@ -66,6 +69,7 @@ jobs:
             -o IdentitiesOnly=yes \
             -o BatchMode=yes \
             -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile=~/.ssh/atlas_deploy_known_hosts \
             "${ATLAS_DEPLOY_USER}@${ATLAS_DEPLOY_HOST}" \
             "export ATLAS_APP_DIR='${REMOTE_PATH}'; if [ -x \"\${ATLAS_APP_DIR}/scripts/deploy.sh\" ]; then exec \"\${ATLAS_APP_DIR}/scripts/deploy.sh\"; fi; echo '::error::Missing scripts/deploy.sh on VM — pull master once manually'; exit 1"
 
