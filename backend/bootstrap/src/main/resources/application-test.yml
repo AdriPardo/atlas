@@ -1,0 +1,18 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+atlas:
+  security:
+    jwt:
+      secret: test-secret-test-secret-test-secret-32
+      expiration-seconds: 3600
+    cors:
+      allowed-origins: http://localhost
+    admin:
+      username: admin
+      password: test-password

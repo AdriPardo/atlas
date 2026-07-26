@@ -1,0 +1,13 @@
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: ${ATLAS_DB_URL}
+    username: ${ATLAS_DB_USERNAME}
+    password: ${ATLAS_DB_PASSWORD}
+
+atlas:
+  security:
+    cors:
+      allowed-origins: ${ATLAS_CORS_ORIGINS:http://localhost}

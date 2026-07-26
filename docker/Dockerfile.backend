@@ -1,0 +1,12 @@
+FROM eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /workspace
+COPY backend/ .
+RUN ./gradlew :bootstrap:bootJar --no-daemon
+
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+RUN addgroup -S atlas && adduser -S atlas -G atlas
+COPY --from=build /workspace/bootstrap/build/libs/atlas.jar /app/atlas.jar
+USER atlas
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/atlas.jar"]
