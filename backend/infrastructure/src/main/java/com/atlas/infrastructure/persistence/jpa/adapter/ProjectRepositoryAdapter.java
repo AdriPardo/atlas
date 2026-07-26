@@ -75,6 +75,29 @@ public class ProjectRepositoryAdapter implements ProjectRepositoryPort {
     }
 
     @Override
+    public PageResult<Project> searchByIds(
+            java.util.Collection<UUID> projectIds, String name, ProjectStatus status, PageQuery pageQuery) {
+        if (projectIds == null || projectIds.isEmpty()) {
+            return PageResult.of(List.of(), pageQuery.page(), pageQuery.size(), 0, pageQuery.sort());
+        }
+        Specification<ProjectJpaEntity> specification = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(root.get("id").in(projectIds));
+            if (name != null && !name.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+            }
+            if (status != null) {
+                predicates.add(cb.equal(root.get("status"), status.name()));
+            }
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+
+        Page<ProjectJpaEntity> page = repository.findAll(specification, PageableFactory.from(pageQuery));
+        List<Project> content = page.getContent().stream().map(mapper::toDomain).toList();
+        return PageResult.of(content, page.getNumber(), page.getSize(), page.getTotalElements(), pageQuery.sort());
+    }
+
+    @Override
     public void deleteById(UUID id) {
         repository.deleteById(id);
     }

@@ -1,7 +1,12 @@
 package com.atlas.application.project;
 
+import com.atlas.application.access.ProjectAuthorizationService;
+import com.atlas.application.port.out.CurrentUserPort;
+import com.atlas.application.port.out.ProjectMembershipRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
+import com.atlas.domain.access.ProjectMemberRole;
+import com.atlas.domain.access.ProjectMembership;
 import com.atlas.domain.project.Project;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.domain.shared.ConflictException;
@@ -15,9 +20,12 @@ public class CreateProjectUseCase {
 
     private final ProjectRepositoryPort projectRepository;
     private final ServiceRepositoryPort serviceRepository;
+    private final ProjectMembershipRepositoryPort membershipRepository;
+    private final ProjectAuthorizationService authorizationService;
 
     @Transactional
     public ProjectWithDefaultService execute(CreateProjectCommand command) {
+        CurrentUserPort.Actor actor = authorizationService.requireActor();
         if (projectRepository.existsByName(command.name())) {
             throw new ConflictException("Project name already exists: " + command.name());
         }
@@ -33,6 +41,8 @@ public class CreateProjectUseCase {
                 command.branch(),
                 command.composePath(),
                 command.domain() == null ? "" : command.domain()));
+        membershipRepository.save(
+                ProjectMembership.create(project.getId(), actor.id(), ProjectMemberRole.OPERATOR));
         return new ProjectWithDefaultService(project, service);
     }
 

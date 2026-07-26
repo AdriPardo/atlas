@@ -267,5 +267,54 @@ class AtlasIntegrationTest {
                 .andExpect(jsonPath("$.status").value("RUNNING"))
                 .andExpect(jsonPath("$.deploymentId").isNotEmpty())
                 .andExpect(jsonPath("$.jobId").isNotEmpty());
+
+        mockMvc.perform(get("/api/v1/audit")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
+    }
+
+    @Test
+    void operatorWithoutMembershipIsForbiddenOnForeignProject() throws Exception {
+        MvcResult adminLogin = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        String adminToken =
+                com.jayway.jsonpath.JsonPath.read(adminLogin.getResponse().getContentAsString(), "$.accessToken");
+
+        MvcResult project = mockMvc.perform(post("/api/v1/projects")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"rbac-demo",
+                                  "description":"ACL",
+                                  "repositoryUrl":"https://git.example/rbac.git",
+                                  "branch":"main",
+                                  "composePath":"./docker-compose.yml"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String projectId = com.jayway.jsonpath.JsonPath.read(project.getResponse().getContentAsString(), "$.id");
+
+        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+                        .header("X-authentik-username", "ops-no-member")
+                        .header("X-authentik-groups", "operators"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String opsToken = com.jayway.jsonpath.JsonPath.read(sso.getResponse().getContentAsString(), "$.accessToken");
+
+        mockMvc.perform(get("/api/v1/projects/" + projectId).header("Authorization", "Bearer " + opsToken))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/api/v1/projects").header("Authorization", "Bearer " + opsToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
     }
 }

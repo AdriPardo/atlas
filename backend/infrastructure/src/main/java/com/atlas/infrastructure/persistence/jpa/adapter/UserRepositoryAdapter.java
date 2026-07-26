@@ -43,4 +43,9 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         entity.setRole(user.getRole().name());
         return mapper.toDomain(repository.save(entity));
     }
+
+    @Override
+    public java.util.List<User> findAll() {
+        return repository.findAll().stream().map(mapper::toDomain).toList();
+    }
 }

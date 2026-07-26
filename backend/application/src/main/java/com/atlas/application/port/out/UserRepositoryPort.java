@@ -11,4 +11,6 @@ public interface UserRepositoryPort {
     Optional<User> findById(UUID id);
 
     User save(User user);
+
+    java.util.List<User> findAll();
 }

@@ -19,6 +19,7 @@ import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
 import { StatusChip } from '../../shared/components/StatusChip'
+import { ProjectMembersPanel } from './ProjectMembersPanel'
 
 export function ProjectDetailPage() {
   const { id = '' } = useParams()
@@ -124,6 +125,8 @@ export function ProjectDetailPage() {
                 </Typography>
               )}
             </DetailPanel>
+
+            <ProjectMembersPanel projectId={id} />
           </Stack>
         )}
       </QueryState>

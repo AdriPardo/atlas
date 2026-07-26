@@ -2,6 +2,7 @@ package com.atlas.api.error;
 
 import com.atlas.domain.shared.ConflictException;
 import com.atlas.domain.shared.DomainException;
+import com.atlas.domain.shared.ForbiddenException;
 import com.atlas.domain.shared.NotFoundException;
 import com.atlas.domain.shared.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,6 +31,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ApiError> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI(), List.of());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiError> handleForbidden(ForbiddenException ex, HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI(), List.of());
     }
 
     @ExceptionHandler(DomainException.class)

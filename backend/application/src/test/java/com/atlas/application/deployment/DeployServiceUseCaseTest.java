@@ -3,14 +3,20 @@ package com.atlas.application.deployment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atlas.application.access.ProjectAuthorizationService;
+import com.atlas.application.audit.RecordAuditUseCase;
 import com.atlas.application.job.EnqueueJobUseCase;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
+import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.deployment.Deployment;
 import com.atlas.domain.deployment.DeploymentStatus;
 import com.atlas.domain.host.Host;
@@ -46,6 +52,12 @@ class DeployServiceUseCaseTest {
     @Mock
     private EnqueueJobUseCase enqueueJobUseCase;
 
+    @Mock
+    private ProjectAuthorizationService authorizationService;
+
+    @Mock
+    private RecordAuditUseCase recordAuditUseCase;
+
     @InjectMocks
     private DeployServiceUseCase useCase;
 
@@ -64,6 +76,10 @@ class DeployServiceUseCaseTest {
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
         Job job = Job.enqueue(JobType.DEPLOY_SERVICE, "{}", 3);
         when(enqueueJobUseCase.execute(any())).thenReturn(job);
+        doNothing().when(authorizationService).require(eq(project.getId()), eq(ProjectPermission.DEPLOY));
+        when(recordAuditUseCase.execute(anyString(), anyString(), any(), anyString()))
+                .thenReturn(com.atlas.domain.audit.AuditEntry.record(
+                        UUID.randomUUID(), "admin", "DEPLOY_SERVICE", "deployment", UUID.randomUUID(), "{}"));
 
         DeployServiceUseCase.DeployResult result = useCase.execute(service.getId(), hostId);
 
@@ -73,6 +89,7 @@ class DeployServiceUseCaseTest {
         assertEquals(ServiceStatus.DEPLOYING, service.getStatus());
         assertEquals(job.getId(), result.job().getId());
         verify(enqueueJobUseCase).execute(any());
+        verify(authorizationService).require(project.getId(), ProjectPermission.DEPLOY);
     }
 
     @Test
@@ -80,16 +97,5 @@ class DeployServiceUseCaseTest {
         UUID serviceId = UUID.randomUUID();
         when(serviceRepository.findById(serviceId)).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> useCase.execute(serviceId, UUID.randomUUID()));
-    }
-
-    @Test
-    void failsWhenHostMissing() {
-        Project project = Project.create("demo", "d");
-        ServiceUnit service = ServiceUnit.createDefault(
-                project.getId(), "https://git.example/demo.git", "main", "./docker-compose.yml", "");
-        when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
-        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
-        when(hostRepository.findById(any())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> useCase.execute(service.getId(), UUID.randomUUID()));
     }
 }

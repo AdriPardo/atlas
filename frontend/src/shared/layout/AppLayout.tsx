@@ -21,6 +21,7 @@ import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined'
 import DnsOutlinedIcon from '@mui/icons-material/DnsOutlined'
 import RocketLaunchOutlinedIcon from '@mui/icons-material/RocketLaunchOutlined'
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined'
+import PolicyOutlinedIcon from '@mui/icons-material/PolicyOutlined'
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
@@ -38,6 +39,7 @@ const navGroups = [
       { to: '/hosts', label: 'Hosts', icon: <DnsOutlinedIcon fontSize="small" /> },
       { to: '/deployments', label: 'Deployments', icon: <RocketLaunchOutlinedIcon fontSize="small" /> },
       { to: '/pipelines', label: 'Pipelines', icon: <AccountTreeOutlinedIcon fontSize="small" /> },
+      { to: '/audit', label: 'Audit', icon: <PolicyOutlinedIcon fontSize="small" /> },
     ],
   },
   {
@@ -56,6 +58,7 @@ function pageTitle(pathname: string): string {
   if (pathname.startsWith('/hosts')) return 'Hosts'
   if (pathname.startsWith('/deployments')) return 'Deployments'
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
+  if (pathname.startsWith('/audit')) return 'Audit'
   if (pathname.startsWith('/profile')) return 'Profile'
   return 'Dashboard'
 }
@@ -76,6 +79,7 @@ function pageSubtitle(pathname: string): string {
   if (pathname === '/pipelines/new') return 'Create'
   if (pathname.match(/^\/pipelines\/[^/]+$/)) return 'Detail'
   if (pathname.startsWith('/pipelines')) return 'Deploy automation'
+  if (pathname.startsWith('/audit')) return 'Security trail'
   if (pathname.startsWith('/profile')) return 'Signed-in user'
   return ''
 }

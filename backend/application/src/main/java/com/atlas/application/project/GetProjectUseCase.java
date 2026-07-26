@@ -1,6 +1,8 @@
 package com.atlas.application.project;
 
+import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.port.out.ProjectRepositoryPort;
+import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.project.Project;
 import com.atlas.domain.shared.NotFoundException;
 import java.util.UUID;
@@ -13,11 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class GetProjectUseCase {
 
     private final ProjectRepositoryPort projectRepository;
+    private final ProjectAuthorizationService authorizationService;
 
     @Transactional(readOnly = true)
     public Project execute(UUID id) {
-        return projectRepository
+        Project project = projectRepository
                 .findById(id)
                 .orElseThrow(() -> new NotFoundException("Project not found: " + id));
+        authorizationService.require(id, ProjectPermission.READ);
+        return project;
     }
 }

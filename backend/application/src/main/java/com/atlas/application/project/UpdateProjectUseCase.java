@@ -1,6 +1,8 @@
 package com.atlas.application.project;
 
+import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.port.out.ProjectRepositoryPort;
+import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.project.Project;
 import com.atlas.domain.project.ProjectStatus;
 import com.atlas.domain.shared.ConflictException;
@@ -15,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateProjectUseCase {
 
     private final ProjectRepositoryPort projectRepository;
+    private final ProjectAuthorizationService authorizationService;
 
     @Transactional
     public Project execute(UUID id, UpdateProjectCommand command) {
+        authorizationService.require(id, ProjectPermission.WRITE);
         Project project = projectRepository
                 .findById(id)
                 .orElseThrow(() -> new NotFoundException("Project not found: " + id));

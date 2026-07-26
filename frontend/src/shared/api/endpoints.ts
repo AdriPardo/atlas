@@ -1,5 +1,6 @@
 import { api } from './client'
 import type {
+  AuditEntry,
   ContainerLogs,
   ContainerSnapshot,
   DashboardStats,
@@ -13,6 +14,7 @@ import type {
   Pipeline,
   PipelineRun,
   Project,
+  ProjectMembership,
   SecretMeta,
   Service,
   User,
@@ -123,6 +125,24 @@ export const pipelinesApi = {
   run: (id: string) => api.post<PipelineRun>(`/pipelines/${id}/runs`).then((r) => r.data),
   listRuns: (id: string, params?: Record<string, string | number | undefined>) =>
     api.get<PageResponse<PipelineRun>>(`/pipelines/${id}/runs`, { params }).then((r) => r.data),
+}
+
+export const membershipsApi = {
+  list: (projectId: string) =>
+    api.get<ProjectMembership[]>(`/projects/${projectId}/memberships`).then((r) => r.data),
+  add: (projectId: string, body: { userId: string; role: string }) =>
+    api.post<ProjectMembership>(`/projects/${projectId}/memberships`, body).then((r) => r.data),
+  remove: (projectId: string, membershipId: string) =>
+    api.delete(`/projects/${projectId}/memberships/${membershipId}`),
+}
+
+export const auditApi = {
+  list: (params?: Record<string, string | number | undefined>) =>
+    api.get<PageResponse<AuditEntry>>('/audit', { params }).then((r) => r.data),
+}
+
+export const usersApi = {
+  list: () => api.get<User[]>('/users').then((r) => r.data),
 }
 
 export const deploymentsApi = {

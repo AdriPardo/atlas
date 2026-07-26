@@ -1,10 +1,13 @@
 package com.atlas.application.deployment;
 
+import com.atlas.application.access.ProjectAuthorizationService;
+import com.atlas.application.audit.RecordAuditUseCase;
 import com.atlas.application.job.EnqueueJobUseCase;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
+import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.deployment.Deployment;
 import com.atlas.domain.job.Job;
 import com.atlas.domain.job.JobType;
@@ -27,6 +30,8 @@ public class DeployServiceUseCase {
     private final HostRepositoryPort hostRepository;
     private final DeploymentRepositoryPort deploymentRepository;
     private final EnqueueJobUseCase enqueueJobUseCase;
+    private final ProjectAuthorizationService authorizationService;
+    private final RecordAuditUseCase recordAuditUseCase;
 
     @Transactional
     public DeployResult execute(UUID serviceId, UUID hostId) {
@@ -36,6 +41,7 @@ public class DeployServiceUseCase {
         Project project = projectRepository
                 .findById(service.getProjectId())
                 .orElseThrow(() -> new NotFoundException("Project not found: " + service.getProjectId()));
+        authorizationService.require(project.getId(), ProjectPermission.DEPLOY);
         if (hostRepository.findById(hostId).isEmpty()) {
             throw new NotFoundException("Host not found: " + hostId);
         }
@@ -56,6 +62,12 @@ public class DeployServiceUseCase {
                 + "\"}";
         Job job = enqueueJobUseCase.execute(
                 new EnqueueJobUseCase.EnqueueJobCommand(JobType.DEPLOY_SERVICE, payload, 3));
+
+        recordAuditUseCase.execute(
+                "DEPLOY_SERVICE",
+                "deployment",
+                deployment.getId(),
+                "{\"serviceId\":\"" + serviceId + "\",\"hostId\":\"" + hostId + "\",\"jobId\":\"" + job.getId() + "\"}");
 
         return new DeployResult(deployment, job);
     }

@@ -205,3 +205,25 @@ export interface PipelineRun {
   createdAt: string
   updatedAt: string
 }
+
+export type ProjectMemberRole = 'VIEWER' | 'DEVELOPER' | 'OPERATOR'
+
+export interface ProjectMembership {
+  id: string
+  projectId: string
+  userId: string
+  role: ProjectMemberRole
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AuditEntry {
+  id: string
+  actorUserId: string | null
+  actorUsername: string
+  action: string
+  resourceType: string
+  resourceId: string | null
+  metadata: string
+  createdAt: string
+}

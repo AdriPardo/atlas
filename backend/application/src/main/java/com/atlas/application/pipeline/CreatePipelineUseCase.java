@@ -1,9 +1,11 @@
 package com.atlas.application.pipeline;
 
+import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.PipelineRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
+import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.pipeline.Pipeline;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.domain.shared.ConflictException;
@@ -22,9 +24,11 @@ public class CreatePipelineUseCase {
     private final ProjectRepositoryPort projectRepository;
     private final ServiceRepositoryPort serviceRepository;
     private final HostRepositoryPort hostRepository;
+    private final ProjectAuthorizationService authorizationService;
 
     @Transactional
     public Pipeline execute(CreatePipelineCommand command) {
+        authorizationService.require(command.projectId(), ProjectPermission.WRITE);
         if (projectRepository.findById(command.projectId()).isEmpty()) {
             throw new NotFoundException("Project not found: " + command.projectId());
         }

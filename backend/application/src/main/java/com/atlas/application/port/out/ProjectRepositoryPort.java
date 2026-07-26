@@ -23,6 +23,9 @@ public interface ProjectRepositoryPort {
 
     PageResult<Project> search(String name, ProjectStatus status, PageQuery pageQuery);
 
+    PageResult<Project> searchByIds(
+            java.util.Collection<UUID> projectIds, String name, ProjectStatus status, PageQuery pageQuery);
+
     void deleteById(UUID id);
 
     long count();

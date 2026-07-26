@@ -15,6 +15,7 @@ import { DeploymentFormPage } from '../features/deployments/DeploymentFormPage'
 import { PipelinesListPage } from '../features/pipelines/PipelinesListPage'
 import { PipelineDetailPage } from '../features/pipelines/PipelineDetailPage'
 import { PipelineFormPage } from '../features/pipelines/PipelineFormPage'
+import { AuditListPage } from '../features/audit/AuditListPage'
 import { ProfilePage } from '../features/profile/ProfilePage'
 
 interface AppRouterProps {
@@ -53,6 +54,7 @@ export function AppRouter({ mode, onToggleMode }: AppRouterProps) {
             <Route path="pipelines" element={<PipelinesListPage />} />
             <Route path="pipelines/new" element={<PipelineFormPage />} />
             <Route path="pipelines/:id" element={<PipelineDetailPage />} />
+            <Route path="audit" element={<AuditListPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
         </Route>

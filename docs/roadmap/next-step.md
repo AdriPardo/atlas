@@ -2,41 +2,36 @@
 
 ## Estado del último incremento (completado)
 
-**v0.6 — Pipelines mínimos** ya está en el árbol:
+**v0.7 — RBAC mínimo + Audit** ya está en el árbol:
 
-- Flyway V9: `pipelines` + `pipeline_runs` (service_id + host_id = definición deploy-centric).
-- API CRUD `/api/v1/pipelines` + `POST /pipelines/{id}/runs` (202) → reutiliza `DeployServiceUseCase` / job `DEPLOY_SERVICE`.
-- Runs sincronizan status ligero desde deployment al listar/consultar.
-- UI: `/pipelines` lista/crear/detalle con Run now + links a deployment.
-- Tests: `RunPipelineUseCaseTest` + smoke integración create/run.
+- Flyway V10: `project_memberships` (VIEWER|DEVELOPER|OPERATOR) + `audit_entries`.
+- `ProjectAuthorizationService`: ADMIN bypass; resto requiere membership + permiso (READ/WRITE/DEPLOY/MANAGE_MEMBERS).
+- Crear project otorga membership OPERATOR al actor; list/get/update/delete/deploy/pipeline respetan ACL.
+- API: `/projects/{id}/memberships`, `/audit` (ADMIN), `/users` (ADMIN).
+- UI: Members en Project detail, página Audit, nav Audit.
+- Tests: autorización unit + smoke forbid OPERATOR sin membership + audit tras pipeline run.
 
 ## Recomendación única (siguiente)
 
-**v0.7 Access & edge (RBAC mínimo)** — Teams/Permissions VIEWER|DEVELOPER|OPERATOR + audit log básico.
+**v0.6.1 / v0.7b Git webhooks** — `POST /webhooks/git/{token}` dispara pipeline run (cierra GitOps ligero).
 
 ## Por qué es el paso más rentable ahora
 
-1. **Catalog + deploy + runtime + pipelines** ya cubren el loop ops single-admin; el siguiente dolor real es multi-usuario seguro.
-2. Authentik SSO ya clasifica ADMIN vs OPERATOR — falta ACL por project y audit trail.
-3. Network/domains pueden ir en un micro-incremento posterior si RBAC es el bloqueador comercial.
+1. Pipelines + RBAC ya existen; falta el trigger automático push→deploy del roadmap v0.6.
+2. Alcance pequeño encima de `RunPipelineUseCase`.
+3. Network/domains (resto v0.7) puede esperar tras demo GitOps.
 
 ## Alcance concreto del incremento
 
-1. Modelo permissions (project membership) + enforcement en use cases/API.
-2. Audit log append-only en mutaciones clave (deploy, pipeline run, secret).
-3. UI: miembros de project (mínimo) o listado audit.
-4. Tests de denegación OPERATOR sin membership.
+1. Tabla webhook tokens por project/pipeline.
+2. Endpoint público autenticado por token → `RunPipelineUseCase`.
+3. UI: mostrar/regenerar token en pipeline detail.
+4. Tests de contrato webhook.
 
-## Qué no hacer en este incremento
+## Qué no hacer
 
-- No marketplace, billing, AI, Redis/Kafka.
-- No Traefik/certificates completos (puede ser follow-up v0.7b).
-- No webhooks Git todavía (seguirán a RBAC o como v0.6.1).
-
-## Alternativa cercana
-
-**v0.6.1 Git webhooks** — si la demo clave es push→deploy antes que multi-user.
+- No billing/AI/marketplace, no Redis/Kafka, no Traefik domains completos aún.
 
 ## Definición de éxito
 
-> OPERATOR sin membership no despliega projects ajenos; ADMIN sigue full-access; pipeline/runtime de v0.5–v0.6 intactos; audit registra al menos deploy/run.
+> Push (o curl webhook) encola el mismo pipeline run que “Run now”; ACL de projects intacta; audit registra el run.
