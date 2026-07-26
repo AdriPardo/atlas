@@ -1,33 +1,55 @@
 # Requisitos de acceso para completar el inventario
 
-Sin estos elementos, cualquier ficha de servicio, diagrama de flujo o runbook de recuperación sobre el host sería especulación.
+Sin acceso interactivo real al host, cualquier ficha de servicio o diagrama de runtime sería especulación.
 
-## Mínimo necesario
+## Datos proporcionados por el operador
 
-1. **Host alcanzable** (IP o FQDN) desde el entorno del agente
-2. **Credencial SSH** (clave privada o agente SSH) con permisos de lectura sobre:
-   - árbol de compose / stacks (ruta real a confirmar)
-   - `/etc/systemd/system` (units relevantes)
-   - crontabs (`/etc/cron*`, `crontab -l`)
-   - configs de Traefik, Prometheus, Grafana, Loki, Alloy, cloudflared
-   - scripts de backup
-3. Preferible: usuario con permiso para ejecutar:
-   - `docker ps`, `docker inspect`, `docker network ls`, `docker volume ls`
-   - `docker compose config` en cada stack
-4. **Ruta canónica** de la infraestructura en el servidor (ej. `/opt/atlas`, `/srv/atlas`, home del usuario)
+| Campo | Valor | Estado |
+| --- | --- | --- |
+| Usuario SSH | `atlas` | declarado por operador (2026-07-26) |
+| Host | `192.168.1.35` | declarado por operador |
+| Puerto | `22` (probado) | TCP sin banner SSH usable desde el agente |
 
-## Recomendación de configuración del entorno Cursor
+## Prueba desde este Cloud Agent (VERIFICADO)
 
-Opciones (cualquiera basta):
+Evidencia: [`../../inventory/raw/ssh-probes/20260726-lan-reachability.txt`](../../inventory/raw/ssh-probes/20260726-lan-reachability.txt)
 
-| Opción | Descripción |
+| Comprobación | Resultado |
 | --- | --- |
-| A | Cloud Agent con **private worker** en el host Atlas |
-| B | Secretos de entorno: `ATLAS_SSH_HOST`, `ATLAS_SSH_USER`, clave en `ATLAS_SSH_KEY` (o mount) |
-| C | Importar al repo (sin secretos) los compose/configs y documentar el host aparte |
+| Egress del agente | IP pública AWS (`api.ipify.org` ≈ `54.187.34.250`) |
+| `ssh atlas@192.168.1.35` | `kex_exchange_identification: Connection reset by peer` |
+| Banner SSH | vacío (servidor no completa handshake) |
+| HTTP 80/443/8080/3000/9090 | sin respuesta útil |
+| Conclusión | **La LAN `192.168.1.0/24` no es alcanzable de forma útil desde este agente cloud** |
 
-## Qué se ejecutará cuando haya acceso
+Nota: `/dev/tcp` marca “OPEN” incluso a `8.8.8.8:9`; es un falso positivo de red (accept/reset), no conectividad real al homelab.
 
-Script: [`../../scripts/inventory/collect-host-inventory.sh`](../../scripts/inventory/collect-host-inventory.sh)
+## Opciones para desbloquear Fase 2
 
-Salida esperada en `inventory/raw/host/<timestamp>/`.
+Cualquiera basta:
+
+| Opción | Qué hace falta |
+| --- | --- |
+| **A — Private worker** | Ejecutar el Cloud Agent / worker self-hosted **dentro** de la LAN Atlas (o en el propio `192.168.1.35`) |
+| **B — Túnel de gestión** | Exponer SSH vía Cloudflare Tunnel (TCP), Tailscale, WireGuard o bastion público; dar host/puerto alcanzable desde Internet |
+| **C — Recolección local** | En el host: clonar la rama y ejecutar `./scripts/inventory/collect-host-inventory.sh --local`, luego commit de `inventory/raw/host/` (sin secretos) |
+| **D — Clave + ruta pública** | Si existe bastion: añadir la pubkey del agente a `authorized_keys` y comunicar host/puerto público |
+
+### Pubkey del agente (si se usa opción B/D)
+
+```
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKA0oMx7S2LPxiQ2tgF06LChmLI+pPmnM9EqGChqCkaR cursor-atlas-inventory-agent
+```
+
+> Esta clave vive solo en el filesystem efímero del agente. Tras reinicio del entorno puede regenerarse; conviene un secret persistente o worker privado.
+
+## Qué se ejecutará cuando el SSH funcione de verdad
+
+```bash
+export ATLAS_SSH_HOST="<host-alcanzable>"
+export ATLAS_SSH_USER="atlas"
+# export ATLAS_SSH_KEY=/path/to/key   # si aplica
+./scripts/inventory/collect-host-inventory.sh --remote --out inventory/raw/host
+```
+
+Detalle: [host-collection.md](host-collection.md)

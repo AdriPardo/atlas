@@ -23,9 +23,9 @@
 
 ### F-002 — Sin acceso operativo al host desde el agente de auditoría (Crítica)
 
-**Evidencia:** sin `~/.ssh`, sin `ATLAS_SSH_*`, `environment: null`, `usePrivateWorker: false`.  
+**Evidencia:** `usePrivateWorker: false`; intento `ssh atlas@192.168.1.35` → `Connection reset by peer` / sin banner; egress del agente en AWS; probes en `inventory/raw/ssh-probes/`.  
 **Impacto:** imposible inventariar contenedores, redes, volúmenes, cron, systemd.  
-**Recomendación:** ver [../operations/access-requirements.md](../operations/access-requirements.md).
+**Recomendación:** private worker en LAN, túnel de gestión (Tailscale/CF Tunnel/bastion), o ejecutar `collect-host-inventory.sh --local` en el host. Ver [../operations/access-requirements.md](../operations/access-requirements.md).
 
 ### F-003 — Documentación operativa inexistente previa a esta rama (Alta)
 

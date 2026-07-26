@@ -45,6 +45,17 @@ Fichas de servicio preparadas con estado bloqueado: [../services/README.md](../s
 - ADRs, runbooks y fichas de servicio en estado **pendiente de verificación**
 - Informe de calidad y propuesta de reestructuración (sin aplicar cambios en el host)
 
+## Actualización 2026-07-26 — intento SSH LAN
+
+El operador indicó acceso `ssh atlas@192.168.1.35`.
+
+Desde este Cloud Agent (egress AWS) el intento **falla**: reset en el intercambio de claves SSH, sin banner. La IP `192.168.1.35` es de LAN privada y no es operable desde el entorno cloud actual.
+
+Ver evidencia y opciones: [access-requirements.md](access-requirements.md).
+
 ## Bloqueadores para Fase 2
+
+1. Ruta de red alcanzable al host (private worker, Tailscale/CF Tunnel/bastion, o recolección local)
+2. Autenticación SSH (clave en `authorized_keys` o mecanismo equivalente)
 
 Ver [access-requirements.md](access-requirements.md).
