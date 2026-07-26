@@ -60,6 +60,9 @@ atlas:
     master-key: ${ATLAS_SECRETS_MASTER_KEY:}
   adapters:
     real-enabled: ${ATLAS_ADAPTERS_REAL_ENABLED:true}
+  observability:
+    grafana-base-url: ${ATLAS_GRAFANA_BASE_URL:}
+    loki-base-url: ${ATLAS_LOKI_BASE_URL:}
 
 springdoc:
   api-docs:

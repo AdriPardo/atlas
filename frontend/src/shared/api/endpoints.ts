@@ -1,11 +1,14 @@
 import { api } from './client'
 import type {
+  ContainerLogs,
+  ContainerSnapshot,
   DashboardStats,
   DeployResponse,
   Deployment,
   Host,
   Job,
   LoginResponse,
+  ObservabilitySettings,
   PageResponse,
   Project,
   SecretMeta,
@@ -89,6 +92,21 @@ export const hostsApi = {
     api.put<Host>(`/hosts/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/hosts/${id}`),
   sync: (id: string) => api.post<Job>(`/hosts/${id}/sync`).then((r) => r.data),
+  containers: (id: string) =>
+    api.get<ContainerSnapshot[]>(`/hosts/${id}/containers`).then((r) => r.data),
+  containerLogs: (id: string, containerRef: string, tail?: number) =>
+    api
+      .get<ContainerLogs>(`/hosts/${id}/containers/${encodeURIComponent(containerRef)}/logs`, {
+        params: tail ? { tail } : undefined,
+      })
+      .then((r) => r.data),
+  restartContainer: (id: string, containerRef: string) =>
+    api.post(`/hosts/${id}/containers/${encodeURIComponent(containerRef)}/restart`),
+}
+
+export const settingsApi = {
+  observability: () =>
+    api.get<ObservabilitySettings>('/settings/observability').then((r) => r.data),
 }
 
 export const deploymentsApi = {

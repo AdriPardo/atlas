@@ -139,4 +139,46 @@ class AtlasIntegrationTest {
                 .andExpect(jsonPath("$.username").value("ops-user"))
                 .andExpect(jsonPath("$.role").value("OPERATOR"));
     }
+
+    @Test
+    void hostContainersAndObservabilitySettingsSmoke() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+
+        MvcResult host = mockMvc.perform(post("/api/v1/hosts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "hostname":"edge-runtime",
+                                  "ip":"127.0.0.1",
+                                  "operatingSystem":"linux",
+                                  "dockerVersion":"",
+                                  "online":true,
+                                  "connectionType":"LOCAL"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String hostId = com.jayway.jsonpath.JsonPath.read(host.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(get("/api/v1/hosts/" + hostId + "/containers")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        mockMvc.perform(get("/api/v1/settings/observability")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.configured").exists())
+                .andExpect(jsonPath("$.grafanaBaseUrl").exists());
+    }
 }

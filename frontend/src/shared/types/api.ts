@@ -151,3 +151,26 @@ export interface LoginResponse {
   tokenType: string
   expiresIn: number
 }
+
+export interface ContainerSnapshot {
+  id: string
+  name: string
+  image: string
+  state: string
+  status: string
+  ports: string
+  labels: string
+  grafanaLogsUrl: string
+}
+
+export interface ContainerLogs {
+  containerRef: string
+  logs: string
+}
+
+export interface ObservabilitySettings {
+  grafanaBaseUrl: string
+  lokiBaseUrl: string
+  configured: boolean
+  hostMetricsUrl: string
+}

@@ -10,6 +10,7 @@ public class AtlasProperties {
     private final Docker docker = new Docker();
     private final Secrets secrets = new Secrets();
     private final Adapters adapters = new Adapters();
+    private final Observability observability = new Observability();
 
     public Worker getWorker() {
         return worker;
@@ -29,6 +30,10 @@ public class AtlasProperties {
 
     public Adapters getAdapters() {
         return adapters;
+    }
+
+    public Observability getObservability() {
+        return observability;
     }
 
     public static class Worker {
@@ -118,6 +123,27 @@ public class AtlasProperties {
 
         public void setRealEnabled(boolean realEnabled) {
             this.realEnabled = realEnabled;
+        }
+    }
+
+    public static class Observability {
+        private String grafanaBaseUrl = "";
+        private String lokiBaseUrl = "";
+
+        public String getGrafanaBaseUrl() {
+            return grafanaBaseUrl;
+        }
+
+        public void setGrafanaBaseUrl(String grafanaBaseUrl) {
+            this.grafanaBaseUrl = grafanaBaseUrl;
+        }
+
+        public String getLokiBaseUrl() {
+            return lokiBaseUrl;
+        }
+
+        public void setLokiBaseUrl(String lokiBaseUrl) {
+            this.lokiBaseUrl = lokiBaseUrl;
         }
     }
 }

@@ -4,19 +4,28 @@ import com.atlas.api.dto.common.PageResponse;
 import com.atlas.api.dto.common.PageResponses;
 import com.atlas.api.dto.request.CreateHostRequest;
 import com.atlas.api.dto.request.UpdateHostRequest;
+import com.atlas.api.dto.response.ContainerLogsResponse;
+import com.atlas.api.dto.response.ContainerResponse;
 import com.atlas.api.dto.response.HostResponse;
 import com.atlas.api.dto.response.JobResponse;
 import com.atlas.api.mapper.ApiMapper;
 import com.atlas.application.host.CreateHostUseCase;
 import com.atlas.application.host.DeleteHostUseCase;
+import com.atlas.application.host.GetContainerLogsUseCase;
 import com.atlas.application.host.GetHostUseCase;
+import com.atlas.application.host.ListHostContainersUseCase;
 import com.atlas.application.host.ListHostsUseCase;
+import com.atlas.application.host.RestartContainerUseCase;
 import com.atlas.application.host.SyncHostUseCase;
 import com.atlas.application.host.UpdateHostUseCase;
+import com.atlas.application.shared.GetObservabilitySettingsUseCase;
 import com.atlas.application.shared.PageQuery;
 import com.atlas.domain.host.ConnectionType;
+import com.atlas.domain.host.Host;
+import com.atlas.domain.runtime.ContainerSnapshot;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +50,10 @@ public class HostController {
     private final UpdateHostUseCase updateHostUseCase;
     private final DeleteHostUseCase deleteHostUseCase;
     private final SyncHostUseCase syncHostUseCase;
+    private final ListHostContainersUseCase listHostContainersUseCase;
+    private final GetContainerLogsUseCase getContainerLogsUseCase;
+    private final RestartContainerUseCase restartContainerUseCase;
+    private final GetObservabilitySettingsUseCase getObservabilitySettingsUseCase;
     private final ApiMapper apiMapper;
 
     @PostMapping
@@ -97,6 +110,39 @@ public class HostController {
     public ResponseEntity<JobResponse> sync(@PathVariable UUID id) {
         var job = syncHostUseCase.execute(id);
         return ResponseEntity.accepted().body(apiMapper.toJobResponse(job));
+    }
+
+    @GetMapping("/{id}/containers")
+    public ResponseEntity<List<ContainerResponse>> listContainers(@PathVariable UUID id) {
+        Host host = getHostUseCase.execute(id);
+        List<ContainerSnapshot> containers = listHostContainersUseCase.execute(id);
+        List<ContainerResponse> body = containers.stream()
+                .map(c -> new ContainerResponse(
+                        c.id(),
+                        c.name(),
+                        c.image(),
+                        c.state(),
+                        c.status(),
+                        c.ports(),
+                        c.labels(),
+                        getObservabilitySettingsUseCase.containerLogsDeepLink(c.name(), host.getHostname())))
+                .toList();
+        return ResponseEntity.ok(body);
+    }
+
+    @GetMapping("/{id}/containers/{containerRef}/logs")
+    public ResponseEntity<ContainerLogsResponse> containerLogs(
+            @PathVariable UUID id,
+            @PathVariable String containerRef,
+            @RequestParam(required = false) Integer tail) {
+        String logs = getContainerLogsUseCase.execute(id, containerRef, tail);
+        return ResponseEntity.ok(new ContainerLogsResponse(containerRef, logs));
+    }
+
+    @PostMapping("/{id}/containers/{containerRef}/restart")
+    public ResponseEntity<Void> restartContainer(@PathVariable UUID id, @PathVariable String containerRef) {
+        restartContainerUseCase.execute(id, containerRef);
+        return ResponseEntity.accepted().build();
     }
 
     @DeleteMapping("/{id}")
