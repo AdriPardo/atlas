@@ -4,10 +4,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
   Button,
-  Chip,
   Link,
-  Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -16,9 +13,15 @@ import {
   Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import RocketLaunchOutlinedIcon from '@mui/icons-material/RocketLaunchOutlined'
 import { deploymentsApi } from '../../shared/api/endpoints'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { QueryState } from '../../shared/components/QueryState'
+import { PageHeader } from '../../shared/components/PageHeader'
+import { PageShell } from '../../shared/components/PageShell'
+import { DataTableFrame } from '../../shared/components/DataTableFrame'
+import { EmptyState } from '../../shared/components/EmptyState'
+import { StatusChip } from '../../shared/components/StatusChip'
 
 export function DeploymentsListPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -39,71 +42,97 @@ export function DeploymentsListPage() {
     },
   })
 
-  return (
-    <Stack spacing={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap">
-        <Box>
-          <Typography variant="h4">Deployments</Typography>
-          <Typography color="text.secondary">
-            Manual deployment records. Runtime execution is not enabled in the MVP.
-          </Typography>
-        </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/deployments/new')}>
-          New deployment
-        </Button>
-      </Box>
+  const rows = query.data?.content ?? []
 
-      <Paper>
+  return (
+    <PageShell>
+      <PageHeader
+        title="Deployments"
+        description="Manual deployment records. Runtime execution is not enabled in the MVP."
+        actions={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/deployments/new')}>
+            New deployment
+          </Button>
+        }
+      />
+
+      <DataTableFrame>
         <QueryState isLoading={query.isLoading} isError={query.isError}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Application</TableCell>
-                <TableCell>Host</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Created</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(query.data?.content ?? []).map((item) => (
-                <TableRow key={item.id} hover>
-                  <TableCell>
-                    <Link component={RouterLink} to={`/deployments/${item.id}`}>
-                      {item.id.slice(0, 8)}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link component={RouterLink} to={`/applications/${item.applicationId}`}>
-                      {item.applicationId.slice(0, 8)}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link component={RouterLink} to={`/hosts/${item.hostId}`}>
-                      {item.hostId.slice(0, 8)}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Chip size="small" label={item.status} />
-                  </TableCell>
-                  <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
-                  <TableCell align="right">
-                    <Button size="small" color="error" onClick={() => setDeleteId(item.id)}>
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(query.data?.content.length ?? 0) === 0 && (
+          {rows.length === 0 ? (
+            <Box p={2}>
+              <EmptyState
+                icon={<RocketLaunchOutlinedIcon />}
+                title="No deployments yet"
+                description="Create a deployment to link an application with a host."
+                actionLabel="New deployment"
+                onAction={() => navigate('/deployments/new')}
+              />
+            </Box>
+          ) : (
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={6}>No deployments found</TableCell>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Application</TableCell>
+                  <TableCell>Host</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {rows.map((item) => (
+                  <TableRow key={item.id} hover>
+                    <TableCell>
+                      <Link
+                        component={RouterLink}
+                        to={`/deployments/${item.id}`}
+                        className="atlas-mono"
+                        underline="hover"
+                      >
+                        {item.id.slice(0, 8)}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        component={RouterLink}
+                        to={`/applications/${item.applicationId}`}
+                        className="atlas-mono"
+                        underline="hover"
+                      >
+                        {item.applicationId.slice(0, 8)}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        component={RouterLink}
+                        to={`/hosts/${item.hostId}`}
+                        className="atlas-mono"
+                        underline="hover"
+                      >
+                        {item.hostId.slice(0, 8)}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <StatusChip label={item.status} />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button size="small" color="error" onClick={() => setDeleteId(item.id)}>
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </QueryState>
-      </Paper>
+      </DataTableFrame>
 
       <ConfirmDialog
         open={!!deleteId}
@@ -113,6 +142,6 @@ export function DeploymentsListPage() {
         onClose={() => setDeleteId(null)}
         onConfirm={() => deleteId && removeMutation.mutate(deleteId)}
       />
-    </Stack>
+    </PageShell>
   )
 }

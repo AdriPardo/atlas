@@ -1,8 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material'
+import { Button, Stack } from '@mui/material'
 import { hostsApi } from '../../shared/api/endpoints'
 import { QueryState } from '../../shared/components/QueryState'
+import { PageHeader } from '../../shared/components/PageHeader'
+import { PageShell } from '../../shared/components/PageShell'
+import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
+import { StatusChip } from '../../shared/components/StatusChip'
 
 export function HostDetailPage() {
   const { id = '' } = useParams()
@@ -14,45 +18,39 @@ export function HostDetailPage() {
   })
 
   return (
-    <Stack spacing={3}>
-      <Box display="flex" justifyContent="space-between" gap={2} flexWrap="wrap">
-        <Typography variant="h4">Host detail</Typography>
-        <Box>
-          <Button component={RouterLink} to="/hosts" sx={{ mr: 1 }}>
-            Back
-          </Button>
-          <Button variant="contained" onClick={() => navigate(`/hosts/${id}/edit`)}>
-            Edit
-          </Button>
-        </Box>
-      </Box>
+    <PageShell maxWidth={760}>
+      <PageHeader
+        title={query.data?.hostname ?? 'Host'}
+        description="Server inventory record."
+        actions={
+          <Stack direction="row" spacing={1}>
+            <Button component={RouterLink} to="/hosts">
+              Back
+            </Button>
+            <Button variant="contained" onClick={() => navigate(`/hosts/${id}/edit`)}>
+              Edit
+            </Button>
+          </Stack>
+        }
+      />
 
       <QueryState isLoading={query.isLoading} isError={query.isError}>
         {query.data && (
-          <Paper sx={{ p: 3 }}>
-            <Stack spacing={1.5}>
-              <Typography variant="h5">{query.data.hostname}</Typography>
-              <Chip
-                label={query.data.online ? 'Online' : 'Offline'}
-                color={query.data.online ? 'success' : 'default'}
-                sx={{ width: 'fit-content' }}
-              />
-              <Typography>
-                <strong>IP:</strong> {query.data.ip}
-              </Typography>
-              <Typography>
-                <strong>Operating system:</strong> {query.data.operatingSystem}
-              </Typography>
-              <Typography>
-                <strong>Docker version:</strong> {query.data.dockerVersion || '—'}
-              </Typography>
-              <Typography>
-                <strong>Created:</strong> {new Date(query.data.createdAt).toLocaleString()}
-              </Typography>
-            </Stack>
-          </Paper>
+          <DetailPanel>
+            <DetailField label="Status">
+              <StatusChip label={query.data.online ? 'ONLINE' : 'OFFLINE'} />
+            </DetailField>
+            <DetailField label="IP" mono>
+              {query.data.ip}
+            </DetailField>
+            <DetailField label="Operating system">{query.data.operatingSystem}</DetailField>
+            <DetailField label="Docker version" mono>
+              {query.data.dockerVersion || '-'}
+            </DetailField>
+            <DetailField label="Created">{new Date(query.data.createdAt).toLocaleString()}</DetailField>
+          </DetailPanel>
         )}
       </QueryState>
-    </Stack>
+    </PageShell>
   )
 }

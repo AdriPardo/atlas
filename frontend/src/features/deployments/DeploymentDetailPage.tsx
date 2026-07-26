@@ -8,15 +8,18 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
+  Link,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material'
 import { deploymentsApi } from '../../shared/api/endpoints'
 import { QueryState } from '../../shared/components/QueryState'
+import { PageHeader } from '../../shared/components/PageHeader'
+import { PageShell } from '../../shared/components/PageShell'
+import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
+import { StatusChip } from '../../shared/components/StatusChip'
 
 const schema = z.object({
   status: z.enum(['PENDING', 'RUNNING', 'SUCCEEDED', 'FAILED', 'CANCELLED']),
@@ -75,83 +78,93 @@ export function DeploymentDetailPage() {
   })
 
   return (
-    <Stack spacing={3}>
-      <Box display="flex" justifyContent="space-between" gap={2} flexWrap="wrap">
-        <Typography variant="h4">Deployment detail</Typography>
-        <Button component={RouterLink} to="/deployments">
-          Back
-        </Button>
-      </Box>
+    <PageShell maxWidth={760}>
+      <PageHeader
+        title="Deployment"
+        description={query.data ? `Record ${query.data.id.slice(0, 8)}` : 'Deployment record'}
+        actions={
+          <Button component={RouterLink} to="/deployments">
+            Back
+          </Button>
+        }
+      />
 
       <QueryState isLoading={query.isLoading} isError={query.isError}>
         {query.data && (
-          <>
-            <Paper sx={{ p: 3 }}>
-              <Stack spacing={1.5}>
-                <Chip label={query.data.status} sx={{ width: 'fit-content' }} />
-                <Typography>
-                  <strong>Application:</strong>{' '}
-                  <RouterLink to={`/applications/${query.data.applicationId}`}>
-                    {query.data.applicationId}
-                  </RouterLink>
-                </Typography>
-                <Typography>
-                  <strong>Host:</strong>{' '}
-                  <RouterLink to={`/hosts/${query.data.hostId}`}>{query.data.hostId}</RouterLink>
-                </Typography>
-                <Typography>
-                  <strong>Started:</strong>{' '}
-                  {query.data.startedAt ? new Date(query.data.startedAt).toLocaleString() : '—'}
-                </Typography>
-                <Typography>
-                  <strong>Finished:</strong>{' '}
-                  {query.data.finishedAt ? new Date(query.data.finishedAt).toLocaleString() : '—'}
-                </Typography>
-                <Typography>
-                  <strong>Created:</strong> {new Date(query.data.createdAt).toLocaleString()}
-                </Typography>
-              </Stack>
-            </Paper>
+          <Stack spacing={3}>
+            <DetailPanel>
+              <DetailField label="Status">
+                <StatusChip label={query.data.status} />
+              </DetailField>
+              <DetailField label="Application" mono>
+                <Link component={RouterLink} to={`/applications/${query.data.applicationId}`} underline="hover">
+                  {query.data.applicationId}
+                </Link>
+              </DetailField>
+              <DetailField label="Host" mono>
+                <Link component={RouterLink} to={`/hosts/${query.data.hostId}`} underline="hover">
+                  {query.data.hostId}
+                </Link>
+              </DetailField>
+              <DetailField label="Started">
+                {query.data.startedAt ? new Date(query.data.startedAt).toLocaleString() : '-'}
+              </DetailField>
+              <DetailField label="Finished">
+                {query.data.finishedAt ? new Date(query.data.finishedAt).toLocaleString() : '-'}
+              </DetailField>
+              <DetailField label="Created">{new Date(query.data.createdAt).toLocaleString()}</DetailField>
+            </DetailPanel>
 
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Update status (manual)
+            <Box
+              component="form"
+              onSubmit={onSubmit}
+              sx={{
+                border: (t) => `1px solid ${t.palette.divider}`,
+                borderRadius: 2,
+                bgcolor: 'background.paper',
+                p: { xs: 2.5, sm: 3 },
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Update status
               </Typography>
               {mutation.isError && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
                   Unable to update deployment
                 </Alert>
               )}
               {mutation.isSuccess && (
-                <Alert severity="success" sx={{ mb: 2 }}>
+                <Alert severity="success" variant="outlined" sx={{ mb: 2 }}>
                   Deployment updated
                 </Alert>
               )}
-              <Box component="form" onSubmit={onSubmit}>
-                <Stack spacing={2}>
-                  <TextField select label="Status" defaultValue={query.data.status} {...register('status')}>
-                    {['PENDING', 'RUNNING', 'SUCCEEDED', 'FAILED', 'CANCELLED'].map((status) => (
-                      <MenuItem key={status} value={status}>
-                        {status}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    label="Logs"
-                    multiline
-                    minRows={4}
-                    {...register('logs')}
-                    sx={{ fontFamily: '"IBM Plex Mono", monospace' }}
-                  />
+              <Stack spacing={2}>
+                <TextField select label="Status" defaultValue={query.data.status} {...register('status')}>
+                  {['PENDING', 'RUNNING', 'SUCCEEDED', 'FAILED', 'CANCELLED'].map((status) => (
+                    <MenuItem key={status} value={status}>
+                      {status}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  label="Logs"
+                  multiline
+                  minRows={4}
+                  {...register('logs')}
+                  InputProps={{
+                    sx: { fontFamily: '"IBM Plex Mono", monospace', fontSize: 13 },
+                  }}
+                />
+                <Box>
                   <Button type="submit" variant="contained" disabled={isSubmitting || mutation.isPending}>
                     Save status
                   </Button>
-                </Stack>
-              </Box>
-            </Paper>
-          </>
+                </Box>
+              </Stack>
+            </Box>
+          </Stack>
         )}
       </QueryState>
-    </Stack>
+    </PageShell>
   )
 }

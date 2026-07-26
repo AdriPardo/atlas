@@ -1,8 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material'
+import { Button, Stack } from '@mui/material'
 import { applicationsApi } from '../../shared/api/endpoints'
 import { QueryState } from '../../shared/components/QueryState'
+import { PageHeader } from '../../shared/components/PageHeader'
+import { PageShell } from '../../shared/components/PageShell'
+import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
+import { StatusChip } from '../../shared/components/StatusChip'
 
 export function ApplicationDetailPage() {
   const { id = '' } = useParams()
@@ -14,48 +18,44 @@ export function ApplicationDetailPage() {
   })
 
   return (
-    <Stack spacing={3}>
-      <Box display="flex" justifyContent="space-between" gap={2} flexWrap="wrap">
-        <Typography variant="h4">Application detail</Typography>
-        <Box>
-          <Button component={RouterLink} to="/applications" sx={{ mr: 1 }}>
-            Back
-          </Button>
-          <Button variant="contained" onClick={() => navigate(`/applications/${id}/edit`)}>
-            Edit
-          </Button>
-        </Box>
-      </Box>
+    <PageShell maxWidth={760}>
+      <PageHeader
+        title={query.data?.name ?? 'Application'}
+        description="Definition and repository metadata."
+        actions={
+          <Stack direction="row" spacing={1}>
+            <Button component={RouterLink} to="/applications">
+              Back
+            </Button>
+            <Button variant="contained" onClick={() => navigate(`/applications/${id}/edit`)}>
+              Edit
+            </Button>
+          </Stack>
+        }
+      />
 
       <QueryState isLoading={query.isLoading} isError={query.isError}>
         {query.data && (
-          <Paper sx={{ p: 3 }}>
-            <Stack spacing={1.5}>
-              <Typography variant="h5">{query.data.name}</Typography>
-              <Chip label={query.data.status} sx={{ width: 'fit-content' }} />
-              <Typography color="text.secondary">{query.data.description || 'No description'}</Typography>
-              <Typography>
-                <strong>Repository:</strong> {query.data.repositoryUrl}
-              </Typography>
-              <Typography>
-                <strong>Branch:</strong> {query.data.branch}
-              </Typography>
-              <Typography>
-                <strong>Compose path:</strong> {query.data.composePath}
-              </Typography>
-              <Typography>
-                <strong>Domain:</strong> {query.data.domain || '—'}
-              </Typography>
-              <Typography>
-                <strong>Created:</strong> {new Date(query.data.createdAt).toLocaleString()}
-              </Typography>
-              <Typography>
-                <strong>Updated:</strong> {new Date(query.data.updatedAt).toLocaleString()}
-              </Typography>
-            </Stack>
-          </Paper>
+          <DetailPanel>
+            <DetailField label="Status">
+              <StatusChip label={query.data.status} />
+            </DetailField>
+            <DetailField label="Description">{query.data.description || 'No description'}</DetailField>
+            <DetailField label="Repository" mono>
+              {query.data.repositoryUrl}
+            </DetailField>
+            <DetailField label="Branch" mono>
+              {query.data.branch}
+            </DetailField>
+            <DetailField label="Compose path" mono>
+              {query.data.composePath}
+            </DetailField>
+            <DetailField label="Domain">{query.data.domain || '-'}</DetailField>
+            <DetailField label="Created">{new Date(query.data.createdAt).toLocaleString()}</DetailField>
+            <DetailField label="Updated">{new Date(query.data.updatedAt).toLocaleString()}</DetailField>
+          </DetailPanel>
         )}
       </QueryState>
-    </Stack>
+    </PageShell>
   )
 }

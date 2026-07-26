@@ -10,6 +10,7 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -25,19 +26,27 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import { useAuth } from '../../features/auth/AuthContext'
 
-const drawerWidth = 248
+const drawerWidth = 236
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: <DashboardOutlinedIcon /> },
-  { to: '/applications', label: 'Applications', icon: <AppsOutlinedIcon /> },
-  { to: '/hosts', label: 'Hosts', icon: <DnsOutlinedIcon /> },
-  { to: '/deployments', label: 'Deployments', icon: <RocketLaunchOutlinedIcon /> },
-  { to: '/profile', label: 'Profile', icon: <PersonOutlinedIcon /> },
+  { to: '/', label: 'Dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
+  { to: '/applications', label: 'Applications', icon: <AppsOutlinedIcon fontSize="small" /> },
+  { to: '/hosts', label: 'Hosts', icon: <DnsOutlinedIcon fontSize="small" /> },
+  { to: '/deployments', label: 'Deployments', icon: <RocketLaunchOutlinedIcon fontSize="small" /> },
+  { to: '/profile', label: 'Profile', icon: <PersonOutlinedIcon fontSize="small" /> },
 ]
 
 interface AppLayoutProps {
   mode: 'light' | 'dark'
   onToggleMode: () => void
+}
+
+function pageTitle(pathname: string): string {
+  if (pathname.startsWith('/applications')) return 'Applications'
+  if (pathname.startsWith('/hosts')) return 'Hosts'
+  if (pathname.startsWith('/deployments')) return 'Deployments'
+  if (pathname.startsWith('/profile')) return 'Profile'
+  return 'Dashboard'
 }
 
 export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
@@ -50,40 +59,112 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
 
   const drawer = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Toolbar sx={{ px: 2.5 }}>
-        <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
-          Atlas
-        </Typography>
-      </Toolbar>
-      <List sx={{ px: 1.5, flex: 1 }}>
-        {navItems.map((item) => (
-          <ListItemButton
-            key={item.to}
-            component={RouterLink}
-            to={item.to}
-            selected={
-              item.to === '/'
-                ? location.pathname === '/'
-                : location.pathname.startsWith(item.to)
-            }
-            onClick={() => setMobileOpen(false)}
-            sx={{ borderRadius: 2, mb: 0.5 }}
+      <Toolbar sx={{ px: 2.25, minHeight: 64, gap: 1.25 }}>
+        <Box
+          sx={{
+            width: 28,
+            height: 28,
+            borderRadius: 1.25,
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            display: 'grid',
+            placeItems: 'center',
+            fontWeight: 700,
+            fontSize: 13,
+            letterSpacing: '-0.04em',
+            flexShrink: 0,
+          }}
+        >
+          A
+        </Box>
+        <Box>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              letterSpacing: '-0.03em',
+              lineHeight: 1.1,
+              color: 'text.primary',
+            }}
           >
-            <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItemButton>
-        ))}
+            Atlas
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>
+            Ops console
+          </Typography>
+        </Box>
+      </Toolbar>
+
+      <List sx={{ px: 1.25, pt: 1, flex: 1 }}>
+        {navItems.map((item) => {
+          const selected =
+            item.to === '/'
+              ? location.pathname === '/'
+              : location.pathname.startsWith(item.to)
+          return (
+            <ListItemButton
+              key={item.to}
+              component={RouterLink}
+              to={item.to}
+              selected={selected}
+              onClick={() => setMobileOpen(false)}
+              sx={{
+                borderRadius: 1.5,
+                mb: 0.35,
+                py: 0.9,
+                position: 'relative',
+                '&::before': selected
+                  ? {
+                      content: '""',
+                      position: 'absolute',
+                      left: 0,
+                      top: 10,
+                      bottom: 10,
+                      width: 3,
+                      borderRadius: 2,
+                      bgcolor: 'primary.main',
+                    }
+                  : undefined,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 36, color: selected ? 'inherit' : 'text.secondary' }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{
+                  fontSize: 14,
+                  fontWeight: selected ? 650 : 500,
+                }}
+              />
+            </ListItemButton>
+          )
+        })}
       </List>
-      <Box sx={{ px: 2, pb: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          {user?.username} · {user?.role}
+
+      <Box
+        sx={{
+          mx: 1.5,
+          mb: 2,
+          px: 1.5,
+          py: 1.25,
+          borderRadius: 1.5,
+          border: (t) => `1px solid ${t.palette.divider}`,
+          bgcolor: (t) =>
+            t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.55)',
+        }}
+      >
+        <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+          {user?.username}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" className="atlas-mono">
+          {user?.role}
         </Typography>
       </Box>
     </Box>
   )
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
       <AppBar
         position="fixed"
         color="inherit"
@@ -93,27 +174,31 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
           ml: { md: `${drawerWidth}px` },
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: 64, gap: 1 }}>
           {isMobile && (
-            <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ mr: 1 }}>
+            <IconButton edge="start" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
               <MenuIcon />
             </IconButton>
           )}
-          <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            Operations console
+          <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 650, letterSpacing: '-0.02em' }}>
+            {pageTitle(location.pathname)}
           </Typography>
-          <IconButton onClick={onToggleMode} aria-label="Toggle theme">
-            {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
-          </IconButton>
-          <IconButton
-            onClick={() => {
-              logout()
-              navigate('/login')
-            }}
-            aria-label="Logout"
-          >
-            <LogoutOutlinedIcon />
-          </IconButton>
+          <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
+            <IconButton onClick={onToggleMode} aria-label="Toggle theme">
+              {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Sign out">
+            <IconButton
+              onClick={() => {
+                logout()
+                navigate('/login')
+              }}
+              aria-label="Logout"
+            >
+              <LogoutOutlinedIcon />
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 
@@ -127,7 +212,6 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
             '& .MuiDrawer-paper': {
               width: drawerWidth,
               boxSizing: 'border-box',
-              borderRight: (t) => `1px solid ${t.palette.divider}`,
             },
           }}
         >
@@ -140,8 +224,10 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
         sx={{
           flexGrow: 1,
           width: { md: `calc(100% - ${drawerWidth}px)` },
-          p: { xs: 2, md: 3 },
+          px: { xs: 2, md: 3.5 },
+          py: { xs: 2.5, md: 3.5 },
           mt: 8,
+          minWidth: 0,
         }}
       >
         <Outlet />

@@ -4,10 +4,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
   Button,
-  Chip,
   Link,
-  Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -17,9 +14,15 @@ import {
   Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import DnsOutlinedIcon from '@mui/icons-material/DnsOutlined'
 import { hostsApi } from '../../shared/api/endpoints'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { QueryState } from '../../shared/components/QueryState'
+import { PageHeader } from '../../shared/components/PageHeader'
+import { PageShell } from '../../shared/components/PageShell'
+import { DataTableFrame } from '../../shared/components/DataTableFrame'
+import { EmptyState } from '../../shared/components/EmptyState'
+import { StatusChip } from '../../shared/components/StatusChip'
 
 export function HostsListPage() {
   const [hostname, setHostname] = useState('')
@@ -44,73 +47,97 @@ export function HostsListPage() {
     onError: () => setDeleteError('Unable to delete host. It may have deployments.'),
   })
 
-  return (
-    <Stack spacing={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap">
-        <Box>
-          <Typography variant="h4">Hosts</Typography>
-          <Typography color="text.secondary">Register servers that will run applications.</Typography>
-        </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/hosts/new')}>
-          New host
-        </Button>
-      </Box>
+  const rows = query.data?.content ?? []
 
-      <TextField
-        label="Filter by hostname"
-        value={hostname}
-        onChange={(e) => setHostname(e.target.value)}
-        sx={{ maxWidth: 360 }}
+  return (
+    <PageShell>
+      <PageHeader
+        title="Hosts"
+        description="Register servers that will run applications."
+        actions={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/hosts/new')}>
+            New host
+          </Button>
+        }
       />
 
-      <Paper>
+      <DataTableFrame
+        toolbar={
+          <TextField
+            label="Filter by hostname"
+            value={hostname}
+            onChange={(e) => setHostname(e.target.value)}
+            sx={{ maxWidth: 320, width: '100%' }}
+          />
+        }
+      >
         <QueryState isLoading={query.isLoading} isError={query.isError}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Hostname</TableCell>
-                <TableCell>IP</TableCell>
-                <TableCell>OS</TableCell>
-                <TableCell>Online</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(query.data?.content ?? []).map((host) => (
-                <TableRow key={host.id} hover>
-                  <TableCell>
-                    <Link component={RouterLink} to={`/hosts/${host.id}`}>
-                      {host.hostname}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{host.ip}</TableCell>
-                  <TableCell>{host.operatingSystem}</TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      color={host.online ? 'success' : 'default'}
-                      label={host.online ? 'Online' : 'Offline'}
-                    />
-                  </TableCell>
-                  <TableCell align="right">
-                    <Button size="small" onClick={() => navigate(`/hosts/${host.id}/edit`)}>
-                      Edit
-                    </Button>
-                    <Button size="small" color="error" onClick={() => setDeleteId(host.id)}>
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(query.data?.content.length ?? 0) === 0 && (
+          {rows.length === 0 ? (
+            <Box p={2}>
+              <EmptyState
+                icon={<DnsOutlinedIcon />}
+                title={hostname ? 'No matches' : 'No hosts yet'}
+                description={
+                  hostname
+                    ? 'Try a different hostname filter.'
+                    : 'Add a host before creating deployment records.'
+                }
+                actionLabel={hostname ? undefined : 'New host'}
+                onAction={hostname ? undefined : () => navigate('/hosts/new')}
+              />
+            </Box>
+          ) : (
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={5}>No hosts found</TableCell>
+                  <TableCell>Hostname</TableCell>
+                  <TableCell>IP</TableCell>
+                  <TableCell>OS</TableCell>
+                  <TableCell>Online</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {rows.map((host) => (
+                  <TableRow key={host.id} hover>
+                    <TableCell>
+                      <Link
+                        component={RouterLink}
+                        to={`/hosts/${host.id}`}
+                        underline="hover"
+                        sx={{ fontWeight: 600 }}
+                      >
+                        {host.hostname}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" className="atlas-mono" color="text.secondary">
+                        {host.ip}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {host.operatingSystem}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <StatusChip label={host.online ? 'ONLINE' : 'OFFLINE'} />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button size="small" onClick={() => navigate(`/hosts/${host.id}/edit`)}>
+                        Edit
+                      </Button>
+                      <Button size="small" color="error" onClick={() => setDeleteId(host.id)}>
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </QueryState>
-      </Paper>
+      </DataTableFrame>
 
       <ConfirmDialog
         open={!!deleteId}
@@ -124,6 +151,6 @@ export function HostsListPage() {
         }}
         onConfirm={() => deleteId && removeMutation.mutate(deleteId)}
       />
-    </Stack>
+    </PageShell>
   )
 }

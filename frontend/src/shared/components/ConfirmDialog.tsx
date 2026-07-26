@@ -31,21 +31,21 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 650, letterSpacing: '-0.02em' }}>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>{description}</DialogContentText>
         {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
+          <Alert severity="error" variant="outlined" sx={{ mt: 2 }}>
             {error}
           </Alert>
         )}
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ px: 3, pb: 2.5 }}>
         <Button onClick={onClose} disabled={loading}>
           Cancel
         </Button>
         <Button color="error" variant="contained" onClick={onConfirm} disabled={loading}>
-          {confirmLabel}
+          {loading ? 'Working…' : confirmLabel}
         </Button>
       </DialogActions>
     </Dialog>

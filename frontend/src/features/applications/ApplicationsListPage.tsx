@@ -4,10 +4,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
   Button,
-  Chip,
   Link,
-  Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -17,9 +14,15 @@ import {
   Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import AppsOutlinedIcon from '@mui/icons-material/AppsOutlined'
 import { applicationsApi } from '../../shared/api/endpoints'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { QueryState } from '../../shared/components/QueryState'
+import { PageHeader } from '../../shared/components/PageHeader'
+import { PageShell } from '../../shared/components/PageShell'
+import { DataTableFrame } from '../../shared/components/DataTableFrame'
+import { EmptyState } from '../../shared/components/EmptyState'
+import { StatusChip } from '../../shared/components/StatusChip'
 
 export function ApplicationsListPage() {
   const [name, setName] = useState('')
@@ -44,69 +47,92 @@ export function ApplicationsListPage() {
     onError: () => setDeleteError('Unable to delete application. It may have deployments.'),
   })
 
-  return (
-    <Stack spacing={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap">
-        <Box>
-          <Typography variant="h4">Applications</Typography>
-          <Typography color="text.secondary">Register and manage application definitions.</Typography>
-        </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/applications/new')}>
-          New application
-        </Button>
-      </Box>
+  const rows = query.data?.content ?? []
 
-      <TextField
-        label="Filter by name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        sx={{ maxWidth: 360 }}
+  return (
+    <PageShell>
+      <PageHeader
+        title="Applications"
+        description="Register and manage application definitions."
+        actions={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/applications/new')}>
+            New application
+          </Button>
+        }
       />
 
-      <Paper>
+      <DataTableFrame
+        toolbar={
+          <TextField
+            label="Filter by name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            sx={{ maxWidth: 320, width: '100%' }}
+          />
+        }
+      >
         <QueryState isLoading={query.isLoading} isError={query.isError}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Branch</TableCell>
-                <TableCell>Domain</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(query.data?.content ?? []).map((app) => (
-                <TableRow key={app.id} hover>
-                  <TableCell>
-                    <Link component={RouterLink} to={`/applications/${app.id}`}>
-                      {app.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Chip size="small" label={app.status} />
-                  </TableCell>
-                  <TableCell>{app.branch}</TableCell>
-                  <TableCell>{app.domain || '—'}</TableCell>
-                  <TableCell align="right">
-                    <Button size="small" onClick={() => navigate(`/applications/${app.id}/edit`)}>
-                      Edit
-                    </Button>
-                    <Button size="small" color="error" onClick={() => setDeleteId(app.id)}>
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(query.data?.content.length ?? 0) === 0 && (
+          {rows.length === 0 ? (
+            <Box p={2}>
+              <EmptyState
+                icon={<AppsOutlinedIcon />}
+                title={name ? 'No matches' : 'No applications yet'}
+                description={
+                  name
+                    ? 'Try a different name filter.'
+                    : 'Create an application to start tracking repositories and compose paths.'
+                }
+                actionLabel={name ? undefined : 'New application'}
+                onAction={name ? undefined : () => navigate('/applications/new')}
+              />
+            </Box>
+          ) : (
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={5}>No applications found</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Branch</TableCell>
+                  <TableCell>Domain</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {rows.map((app) => (
+                  <TableRow key={app.id} hover>
+                    <TableCell>
+                      <Link component={RouterLink} to={`/applications/${app.id}`} underline="hover" sx={{ fontWeight: 600 }}>
+                        {app.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <StatusChip label={app.status} />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" className="atlas-mono" color="text.secondary">
+                        {app.branch}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {app.domain || '-'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button size="small" onClick={() => navigate(`/applications/${app.id}/edit`)}>
+                        Edit
+                      </Button>
+                      <Button size="small" color="error" onClick={() => setDeleteId(app.id)}>
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </QueryState>
-      </Paper>
+      </DataTableFrame>
 
       <ConfirmDialog
         open={!!deleteId}
@@ -120,6 +146,6 @@ export function ApplicationsListPage() {
         }}
         onConfirm={() => deleteId && removeMutation.mutate(deleteId)}
       />
-    </Stack>
+    </PageShell>
   )
 }

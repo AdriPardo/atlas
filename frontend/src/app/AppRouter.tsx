@@ -23,7 +23,7 @@ export function AppRouter({ mode, onToggleMode }: AppRouterProps) {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage mode={mode} onToggleMode={onToggleMode} />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout mode={mode} onToggleMode={onToggleMode} />}>
             <Route index element={<DashboardPage />} />
