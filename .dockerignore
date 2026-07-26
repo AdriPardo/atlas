@@ -1,0 +1,14 @@
+.git
+.cursor
+.skills
+.env
+**/.gradle
+**/build
+**/bin
+frontend/node_modules
+frontend/dist
+*.log
+.DS_Store
+.idea
+*.iml
+.vscode
