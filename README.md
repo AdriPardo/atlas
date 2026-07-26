@@ -48,6 +48,13 @@ Credenciales por defecto (definidas en `.env`):
 - Usuario: `admin`
 - Password: `ChangeMe123!`
 
+Al arrancar, el backend crea el admin si no existe y **reasigna su password** si
+`ATLAS_ADMIN_PASSWORD` no coincide con el hash guardado (útil tras cambiar `.env`).
+
+Si el puerto host `5432` ya está ocupado, arranca con
+`ATLAS_DB_HOST_PORT=5434 docker compose up --build` (el backend sigue usando
+`postgres:5432` dentro de la red de Compose).
+
 ## Desarrollo local
 
 ### Base de datos

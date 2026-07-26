@@ -12,6 +12,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+/** Keeps bootstrap admin in sync with ATLAS_ADMIN_* (single-tenant self-hosted). */
 @Component
 public class AdminUserInitializer implements ApplicationRunner {
 
@@ -33,9 +34,12 @@ public class AdminUserInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (userRepository.findByUsernameIgnoreCase(adminUsername).isPresent()) {
-            return;
-        }
+        userRepository
+                .findByUsernameIgnoreCase(adminUsername)
+                .ifPresentOrElse(this::syncAdminPassword, this::seedAdmin);
+    }
+
+    private void seedAdmin() {
         UserJpaEntity admin = new UserJpaEntity();
         admin.setId(UUID.randomUUID());
         admin.setUsername(adminUsername);
@@ -44,5 +48,14 @@ public class AdminUserInitializer implements ApplicationRunner {
         admin.setCreatedAt(Instant.now());
         userRepository.save(admin);
         log.info("Seeded default admin user '{}'", adminUsername);
+    }
+
+    private void syncAdminPassword(UserJpaEntity admin) {
+        if (passwordEncoder.matches(adminPassword, admin.getPasswordHash())) {
+            return;
+        }
+        admin.setPasswordHash(passwordEncoder.encode(adminPassword));
+        userRepository.save(admin);
+        log.info("Synced admin user '{}' password from configuration", adminUsername);
     }
 }

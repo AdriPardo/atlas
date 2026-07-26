@@ -6,7 +6,8 @@ services:
       POSTGRES_USER: atlas
       POSTGRES_PASSWORD: atlas
     ports:
-      - "5432:5432"
+      # Host port overridable when 5432 is already taken locally
+      - "${ATLAS_DB_HOST_PORT:-5432}:5432"
     volumes:
       - atlas_pg_data:/var/lib/postgresql/data
     healthcheck:
