@@ -1,0 +1,74 @@
+name: Deploy production (Atlas self)
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: atlas-production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to production VM
+    # Self-hosted runner required: production host is on a private LAN.
+    # Label the runner: self-hosted, linux, atlas-prod
+    runs-on: [self-hosted, Linux, atlas-prod]
+    timeout-minutes: 45
+
+    steps:
+      - name: Check required secrets
+        env:
+          ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST }}
+          ATLAS_DEPLOY_USER: ${{ secrets.ATLAS_DEPLOY_USER }}
+          ATLAS_DEPLOY_SSH_KEY: ${{ secrets.ATLAS_DEPLOY_SSH_KEY }}
+        run: |
+          missing=0
+          for name in ATLAS_DEPLOY_HOST ATLAS_DEPLOY_USER ATLAS_DEPLOY_SSH_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing GitHub secret: $name — see docs/deployment/cicd-atlas-self.md"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Prepare SSH
+        env:
+          ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST }}
+          ATLAS_DEPLOY_SSH_KEY: ${{ secrets.ATLAS_DEPLOY_SSH_KEY }}
+          ATLAS_DEPLOY_KNOWN_HOSTS: ${{ secrets.ATLAS_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          umask 077
+          printf '%s\n' "$ATLAS_DEPLOY_SSH_KEY" > ~/.ssh/atlas_deploy
+          chmod 600 ~/.ssh/atlas_deploy
+          if [ -n "${ATLAS_DEPLOY_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$ATLAS_DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -T 10 -H "$ATLAS_DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null \
+              || echo "::warning::ssh-keyscan failed; set secret ATLAS_DEPLOY_KNOWN_HOSTS"
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy over SSH
+        env:
+          ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST }}
+          ATLAS_DEPLOY_USER: ${{ secrets.ATLAS_DEPLOY_USER }}
+          ATLAS_DEPLOY_PATH: ${{ secrets.ATLAS_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          REMOTE_PATH="${ATLAS_DEPLOY_PATH:-/opt/atlas/atlas}"
+          ssh -i ~/.ssh/atlas_deploy \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "${ATLAS_DEPLOY_USER}@${ATLAS_DEPLOY_HOST}" \
+            "export ATLAS_APP_DIR='${REMOTE_PATH}'; if [ -x \"\${ATLAS_APP_DIR}/scripts/deploy.sh\" ]; then exec \"\${ATLAS_APP_DIR}/scripts/deploy.sh\"; fi; echo '::error::Missing scripts/deploy.sh on VM — pull master once manually'; exit 1"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/atlas_deploy

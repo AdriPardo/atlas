@@ -4,14 +4,18 @@
 
 CI/CD de **Atlas como producto** (este repo), distinto de los Pipelines que Atlas ejecuta para los projects del cliente.
 
-## Pipeline propuesto (GitHub Actions / Gitea Actions)
+## Deploy automático a producción (activo)
+
+Ver **[cicd-atlas-self.md](./cicd-atlas-self.md)**: GitHub Actions → SSH → `scripts/deploy.sh` en la VM (`push` a `master`).
+
+## Pipeline de calidad propuesto
 
 ```text
-on: pull_request, push main
+on: pull_request, push master
   ├─ backend: ./gradlew test
   ├─ frontend: npm ci && npm run build (y lint)
   ├─ docker build backend + frontend (tags sha)
-  └─ (main) push registry + deploy hook opcional
+  └─ (master) deploy producción vía workflow deploy-production.yml
 ```
 
 ## Entornos
@@ -19,8 +23,8 @@ on: pull_request, push main
 | Env | Trigger | Notas |
 |-----|---------|-------|
 | local | compose | SSO off |
-| staging | push main / tag | SSO on, datos non-prod |
-| production | tag `v*` + approval | manual promote |
+| staging | push / tag | SSO on, datos non-prod |
+| production | push `master` + self-hosted runner | ver cicd-atlas-self.md |
 
 ## Calidad de gates
 
@@ -28,14 +32,6 @@ on: pull_request, push main
 - No secretos en imágenes (multi-stage ya en Dockerfiles).
 - Scan opcional Trivy en CI (v0.6+).
 - Versionar OpenAPI artifact.
-
-## Deploy de Atlas en el servidor
-
-Opciones (elegir una, documentar en runbook interno):
-
-1. `docker compose pull && docker compose up -d` vía SSH desde CI (simple).
-2. Watchtower / script cron en host (menos control).
-3. Atlas **self-managing** (meta): registrar Atlas como Project — útil tarde; riesgo de pie-en-bala; no v0.x.
 
 ## Release notes
 

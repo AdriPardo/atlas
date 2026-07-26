@@ -12,3 +12,7 @@
 node_modules/
 frontend/dist/
 .DS_Store
+
+# Production-only compose (VM); never commit
+docker-compose.prod.yml
+docker-compose.override.yml
