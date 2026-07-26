@@ -2,42 +2,43 @@
 
 ## Estado del último incremento (completado)
 
-**v0.3 + v0.4 — Deploy real mínimo** ya está en el árbol:
+**v0.2 — Application → Project + Service** ya está en el árbol:
 
-- Tabla `jobs` + claim `FOR UPDATE SKIP LOCKED`, worker embebido (`atlas.worker.enabled`, mismo proceso API).
-- Secrets cifrados AES (`ATLAS_SECRETS_MASTER_KEY`) + campos SSH en Host (`LOCAL|SSH`).
-- `SYNC_HOST` y `DEPLOY_SERVICE` con adapters reales (JGit, docker compose local/SSH); `Unsupported*` solo si `atlas.adapters.real-enabled=false`.
-- UI: Deploy (elige host) → detalle con poll de logs; Sync en host.
+- Tablas `organizations` (seed 1 fila), `projects`, `services`; Flyway V8 migra cada `Application` → Project (mismo id) + Service `default`.
+- `deployments.service_id` sustituye `application_id`.
+- API `/api/v1/projects`, `/api/v1/services` (+ nested `/projects/{id}/services`, deploy en project/service).
+- `/api/v1/applications` permanece como alias deprecado (headers `Deprecation` / `Sunset` / `Link`).
+- UI: rutas `/projects`, redirects desde `/applications`; sidebar **Projects**.
+- ACL: `ApplicationRepositoryAdapter` compone Project + default Service; worker/deploy sin rewrite.
 
 ## Recomendación única (siguiente)
 
-**Migración Application → Project + Service (v0.2 formal del roadmap), con alias de API `/applications` durante la transición.**
+**v0.5 Runtime visibility** — containers por host, logs de runtime y deep-links a Grafana/Loki.
 
 ## Por qué es el paso más rentable ahora
 
-1. **El camino de deploy ya existe** — seguir construyendo pipelines, RBAC y observability encima del vocabulario `Application` encarece el rename (ADR-0004).
-2. **Alineación comercial** — el operador y la doc hablan de Projects/Services; la UI/API aún no.
-3. **Observabilidad (v0.5) es el siguiente valor de producto**, pero diagnosticar flota sin el modelo mental Project/Service genera deuda de naming en listados, ACL y pipelines.
-4. **Alcance acotado** — migración Flyway + alias REST + redirects UI; no toca el worker ni Authentik.
+1. **Deploy path ya es real** (v0.3/v0.4) y el vocabulario Project/Service ya está alineado — el siguiente dolor de operador es diagnosticar deploys fallidos sin SSH.
+2. **Pipelines (v0.6)** aportan orquestación, pero sin visibilidad de runtime el feedback loop sigue siendo opaco; observability desbloquea demos ops y reduce MTTR.
+3. **Alcance acotado** — proyección `ContainerSnapshot` / list containers vía adapters existentes + UI en Host detail; no requiere Redis/Kafka ni multi-tenant.
+4. **ADR-0007** ya apunta al stack externo de observability; Atlas solo necesita superficie de producto (list/logs/links).
 
 ## Alcance concreto del incremento
 
-1. Tablas `projects` / `services` (o rename controlado) + seed Organization (1 fila).
-2. API `/api/v1/projects`, `/api/v1/services`; mantener `/applications` como alias deprecado.
-3. UI rename + redirects desde rutas `/applications`.
-4. Jobs/Deployments referencian Service (o mantienen FK con vista de compatibilidad).
-5. Tests de migración + contrato OpenAPI.
+1. `GET /hosts/{id}/containers` (+ restart opcional si seguro).
+2. UI Host detail: lista containers / estado / deep-link logs.
+3. Config de deep-links Grafana/Loki (settings o env).
+4. Tests de contrato del port de runtime + smoke UI.
 
 ## Qué no hacer en este incremento
 
 - No marketplace, no multi-tenant, no Redis/Kafka.
-- No reescribir el worker ni los adapters de deploy.
-- No Billing / AI.
+- No reescribir el worker embebido.
+- No Billing / AI / pipelines completos.
 
-## Alternativa cercana (si se prioriza demo ops)
+## Alternativa cercana (si se prioriza delivery automation)
 
-**v0.5 Runtime visibility** (containers por host, logs, deep-links Grafana/Loki) — elegirla solo si el rename Project puede esperar 1–2 sprints y la prioridad es diagnosticar deploys fallidos sin SSH.
+**v0.6 Pipelines mínimos** (definition + run + steps encolando `DEPLOY_SERVICE`) — elegirla solo si la demo clave es “push → deploy” y la flota ya se diagnostica bien por SSH/logs de job.
 
 ## Definición de éxito
 
-> El operador trabaja solo en “Projects/Services”; deploys existentes siguen funcionando; `/applications` responde con deprecation clara.
+> El operador ve containers y enlaces de logs por host desde la UI; deploys Project/Service siguen funcionando; `/applications` sigue deprecado sin romper clientes.

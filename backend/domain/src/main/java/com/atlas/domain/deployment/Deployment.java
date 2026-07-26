@@ -10,7 +10,7 @@ import lombok.Getter;
 public class Deployment {
 
     private final UUID id;
-    private final UUID applicationId;
+    private final UUID serviceId;
     private final UUID hostId;
     private DeploymentStatus status;
     private Instant startedAt;
@@ -21,7 +21,7 @@ public class Deployment {
 
     private Deployment(
             UUID id,
-            UUID applicationId,
+            UUID serviceId,
             UUID hostId,
             DeploymentStatus status,
             Instant startedAt,
@@ -30,17 +30,17 @@ public class Deployment {
             Instant createdAt,
             Instant updatedAt) {
         this.id = Objects.requireNonNull(id, "id is required");
-        this.applicationId = Objects.requireNonNull(applicationId, "applicationId is required");
+        this.serviceId = Objects.requireNonNull(serviceId, "serviceId is required");
         this.hostId = Objects.requireNonNull(hostId, "hostId is required");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
         apply(status, startedAt, finishedAt, logs, updatedAt);
     }
 
-    public static Deployment create(UUID applicationId, UUID hostId) {
+    public static Deployment create(UUID serviceId, UUID hostId) {
         Instant now = Instant.now();
         return new Deployment(
                 UUID.randomUUID(),
-                applicationId,
+                serviceId,
                 hostId,
                 DeploymentStatus.PENDING,
                 null,
@@ -52,7 +52,7 @@ public class Deployment {
 
     public static Deployment rehydrate(
             UUID id,
-            UUID applicationId,
+            UUID serviceId,
             UUID hostId,
             DeploymentStatus status,
             Instant startedAt,
@@ -61,15 +61,13 @@ public class Deployment {
             Instant createdAt,
             Instant updatedAt) {
         return new Deployment(
-                id,
-                applicationId,
-                hostId,
-                status,
-                startedAt,
-                finishedAt,
-                logs,
-                createdAt,
-                updatedAt);
+                id, serviceId, hostId, status, startedAt, finishedAt, logs, createdAt, updatedAt);
+    }
+
+    /** @deprecated use {@link #getServiceId()} */
+    @Deprecated
+    public UUID getApplicationId() {
+        return serviceId;
     }
 
     public void updateStatus(DeploymentStatus status, Instant startedAt, Instant finishedAt, String logs) {

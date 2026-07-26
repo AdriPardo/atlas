@@ -17,7 +17,7 @@ import {
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined'
-import AppsOutlinedIcon from '@mui/icons-material/AppsOutlined'
+import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined'
 import DnsOutlinedIcon from '@mui/icons-material/DnsOutlined'
 import RocketLaunchOutlinedIcon from '@mui/icons-material/RocketLaunchOutlined'
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
@@ -26,14 +26,22 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import { useAuth } from '../../features/auth/AuthContext'
 
-const drawerWidth = 236
+const drawerWidth = 244
 
-const navItems = [
-  { to: '/', label: 'Dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
-  { to: '/applications', label: 'Applications', icon: <AppsOutlinedIcon fontSize="small" /> },
-  { to: '/hosts', label: 'Hosts', icon: <DnsOutlinedIcon fontSize="small" /> },
-  { to: '/deployments', label: 'Deployments', icon: <RocketLaunchOutlinedIcon fontSize="small" /> },
-  { to: '/profile', label: 'Profile', icon: <PersonOutlinedIcon fontSize="small" /> },
+const navGroups = [
+  {
+    label: 'Operate',
+    items: [
+      { to: '/', label: 'Dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
+      { to: '/projects', label: 'Projects', icon: <FolderOutlinedIcon fontSize="small" /> },
+      { to: '/hosts', label: 'Hosts', icon: <DnsOutlinedIcon fontSize="small" /> },
+      { to: '/deployments', label: 'Deployments', icon: <RocketLaunchOutlinedIcon fontSize="small" /> },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [{ to: '/profile', label: 'Profile', icon: <PersonOutlinedIcon fontSize="small" /> }],
+  },
 ]
 
 interface AppLayoutProps {
@@ -42,11 +50,28 @@ interface AppLayoutProps {
 }
 
 function pageTitle(pathname: string): string {
-  if (pathname.startsWith('/applications')) return 'Applications'
+  if (pathname.startsWith('/projects') || pathname.startsWith('/applications')) return 'Projects'
   if (pathname.startsWith('/hosts')) return 'Hosts'
   if (pathname.startsWith('/deployments')) return 'Deployments'
   if (pathname.startsWith('/profile')) return 'Profile'
   return 'Dashboard'
+}
+
+function pageSubtitle(pathname: string): string {
+  if (pathname === '/') return 'Inventory & activity'
+  if (pathname === '/projects/new') return 'Create'
+  if (pathname.match(/^\/projects\/[^/]+\/edit$/)) return 'Edit'
+  if (pathname.match(/^\/projects\/[^/]+$/)) return 'Detail'
+  if (pathname.startsWith('/projects')) return 'Services & repos'
+  if (pathname === '/hosts/new') return 'Create'
+  if (pathname.match(/^\/hosts\/[^/]+\/edit$/)) return 'Edit'
+  if (pathname.match(/^\/hosts\/[^/]+$/)) return 'Detail'
+  if (pathname.startsWith('/hosts')) return 'Servers'
+  if (pathname === '/deployments/new') return 'Create'
+  if (pathname.match(/^\/deployments\/[^/]+$/)) return 'Detail'
+  if (pathname.startsWith('/deployments')) return 'Release history'
+  if (pathname.startsWith('/profile')) return 'Signed-in user'
+  return ''
 }
 
 export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
@@ -94,52 +119,65 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
         </Box>
       </Toolbar>
 
-      <List sx={{ px: 1.25, pt: 1, flex: 1 }}>
-        {navItems.map((item) => {
-          const selected =
-            item.to === '/'
-              ? location.pathname === '/'
-              : location.pathname.startsWith(item.to)
-          return (
-            <ListItemButton
-              key={item.to}
-              component={RouterLink}
-              to={item.to}
-              selected={selected}
-              onClick={() => setMobileOpen(false)}
-              sx={{
-                borderRadius: 1.5,
-                mb: 0.35,
-                py: 0.9,
-                position: 'relative',
-                '&::before': selected
-                  ? {
-                      content: '""',
-                      position: 'absolute',
-                      left: 0,
-                      top: 10,
-                      bottom: 10,
-                      width: 3,
-                      borderRadius: 2,
-                      bgcolor: 'primary.main',
-                    }
-                  : undefined,
-              }}
+      <Box sx={{ px: 1.25, pt: 0.5, flex: 1, overflowY: 'auto' }}>
+        {navGroups.map((group) => (
+          <Box key={group.label} sx={{ mb: 1.75 }}>
+            <Typography
+              variant="overline"
+              color="text.secondary"
+              sx={{ px: 1.5, display: 'block', mb: 0.5, opacity: 0.85 }}
             >
-              <ListItemIcon sx={{ minWidth: 36, color: selected ? 'inherit' : 'text.secondary' }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{
-                  fontSize: 14,
-                  fontWeight: selected ? 650 : 500,
-                }}
-              />
-            </ListItemButton>
-          )
-        })}
-      </List>
+              {group.label}
+            </Typography>
+            <List disablePadding>
+              {group.items.map((item) => {
+                const selected =
+                  item.to === '/'
+                    ? location.pathname === '/'
+                    : location.pathname.startsWith(item.to)
+                return (
+                  <ListItemButton
+                    key={item.to}
+                    component={RouterLink}
+                    to={item.to}
+                    selected={selected}
+                    onClick={() => setMobileOpen(false)}
+                    sx={{
+                      borderRadius: 1.5,
+                      mb: 0.35,
+                      py: 0.9,
+                      position: 'relative',
+                      '&::before': selected
+                        ? {
+                            content: '""',
+                            position: 'absolute',
+                            left: 0,
+                            top: 10,
+                            bottom: 10,
+                            width: 3,
+                            borderRadius: 2,
+                            bgcolor: 'primary.main',
+                          }
+                        : undefined,
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36, color: selected ? 'inherit' : 'text.secondary' }}>
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item.label}
+                      primaryTypographyProps={{
+                        fontSize: 14,
+                        fontWeight: selected ? 650 : 500,
+                      }}
+                    />
+                  </ListItemButton>
+                )
+              })}
+            </List>
+          </Box>
+        ))}
+      </Box>
 
       <Box
         sx={{
@@ -153,7 +191,7 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
             t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.55)',
         }}
       >
-        <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }} noWrap>
           {user?.username}
         </Typography>
         <Typography variant="caption" color="text.secondary" className="atlas-mono">
@@ -162,6 +200,8 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
       </Box>
     </Box>
   )
+
+  const subtitle = pageSubtitle(location.pathname)
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
@@ -180,9 +220,20 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
               <MenuIcon />
             </IconButton>
           )}
-          <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 650, letterSpacing: '-0.02em' }}>
-            {pageTitle(location.pathname)}
-          </Typography>
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 650, letterSpacing: '-0.02em', lineHeight: 1.2 }}
+              noWrap
+            >
+              {pageTitle(location.pathname)}
+            </Typography>
+            {subtitle && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.2 }}>
+                {subtitle}
+              </Typography>
+            )}
+          </Box>
           <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
             <IconButton onClick={onToggleMode} aria-label="Toggle theme">
               {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}

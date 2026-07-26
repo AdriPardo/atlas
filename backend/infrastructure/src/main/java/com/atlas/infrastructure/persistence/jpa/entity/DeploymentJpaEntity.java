@@ -14,8 +14,8 @@ public class DeploymentJpaEntity {
     @Id
     private UUID id;
 
-    @Column(name = "application_id", nullable = false)
-    private UUID applicationId;
+    @Column(name = "service_id", nullable = false)
+    private UUID serviceId;
 
     @Column(name = "host_id", nullable = false)
     private UUID hostId;
@@ -46,12 +46,12 @@ public class DeploymentJpaEntity {
         this.id = id;
     }
 
-    public UUID getApplicationId() {
-        return applicationId;
+    public UUID getServiceId() {
+        return serviceId;
     }
 
-    public void setApplicationId(UUID applicationId) {
-        this.applicationId = applicationId;
+    public void setServiceId(UUID serviceId) {
+        this.serviceId = serviceId;
     }
 
     public UUID getHostId() {

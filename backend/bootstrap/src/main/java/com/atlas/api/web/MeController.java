@@ -30,7 +30,7 @@ public class MeController {
     @GetMapping("/dashboard/stats")
     public ResponseEntity<DashboardStatsResponse> dashboardStats() {
         var stats = getDashboardStatsUseCase.execute();
-        return ResponseEntity.ok(
-                new DashboardStatsResponse(stats.applications(), stats.hosts(), stats.deployments()));
+        return ResponseEntity.ok(new DashboardStatsResponse(
+                stats.projects(), stats.applications(), stats.hosts(), stats.deployments()));
     }
 }

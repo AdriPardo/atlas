@@ -14,11 +14,13 @@ public interface DeploymentRepositoryPort {
     Optional<Deployment> findById(UUID id);
 
     PageResult<Deployment> search(
-            UUID applicationId, UUID hostId, DeploymentStatus status, PageQuery pageQuery);
+            UUID serviceId, UUID hostId, DeploymentStatus status, PageQuery pageQuery);
 
     void deleteById(UUID id);
 
-    boolean existsByApplicationId(UUID applicationId);
+    boolean existsByServiceId(UUID serviceId);
+
+    boolean existsByProjectId(UUID projectId);
 
     boolean existsByHostId(UUID hostId);
 

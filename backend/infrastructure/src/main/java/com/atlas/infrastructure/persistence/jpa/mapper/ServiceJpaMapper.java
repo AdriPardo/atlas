@@ -1,42 +1,44 @@
 package com.atlas.infrastructure.persistence.jpa.mapper;
 
-import com.atlas.domain.application.Application;
-import com.atlas.domain.application.ApplicationStatus;
-import com.atlas.infrastructure.persistence.jpa.entity.ApplicationJpaEntity;
+import com.atlas.domain.service.ServiceStatus;
+import com.atlas.domain.service.ServiceUnit;
+import com.atlas.infrastructure.persistence.jpa.entity.ServiceJpaEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ApplicationJpaMapper {
+public class ServiceJpaMapper {
 
-    public Application toDomain(ApplicationJpaEntity entity) {
+    public ServiceUnit toDomain(ServiceJpaEntity entity) {
         if (entity == null) {
             return null;
         }
-        return Application.rehydrate(
+        return ServiceUnit.rehydrate(
                 entity.getId(),
+                entity.getProjectId(),
                 entity.getName(),
-                entity.getDescription(),
                 entity.getRepositoryUrl(),
                 entity.getBranch(),
                 entity.getComposePath(),
                 entity.getDomain(),
-                ApplicationStatus.valueOf(entity.getStatus()),
+                entity.getEnvironment(),
+                ServiceStatus.valueOf(entity.getStatus()),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
     }
 
-    public ApplicationJpaEntity toEntity(Application domain) {
+    public ServiceJpaEntity toEntity(ServiceUnit domain) {
         if (domain == null) {
             return null;
         }
-        ApplicationJpaEntity entity = new ApplicationJpaEntity();
+        ServiceJpaEntity entity = new ServiceJpaEntity();
         entity.setId(domain.getId());
+        entity.setProjectId(domain.getProjectId());
         entity.setName(domain.getName());
-        entity.setDescription(domain.getDescription());
         entity.setRepositoryUrl(domain.getRepositoryUrl());
         entity.setBranch(domain.getBranch());
         entity.setComposePath(domain.getComposePath());
         entity.setDomain(domain.getDomain());
+        entity.setEnvironment(domain.getEnvironment());
         entity.setStatus(domain.getStatus().name());
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setUpdatedAt(domain.getUpdatedAt());

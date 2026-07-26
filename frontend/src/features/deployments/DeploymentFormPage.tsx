@@ -4,12 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Alert, Box, Button, MenuItem, Stack, TextField } from '@mui/material'
-import { applicationsApi, deploymentsApi, hostsApi } from '../../shared/api/endpoints'
+import { deploymentsApi, hostsApi, servicesApi } from '../../shared/api/endpoints'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 
 const schema = z.object({
-  applicationId: z.string().uuid(),
+  serviceId: z.string().uuid(),
   hostId: z.string().uuid(),
 })
 
@@ -19,9 +19,9 @@ export function DeploymentFormPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const appsQuery = useQuery({
-    queryKey: ['applications', 'options'],
-    queryFn: () => applicationsApi.list({ page: 0, size: 100 }),
+  const servicesQuery = useQuery({
+    queryKey: ['services', 'options'],
+    queryFn: () => servicesApi.list({ page: 0, size: 100 }),
   })
   const hostsQuery = useQuery({
     queryKey: ['hosts', 'options'],
@@ -51,7 +51,7 @@ export function DeploymentFormPage() {
     <PageShell maxWidth={720}>
       <PageHeader
         title="Create deployment"
-        description="Link an application to a host for a manual deployment record."
+        description="Link a service to a host for a manual deployment record."
       />
       <Box
         component="form"
@@ -71,15 +71,15 @@ export function DeploymentFormPage() {
         <Stack spacing={2}>
           <TextField
             select
-            label="Application"
+            label="Service"
             defaultValue=""
-            error={!!errors.applicationId}
-            helperText={errors.applicationId?.message}
-            {...register('applicationId')}
+            error={!!errors.serviceId}
+            helperText={errors.serviceId?.message}
+            {...register('serviceId')}
           >
-            {(appsQuery.data?.content ?? []).map((app) => (
-              <MenuItem key={app.id} value={app.id}>
-                {app.name}
+            {(servicesQuery.data?.content ?? []).map((svc) => (
+              <MenuItem key={svc.id} value={svc.id}>
+                {svc.name} ({svc.repositoryUrl})
               </MenuItem>
             ))}
           </TextField>

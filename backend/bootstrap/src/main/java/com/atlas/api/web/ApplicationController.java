@@ -16,10 +16,13 @@ import com.atlas.application.application.UpdateApplicationUseCase;
 import com.atlas.application.deployment.DeployApplicationUseCase;
 import com.atlas.application.shared.PageQuery;
 import com.atlas.domain.application.ApplicationStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,10 +34,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * @deprecated Prefer {@link ProjectController} / {@link ServiceController}. Maps 1:1 to Project +
+ *     default Service (ADR-0004).
+ */
+@Deprecated
 @RestController
 @RequestMapping("/api/v1/applications")
 @RequiredArgsConstructor
+@Tag(name = "Applications (deprecated)", description = "Deprecated alias for Projects + default Service")
 public class ApplicationController {
+
+    private static final String SUNSET = "Wed, 01 Jul 2027 00:00:00 GMT";
+    private static final String DEPRECATION_LINK =
+            "</api/v1/projects>; rel=\"successor-version\", </api/v1/services>; rel=\"alternate\"";
 
     private final CreateApplicationUseCase createApplicationUseCase;
     private final GetApplicationUseCase getApplicationUseCase;
@@ -45,6 +58,7 @@ public class ApplicationController {
     private final ApiMapper apiMapper;
 
     @PostMapping
+    @Operation(deprecated = true)
     public ResponseEntity<ApplicationResponse> create(@Valid @RequestBody CreateApplicationRequest request) {
         var application = createApplicationUseCase.execute(new CreateApplicationUseCase.CreateApplicationCommand(
                 request.name(),
@@ -53,16 +67,18 @@ public class ApplicationController {
                 request.branch(),
                 request.composePath(),
                 request.domain()));
-        return ResponseEntity.created(URI.create("/api/v1/applications/" + application.getId()))
-                .body(apiMapper.toApplicationResponse(application));
+        return deprecated(ResponseEntity.created(URI.create("/api/v1/applications/" + application.getId()))
+                .body(apiMapper.toApplicationResponse(application)));
     }
 
     @GetMapping("/{id}")
+    @Operation(deprecated = true)
     public ResponseEntity<ApplicationResponse> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(apiMapper.toApplicationResponse(getApplicationUseCase.execute(id)));
+        return deprecated(ResponseEntity.ok(apiMapper.toApplicationResponse(getApplicationUseCase.execute(id))));
     }
 
     @GetMapping
+    @Operation(deprecated = true)
     public ResponseEntity<PageResponse<ApplicationResponse>> list(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) ApplicationStatus status,
@@ -70,21 +86,23 @@ public class ApplicationController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
         var result = listApplicationsUseCase.execute(name, status, new PageQuery(page, size, sort));
-        return ResponseEntity.ok(PageResponses.from(result, apiMapper::toApplicationResponse));
+        return deprecated(ResponseEntity.ok(PageResponses.from(result, apiMapper::toApplicationResponse)));
     }
 
     @PostMapping("/{id}/deploy")
+    @Operation(deprecated = true)
     public ResponseEntity<DeployResponse> deploy(
             @PathVariable UUID id, @Valid @RequestBody DeployApplicationRequest request) {
         var result = deployApplicationUseCase.execute(id, request.hostId());
-        return ResponseEntity.accepted()
+        return deprecated(ResponseEntity.accepted()
                 .body(new DeployResponse(
                         result.deployment().getId(),
                         result.job().getId(),
-                        result.deployment().getStatus().name()));
+                        result.deployment().getStatus().name())));
     }
 
     @PutMapping("/{id}")
+    @Operation(deprecated = true)
     public ResponseEntity<ApplicationResponse> update(
             @PathVariable UUID id, @Valid @RequestBody UpdateApplicationRequest request) {
         var application = updateApplicationUseCase.execute(
@@ -97,12 +115,22 @@ public class ApplicationController {
                         request.composePath(),
                         request.domain(),
                         request.status()));
-        return ResponseEntity.ok(apiMapper.toApplicationResponse(application));
+        return deprecated(ResponseEntity.ok(apiMapper.toApplicationResponse(application)));
     }
 
     @DeleteMapping("/{id}")
+    @Operation(deprecated = true)
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         deleteApplicationUseCase.execute(id);
-        return ResponseEntity.noContent().build();
+        return deprecated(ResponseEntity.noContent().build());
+    }
+
+    private static <T> ResponseEntity<T> deprecated(ResponseEntity<T> response) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.putAll(response.getHeaders());
+        headers.add("Deprecation", "true");
+        headers.add("Sunset", SUNSET);
+        headers.add("Link", DEPRECATION_LINK);
+        return new ResponseEntity<>(response.getBody(), headers, response.getStatusCode());
     }
 }

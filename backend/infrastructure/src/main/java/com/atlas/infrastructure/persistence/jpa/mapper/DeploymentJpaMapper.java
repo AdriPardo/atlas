@@ -14,7 +14,7 @@ public class DeploymentJpaMapper {
         }
         return Deployment.rehydrate(
                 entity.getId(),
-                entity.getApplicationId(),
+                entity.getServiceId(),
                 entity.getHostId(),
                 DeploymentStatus.valueOf(entity.getStatus()),
                 entity.getStartedAt(),
@@ -30,7 +30,7 @@ public class DeploymentJpaMapper {
         }
         DeploymentJpaEntity entity = new DeploymentJpaEntity();
         entity.setId(domain.getId());
-        entity.setApplicationId(domain.getApplicationId());
+        entity.setServiceId(domain.getServiceId());
         entity.setHostId(domain.getHostId());
         entity.setStatus(domain.getStatus().name());
         entity.setStartedAt(domain.getStartedAt());

@@ -5,13 +5,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, Box, Button, MenuItem, Stack, TextField } from '@mui/material'
-import { applicationsApi } from '../../shared/api/endpoints'
-import type { ApplicationStatus } from '../../shared/types/api'
+import { projectsApi, servicesApi } from '../../shared/api/endpoints'
+import type { ProjectStatus } from '../../shared/types/api'
 import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 
-const statuses: ApplicationStatus[] = [
+const statuses: ProjectStatus[] = [
   'REGISTERED',
   'READY',
   'DEPLOYING',
@@ -32,17 +32,25 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
-export function ApplicationFormPage() {
+export function ProjectFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const detailQuery = useQuery({
-    queryKey: ['applications', id],
-    queryFn: () => applicationsApi.get(id!),
+    queryKey: ['projects', id],
+    queryFn: () => projectsApi.get(id!),
     enabled: isEdit,
   })
+
+  const servicesQuery = useQuery({
+    queryKey: ['projects', id, 'services'],
+    queryFn: () => projectsApi.listServices(id!, { size: 10 }),
+    enabled: isEdit,
+  })
+
+  const defaultService = servicesQuery.data?.content?.[0]
 
   const {
     register,
@@ -63,26 +71,46 @@ export function ApplicationFormPage() {
   })
 
   useEffect(() => {
-    if (detailQuery.data) {
+    if (detailQuery.data && defaultService) {
       reset({
         name: detailQuery.data.name,
         description: detailQuery.data.description,
-        repositoryUrl: detailQuery.data.repositoryUrl,
-        branch: detailQuery.data.branch,
-        composePath: detailQuery.data.composePath,
-        domain: detailQuery.data.domain,
+        repositoryUrl: defaultService.repositoryUrl,
+        branch: defaultService.branch,
+        composePath: defaultService.composePath,
+        domain: defaultService.domain,
         status: detailQuery.data.status,
       })
     }
-  }, [detailQuery.data, reset])
+  }, [detailQuery.data, defaultService, reset])
 
   const mutation = useMutation({
-    mutationFn: (values: FormValues) =>
-      isEdit ? applicationsApi.update(id!, values) : applicationsApi.create(values),
-    onSuccess: async (app) => {
-      await queryClient.invalidateQueries({ queryKey: ['applications'] })
+    mutationFn: async (values: FormValues) => {
+      if (!isEdit) {
+        return projectsApi.create(values)
+      }
+      const project = await projectsApi.update(id!, {
+        name: values.name,
+        description: values.description,
+        status: values.status,
+      })
+      if (defaultService) {
+        await servicesApi.update(defaultService.id, {
+          name: defaultService.name,
+          repositoryUrl: values.repositoryUrl,
+          branch: values.branch,
+          composePath: values.composePath,
+          domain: values.domain,
+          environment: defaultService.environment,
+          status: values.status,
+        })
+      }
+      return project
+    },
+    onSuccess: async (project) => {
+      await queryClient.invalidateQueries({ queryKey: ['projects'] })
       await queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
-      navigate(`/applications/${app.id}`)
+      navigate(`/projects/${project.id}`)
     },
   })
 
@@ -93,12 +121,16 @@ export function ApplicationFormPage() {
   return (
     <PageShell maxWidth={720}>
       <PageHeader
-        title={isEdit ? 'Edit application' : 'Create application'}
-        description={isEdit ? 'Update repository and compose settings.' : 'Register a new application definition.'}
+        title={isEdit ? 'Edit project' : 'Create project'}
+        description={
+          isEdit
+            ? 'Update project metadata and default service settings.'
+            : 'Creates a project with a default deployable service.'
+        }
       />
       <QueryState
-        isLoading={isEdit && detailQuery.isLoading}
-        isError={isEdit && detailQuery.isError}
+        isLoading={isEdit && (detailQuery.isLoading || servicesQuery.isLoading)}
+        isError={isEdit && (detailQuery.isError || servicesQuery.isError)}
       >
         <Box
           component="form"
@@ -112,7 +144,7 @@ export function ApplicationFormPage() {
         >
           {mutation.isError && (
             <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
-              Unable to save application
+              Unable to save project
             </Alert>
           )}
           <Stack spacing={2}>

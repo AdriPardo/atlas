@@ -6,6 +6,8 @@ import java.util.UUID;
 
 public record DeploymentResponse(
         UUID id,
+        UUID serviceId,
+        /** Deprecated alias of serviceId for transitional clients; prefer serviceId. */
         UUID applicationId,
         UUID hostId,
         DeploymentStatus status,

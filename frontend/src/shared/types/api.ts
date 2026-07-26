@@ -1,12 +1,17 @@
 export type Role = 'ADMIN' | 'OPERATOR'
 
-export type ApplicationStatus =
+export type ProjectStatus =
   | 'REGISTERED'
   | 'READY'
   | 'DEPLOYING'
   | 'RUNNING'
   | 'STOPPED'
   | 'FAILED'
+
+/** @deprecated Use ProjectStatus */
+export type ApplicationStatus = ProjectStatus
+
+export type ServiceStatus = ProjectStatus
 
 export type DeploymentStatus =
   | 'PENDING'
@@ -36,6 +41,32 @@ export interface User {
   role: Role
 }
 
+export interface Project {
+  id: string
+  organizationId: string
+  name: string
+  slug: string
+  description: string
+  status: ProjectStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Service {
+  id: string
+  projectId: string
+  name: string
+  repositoryUrl: string
+  branch: string
+  composePath: string
+  domain: string
+  environment: string
+  status: ServiceStatus
+  createdAt: string
+  updatedAt: string
+}
+
+/** @deprecated Prefer Project + Service */
 export interface Application {
   id: string
   name: string
@@ -66,7 +97,9 @@ export interface Host {
 
 export interface Deployment {
   id: string
-  applicationId: string
+  serviceId: string
+  /** @deprecated alias of serviceId */
+  applicationId?: string
   hostId: string
   status: DeploymentStatus
   startedAt: string | null
@@ -107,6 +140,7 @@ export interface DeployResponse {
 }
 
 export interface DashboardStats {
+  projects: number
   applications: number
   hosts: number
   deployments: number

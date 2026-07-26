@@ -2,6 +2,7 @@ package com.atlas;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,7 +43,7 @@ class AtlasIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    void loginAndCreateApplicationFlow() throws Exception {
+    void loginAndCreateApplicationAndProjectFlow() throws Exception {
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -69,12 +70,26 @@ class AtlasIntegrationTest {
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("billing"))
-                .andExpect(jsonPath("$.status").value("REGISTERED"));
+                .andExpect(jsonPath("$.status").value("REGISTERED"))
+                .andExpect(header().string("Deprecation", "true"));
 
         mockMvc.perform(get("/api/v1/applications")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1));
+
+        mockMvc.perform(get("/api/v1/projects")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("billing"))
+                .andExpect(jsonPath("$.content[0].slug").value("billing"));
+
+        mockMvc.perform(get("/api/v1/services")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("default"));
 
         mockMvc.perform(get("/api/v1/me")
                         .header("Authorization", "Bearer " + token))

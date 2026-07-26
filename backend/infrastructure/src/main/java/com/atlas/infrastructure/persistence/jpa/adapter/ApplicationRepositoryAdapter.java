@@ -1,76 +1,138 @@
 package com.atlas.infrastructure.persistence.jpa.adapter;
 
 import com.atlas.application.port.out.ApplicationRepositoryPort;
+import com.atlas.application.port.out.ProjectRepositoryPort;
+import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.application.shared.PageQuery;
 import com.atlas.application.shared.PageResult;
 import com.atlas.domain.application.Application;
 import com.atlas.domain.application.ApplicationStatus;
-import com.atlas.infrastructure.persistence.jpa.PageableFactory;
-import com.atlas.infrastructure.persistence.jpa.entity.ApplicationJpaEntity;
-import com.atlas.infrastructure.persistence.jpa.mapper.ApplicationJpaMapper;
-import com.atlas.infrastructure.persistence.jpa.repository.ApplicationJpaRepository;
-import jakarta.persistence.criteria.Predicate;
+import com.atlas.domain.project.Project;
+import com.atlas.domain.project.ProjectStatus;
+import com.atlas.domain.service.ServiceStatus;
+import com.atlas.domain.service.ServiceUnit;
+import com.atlas.domain.shared.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Anti-corruption layer: legacy Application aggregate over Project + default Service (ADR-0004).
+ * Application.id maps to Project.id.
+ */
 @Component
 @RequiredArgsConstructor
 public class ApplicationRepositoryAdapter implements ApplicationRepositoryPort {
 
-    private final ApplicationJpaRepository repository;
-    private final ApplicationJpaMapper mapper;
+    private final ProjectRepositoryPort projectRepository;
+    private final ServiceRepositoryPort serviceRepository;
 
     @Override
+    @Transactional
     public Application save(Application application) {
-        return mapper.toDomain(repository.save(mapper.toEntity(application)));
+        ProjectStatus projectStatus = ProjectStatus.valueOf(application.getStatus().name());
+        ServiceStatus serviceStatus = ServiceStatus.valueOf(application.getStatus().name());
+
+        Optional<Project> existing = projectRepository.findById(application.getId());
+        Project toSave;
+        if (existing.isPresent()) {
+            toSave = existing.get();
+            toSave.update(application.getName(), application.getDescription(), projectStatus);
+        } else {
+            toSave = Project.rehydrate(
+                    application.getId(),
+                    com.atlas.domain.organization.Organization.DEFAULT_ID,
+                    application.getName(),
+                    Project.slugify(application.getName()),
+                    application.getDescription(),
+                    projectStatus,
+                    application.getCreatedAt(),
+                    application.getUpdatedAt());
+        }
+        final Project project = projectRepository.save(toSave);
+
+        ServiceUnit service = serviceRepository
+                .findDefaultByProjectId(project.getId())
+                .orElseGet(() -> ServiceUnit.createDefault(
+                        project.getId(),
+                        application.getRepositoryUrl(),
+                        application.getBranch(),
+                        application.getComposePath(),
+                        application.getDomain()));
+        service.update(
+                service.getName(),
+                application.getRepositoryUrl(),
+                application.getBranch(),
+                application.getComposePath(),
+                application.getDomain(),
+                service.getEnvironment(),
+                serviceStatus);
+        serviceRepository.save(service);
+
+        return toApplication(project, service);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Application> findById(UUID id) {
-        return repository.findById(id).map(mapper::toDomain);
+        return projectRepository.findById(id).flatMap(project -> serviceRepository
+                .findDefaultByProjectId(project.getId())
+                .map(service -> toApplication(project, service)));
     }
 
     @Override
     public boolean existsByName(String name) {
-        return repository.existsByNameIgnoreCase(name);
+        return projectRepository.existsByName(name);
     }
 
     @Override
     public boolean existsByNameAndIdNot(String name, UUID id) {
-        return repository.existsByNameIgnoreCaseAndIdNot(name, id);
+        return projectRepository.existsByNameAndIdNot(name, id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PageResult<Application> search(String name, ApplicationStatus status, PageQuery pageQuery) {
-        Specification<ApplicationJpaEntity> specification = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (name != null && !name.isBlank()) {
-                predicates.add(cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
-            }
-            if (status != null) {
-                predicates.add(cb.equal(root.get("status"), status.name()));
-            }
-            return cb.and(predicates.toArray(Predicate[]::new));
-        };
-
-        Page<ApplicationJpaEntity> page = repository.findAll(specification, PageableFactory.from(pageQuery));
-        List<Application> content = page.getContent().stream().map(mapper::toDomain).toList();
-        return PageResult.of(content, page.getNumber(), page.getSize(), page.getTotalElements(), pageQuery.sort());
+        ProjectStatus projectStatus = status == null ? null : ProjectStatus.valueOf(status.name());
+        PageResult<Project> projects = projectRepository.search(name, projectStatus, pageQuery);
+        List<Application> content = new ArrayList<>();
+        for (Project project : projects.content()) {
+            ServiceUnit service = serviceRepository
+                    .findDefaultByProjectId(project.getId())
+                    .orElseThrow(() -> new NotFoundException(
+                            "Default service missing for project: " + project.getId()));
+            content.add(toApplication(project, service));
+        }
+        return PageResult.of(
+                content, projects.page(), projects.size(), projects.totalElements(), projects.sort());
     }
 
     @Override
+    @Transactional
     public void deleteById(UUID id) {
-        repository.deleteById(id);
+        projectRepository.deleteById(id);
     }
 
     @Override
     public long count() {
-        return repository.count();
+        return projectRepository.count();
+    }
+
+    private static Application toApplication(Project project, ServiceUnit service) {
+        return Application.rehydrate(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                service.getRepositoryUrl(),
+                service.getBranch(),
+                service.getComposePath(),
+                service.getDomain(),
+                ApplicationStatus.valueOf(service.getStatus().name()),
+                project.getCreatedAt(),
+                project.getUpdatedAt());
     }
 }

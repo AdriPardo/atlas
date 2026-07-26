@@ -8,17 +8,17 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "applications")
-public class ApplicationJpaEntity {
+@Table(name = "services")
+public class ServiceJpaEntity {
 
     @Id
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 150)
-    private String name;
+    @Column(name = "project_id", nullable = false)
+    private UUID projectId;
 
-    @Column(nullable = false, length = 1000)
-    private String description;
+    @Column(nullable = false, length = 150)
+    private String name;
 
     @Column(name = "repository_url", nullable = false, length = 500)
     private String repositoryUrl;
@@ -31,6 +31,9 @@ public class ApplicationJpaEntity {
 
     @Column(nullable = false, length = 255)
     private String domain;
+
+    @Column(nullable = false, length = 50)
+    private String environment;
 
     @Column(nullable = false, length = 50)
     private String status;
@@ -49,20 +52,20 @@ public class ApplicationJpaEntity {
         this.id = id;
     }
 
+    public UUID getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(UUID projectId) {
+        this.projectId = projectId;
+    }
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getRepositoryUrl() {
@@ -95,6 +98,14 @@ public class ApplicationJpaEntity {
 
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
     }
 
     public String getStatus() {

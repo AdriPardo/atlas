@@ -38,11 +38,11 @@ public class DeploymentRepositoryAdapter implements DeploymentRepositoryPort {
 
     @Override
     public PageResult<Deployment> search(
-            UUID applicationId, UUID hostId, DeploymentStatus status, PageQuery pageQuery) {
+            UUID serviceId, UUID hostId, DeploymentStatus status, PageQuery pageQuery) {
         Specification<DeploymentJpaEntity> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (applicationId != null) {
-                predicates.add(cb.equal(root.get("applicationId"), applicationId));
+            if (serviceId != null) {
+                predicates.add(cb.equal(root.get("serviceId"), serviceId));
             }
             if (hostId != null) {
                 predicates.add(cb.equal(root.get("hostId"), hostId));
@@ -64,8 +64,13 @@ public class DeploymentRepositoryAdapter implements DeploymentRepositoryPort {
     }
 
     @Override
-    public boolean existsByApplicationId(UUID applicationId) {
-        return repository.existsByApplicationId(applicationId);
+    public boolean existsByServiceId(UUID serviceId) {
+        return repository.existsByServiceId(serviceId);
+    }
+
+    @Override
+    public boolean existsByProjectId(UUID projectId) {
+        return repository.existsByProjectId(projectId);
     }
 
     @Override

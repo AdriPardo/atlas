@@ -42,8 +42,8 @@ public class DeploymentController {
 
     @PostMapping
     public ResponseEntity<DeploymentResponse> create(@Valid @RequestBody CreateDeploymentRequest request) {
-        var deployment = createDeploymentUseCase.execute(
-                new CreateDeploymentUseCase.CreateDeploymentCommand(request.applicationId(), request.hostId()));
+        var deployment = createDeploymentUseCase.execute(new CreateDeploymentUseCase.CreateDeploymentCommand(
+                request.serviceId(), request.applicationId(), request.hostId()));
         return ResponseEntity.created(URI.create("/api/v1/deployments/" + deployment.getId()))
                 .body(apiMapper.toDeploymentResponse(deployment));
     }
@@ -55,14 +55,15 @@ public class DeploymentController {
 
     @GetMapping
     public ResponseEntity<PageResponse<DeploymentResponse>> list(
+            @RequestParam(required = false) UUID serviceId,
             @RequestParam(required = false) UUID applicationId,
             @RequestParam(required = false) UUID hostId,
             @RequestParam(required = false) DeploymentStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
-        var result =
-                listDeploymentsUseCase.execute(applicationId, hostId, status, new PageQuery(page, size, sort));
+        var result = listDeploymentsUseCase.execute(
+                serviceId, applicationId, hostId, status, new PageQuery(page, size, sort));
         return ResponseEntity.ok(PageResponses.from(result, apiMapper::toDeploymentResponse));
     }
 

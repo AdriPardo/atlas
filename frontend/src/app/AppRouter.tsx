@@ -1,11 +1,11 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AppLayout } from '../shared/layout/AppLayout'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
 import { LoginPage } from '../features/auth/LoginPage'
 import { DashboardPage } from '../features/dashboard/DashboardPage'
-import { ApplicationsListPage } from '../features/applications/ApplicationsListPage'
-import { ApplicationDetailPage } from '../features/applications/ApplicationDetailPage'
-import { ApplicationFormPage } from '../features/applications/ApplicationFormPage'
+import { ProjectsListPage } from '../features/projects/ProjectsListPage'
+import { ProjectDetailPage } from '../features/projects/ProjectDetailPage'
+import { ProjectFormPage } from '../features/projects/ProjectFormPage'
 import { HostsListPage } from '../features/hosts/HostsListPage'
 import { HostDetailPage } from '../features/hosts/HostDetailPage'
 import { HostFormPage } from '../features/hosts/HostFormPage'
@@ -19,6 +19,11 @@ interface AppRouterProps {
   onToggleMode: () => void
 }
 
+function RedirectApplicationsToProjects({ suffix = '' }: { suffix?: string }) {
+  const { id } = useParams()
+  return <Navigate to={`/projects/${id}${suffix}`} replace />
+}
+
 export function AppRouter({ mode, onToggleMode }: AppRouterProps) {
   return (
     <BrowserRouter>
@@ -27,10 +32,14 @@ export function AppRouter({ mode, onToggleMode }: AppRouterProps) {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout mode={mode} onToggleMode={onToggleMode} />}>
             <Route index element={<DashboardPage />} />
-            <Route path="applications" element={<ApplicationsListPage />} />
-            <Route path="applications/new" element={<ApplicationFormPage />} />
-            <Route path="applications/:id" element={<ApplicationDetailPage />} />
-            <Route path="applications/:id/edit" element={<ApplicationFormPage />} />
+            <Route path="projects" element={<ProjectsListPage />} />
+            <Route path="projects/new" element={<ProjectFormPage />} />
+            <Route path="projects/:id" element={<ProjectDetailPage />} />
+            <Route path="projects/:id/edit" element={<ProjectFormPage />} />
+            <Route path="applications" element={<Navigate to="/projects" replace />} />
+            <Route path="applications/new" element={<Navigate to="/projects/new" replace />} />
+            <Route path="applications/:id" element={<RedirectApplicationsToProjects />} />
+            <Route path="applications/:id/edit" element={<RedirectApplicationsToProjects suffix="/edit" />} />
             <Route path="hosts" element={<HostsListPage />} />
             <Route path="hosts/new" element={<HostFormPage />} />
             <Route path="hosts/:id" element={<HostDetailPage />} />

@@ -21,7 +21,7 @@ public class DeleteApplicationUseCase {
         if (applicationRepository.findById(id).isEmpty()) {
             throw new NotFoundException("Application not found: " + id);
         }
-        if (deploymentRepository.existsByApplicationId(id)) {
+        if (deploymentRepository.existsByProjectId(id)) {
             throw new ConflictException("Cannot delete application with existing deployments");
         }
         applicationRepository.deleteById(id);

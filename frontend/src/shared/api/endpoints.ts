@@ -1,6 +1,5 @@
 import { api } from './client'
 import type {
-  Application,
   DashboardStats,
   DeployResponse,
   Deployment,
@@ -8,7 +7,9 @@ import type {
   Job,
   LoginResponse,
   PageResponse,
+  Project,
   SecretMeta,
+  Service,
   User,
 } from '../types/api'
 
@@ -24,17 +25,59 @@ export const meApi = {
   stats: () => api.get<DashboardStats>('/dashboard/stats').then((r) => r.data),
 }
 
-export const applicationsApi = {
+export const projectsApi = {
   list: (params?: Record<string, string | number | undefined>) =>
-    api.get<PageResponse<Application>>('/applications', { params }).then((r) => r.data),
-  get: (id: string) => api.get<Application>(`/applications/${id}`).then((r) => r.data),
-  create: (body: Partial<Application>) =>
-    api.post<Application>('/applications', body).then((r) => r.data),
-  update: (id: string, body: Partial<Application>) =>
-    api.put<Application>(`/applications/${id}`, body).then((r) => r.data),
-  remove: (id: string) => api.delete(`/applications/${id}`),
+    api.get<PageResponse<Project>>('/projects', { params }).then((r) => r.data),
+  get: (id: string) => api.get<Project>(`/projects/${id}`).then((r) => r.data),
+  create: (body: {
+    name: string
+    description?: string
+    repositoryUrl: string
+    branch: string
+    composePath: string
+    domain?: string
+  }) => api.post<Project>('/projects', body).then((r) => r.data),
+  update: (id: string, body: { name: string; description?: string; status: string }) =>
+    api.put<Project>(`/projects/${id}`, body).then((r) => r.data),
+  remove: (id: string) => api.delete(`/projects/${id}`),
+  listServices: (projectId: string, params?: Record<string, string | number | undefined>) =>
+    api
+      .get<PageResponse<Service>>(`/projects/${projectId}/services`, { params })
+      .then((r) => r.data),
+  createService: (
+    projectId: string,
+    body: {
+      name?: string
+      repositoryUrl: string
+      branch: string
+      composePath: string
+      domain?: string
+      environment?: string
+    },
+  ) => api.post<Service>(`/projects/${projectId}/services`, body).then((r) => r.data),
+  deploy: (projectId: string, hostId: string) =>
+    api.post<DeployResponse>(`/projects/${projectId}/deploy`, { hostId }).then((r) => r.data),
+}
+
+export const servicesApi = {
+  list: (params?: Record<string, string | number | undefined>) =>
+    api.get<PageResponse<Service>>('/services', { params }).then((r) => r.data),
+  get: (id: string) => api.get<Service>(`/services/${id}`).then((r) => r.data),
+  update: (
+    id: string,
+    body: {
+      name: string
+      repositoryUrl: string
+      branch: string
+      composePath: string
+      domain?: string
+      environment?: string
+      status: string
+    },
+  ) => api.put<Service>(`/services/${id}`, body).then((r) => r.data),
+  remove: (id: string) => api.delete(`/services/${id}`),
   deploy: (id: string, hostId: string) =>
-    api.post<DeployResponse>(`/applications/${id}/deploy`, { hostId }).then((r) => r.data),
+    api.post<DeployResponse>(`/services/${id}/deploy`, { hostId }).then((r) => r.data),
 }
 
 export const hostsApi = {
@@ -52,7 +95,7 @@ export const deploymentsApi = {
   list: (params?: Record<string, string | number | undefined>) =>
     api.get<PageResponse<Deployment>>('/deployments', { params }).then((r) => r.data),
   get: (id: string) => api.get<Deployment>(`/deployments/${id}`).then((r) => r.data),
-  create: (body: { applicationId: string; hostId: string }) =>
+  create: (body: { serviceId: string; hostId: string }) =>
     api.post<Deployment>('/deployments', body).then((r) => r.data),
   update: (id: string, body: Partial<Deployment>) =>
     api.put<Deployment>(`/deployments/${id}`, body).then((r) => r.data),
