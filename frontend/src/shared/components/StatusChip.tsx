@@ -1,4 +1,4 @@
-import { Chip, type ChipProps } from '@mui/material'
+import { Box, Chip, type ChipProps } from '@mui/material'
 
 type StatusTone = 'default' | 'success' | 'warning' | 'error' | 'info'
 
@@ -6,15 +6,19 @@ const STATUS_TONE: Record<string, StatusTone> = {
   REGISTERED: 'default',
   READY: 'info',
   DEPLOYING: 'warning',
-  RUNNING: 'success',
+  RUNNING: 'warning',
   STOPPED: 'default',
   FAILED: 'error',
-  PENDING: 'default',
+  PENDING: 'info',
   SUCCEEDED: 'success',
   CANCELLED: 'default',
   ONLINE: 'success',
   OFFLINE: 'default',
+  LOCAL: 'info',
+  SSH: 'default',
 }
+
+const LIVE_STATUSES = new Set(['DEPLOYING', 'RUNNING', 'PENDING'])
 
 interface StatusChipProps {
   label: string
@@ -22,6 +26,35 @@ interface StatusChipProps {
 }
 
 export function StatusChip({ label, size = 'small' }: StatusChipProps) {
-  const tone = STATUS_TONE[label.toUpperCase()] ?? 'default'
-  return <Chip size={size} label={label} color={tone === 'default' ? 'default' : tone} variant="outlined" />
+  const key = label.toUpperCase()
+  const tone = STATUS_TONE[key] ?? 'default'
+  const live = LIVE_STATUSES.has(key)
+
+  return (
+    <Chip
+      size={size}
+      label={
+        live ? (
+          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+            <Box
+              component="span"
+              className="atlas-status-pulse"
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                bgcolor: 'currentColor',
+                flexShrink: 0,
+              }}
+            />
+            {label}
+          </Box>
+        ) : (
+          label
+        )
+      }
+      color={tone === 'default' ? 'default' : tone}
+      variant="outlined"
+    />
+  )
 }

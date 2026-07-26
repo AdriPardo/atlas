@@ -19,19 +19,34 @@ export function DataTableFrame({ children, toolbar }: DataTableFrameProps) {
       {toolbar && (
         <Box
           sx={{
-            px: 2,
+            px: { xs: 1.5, sm: 2 },
             py: 1.5,
             borderBottom: (t) => `1px solid ${t.palette.divider}`,
             display: 'flex',
             alignItems: 'center',
-            gap: 2,
+            gap: 1.5,
             flexWrap: 'wrap',
           }}
         >
           {toolbar}
         </Box>
       )}
-      <Box sx={{ overflowX: 'auto' }}>{children}</Box>
+      <Box
+        sx={{
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          '& .MuiTable-root': { minWidth: 560 },
+          '& .MuiTableCell-root': {
+            whiteSpace: { xs: 'nowrap', md: 'normal' },
+            py: { xs: 1.1, md: 1.25 },
+          },
+          '& .MuiTableCell-head': {
+            py: 1.15,
+          },
+        }}
+      >
+        {children}
+      </Box>
     </Box>
   )
 }
