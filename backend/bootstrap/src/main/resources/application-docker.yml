@@ -10,7 +10,7 @@ spring:
 atlas:
   security:
     cors:
-      allowed-origins: ${ATLAS_CORS_ORIGINS:http://localhost}
+      allowed-origins: ${ATLAS_CORS_ORIGINS:http://localhost,https://atlas.atlasops.dev}
     authentik:
       enabled: ${ATLAS_AUTHENTIK_ENABLED:true}
   worker:
