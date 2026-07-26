@@ -26,6 +26,13 @@ export type JobStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCEL
 
 export type JobType = 'DEPLOY_SERVICE' | 'SYNC_HOST'
 
+export type PipelineRunStatus =
+  | 'PENDING'
+  | 'RUNNING'
+  | 'SUCCEEDED'
+  | 'FAILED'
+  | 'CANCELLED'
+
 export interface PageResponse<T> {
   content: T[]
   page: number
@@ -173,4 +180,28 @@ export interface ObservabilitySettings {
   lokiBaseUrl: string
   configured: boolean
   hostMetricsUrl: string
+}
+
+export interface Pipeline {
+  id: string
+  projectId: string
+  name: string
+  serviceId: string
+  hostId: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PipelineRun {
+  id: string
+  pipelineId: string
+  status: PipelineRunStatus
+  triggeredBy: string
+  deploymentId: string | null
+  jobId: string | null
+  startedAt: string | null
+  finishedAt: string | null
+  lastError: string | null
+  createdAt: string
+  updatedAt: string
 }

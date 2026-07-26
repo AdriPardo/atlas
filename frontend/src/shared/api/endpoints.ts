@@ -10,6 +10,8 @@ import type {
   LoginResponse,
   ObservabilitySettings,
   PageResponse,
+  Pipeline,
+  PipelineRun,
   Project,
   SecretMeta,
   Service,
@@ -107,6 +109,20 @@ export const hostsApi = {
 export const settingsApi = {
   observability: () =>
     api.get<ObservabilitySettings>('/settings/observability').then((r) => r.data),
+}
+
+export const pipelinesApi = {
+  list: (params?: Record<string, string | number | undefined>) =>
+    api.get<PageResponse<Pipeline>>('/pipelines', { params }).then((r) => r.data),
+  get: (id: string) => api.get<Pipeline>(`/pipelines/${id}`).then((r) => r.data),
+  create: (body: { projectId: string; name: string; serviceId: string; hostId: string }) =>
+    api.post<Pipeline>('/pipelines', body).then((r) => r.data),
+  update: (id: string, body: { name: string; serviceId: string; hostId: string }) =>
+    api.put<Pipeline>(`/pipelines/${id}`, body).then((r) => r.data),
+  remove: (id: string) => api.delete(`/pipelines/${id}`),
+  run: (id: string) => api.post<PipelineRun>(`/pipelines/${id}/runs`).then((r) => r.data),
+  listRuns: (id: string, params?: Record<string, string | number | undefined>) =>
+    api.get<PageResponse<PipelineRun>>(`/pipelines/${id}/runs`, { params }).then((r) => r.data),
 }
 
 export const deploymentsApi = {

@@ -12,6 +12,9 @@ import { HostFormPage } from '../features/hosts/HostFormPage'
 import { DeploymentsListPage } from '../features/deployments/DeploymentsListPage'
 import { DeploymentDetailPage } from '../features/deployments/DeploymentDetailPage'
 import { DeploymentFormPage } from '../features/deployments/DeploymentFormPage'
+import { PipelinesListPage } from '../features/pipelines/PipelinesListPage'
+import { PipelineDetailPage } from '../features/pipelines/PipelineDetailPage'
+import { PipelineFormPage } from '../features/pipelines/PipelineFormPage'
 import { ProfilePage } from '../features/profile/ProfilePage'
 
 interface AppRouterProps {
@@ -47,6 +50,9 @@ export function AppRouter({ mode, onToggleMode }: AppRouterProps) {
             <Route path="deployments" element={<DeploymentsListPage />} />
             <Route path="deployments/new" element={<DeploymentFormPage />} />
             <Route path="deployments/:id" element={<DeploymentDetailPage />} />
+            <Route path="pipelines" element={<PipelinesListPage />} />
+            <Route path="pipelines/new" element={<PipelineFormPage />} />
+            <Route path="pipelines/:id" element={<PipelineDetailPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
         </Route>

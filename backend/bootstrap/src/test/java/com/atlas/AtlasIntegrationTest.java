@@ -181,4 +181,91 @@ class AtlasIntegrationTest {
                 .andExpect(jsonPath("$.configured").exists())
                 .andExpect(jsonPath("$.grafanaBaseUrl").exists());
     }
+
+    @Test
+    void pipelineCreateAndListRunsSmoke() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+
+        MvcResult project = mockMvc.perform(post("/api/v1/projects")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"pipeline-demo",
+                                  "description":"Pipeline smoke",
+                                  "repositoryUrl":"https://git.example/demo.git",
+                                  "branch":"main",
+                                  "composePath":"./docker-compose.yml",
+                                  "domain":"demo.local"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String projectId = com.jayway.jsonpath.JsonPath.read(project.getResponse().getContentAsString(), "$.id");
+
+        MvcResult services = mockMvc.perform(get("/api/v1/projects/" + projectId + "/services")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").isNotEmpty())
+                .andReturn();
+
+        String serviceId =
+                com.jayway.jsonpath.JsonPath.read(services.getResponse().getContentAsString(), "$.content[0].id");
+
+        MvcResult host = mockMvc.perform(post("/api/v1/hosts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "hostname":"pipeline-host",
+                                  "ip":"10.0.0.9",
+                                  "operatingSystem":"linux",
+                                  "dockerVersion":"",
+                                  "online":true,
+                                  "connectionType":"LOCAL"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String hostId = com.jayway.jsonpath.JsonPath.read(host.getResponse().getContentAsString(), "$.id");
+
+        MvcResult pipeline = mockMvc.perform(post("/api/v1/pipelines")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "projectId":"%s",
+                                  "name":"deploy-default",
+                                  "serviceId":"%s",
+                                  "hostId":"%s"
+                                }
+                                """.formatted(projectId, serviceId, hostId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("deploy-default"))
+                .andReturn();
+
+        String pipelineId = com.jayway.jsonpath.JsonPath.read(pipeline.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(get("/api/v1/pipelines/" + pipelineId + "/runs")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+
+        mockMvc.perform(post("/api/v1/pipelines/" + pipelineId + "/runs")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.status").value("RUNNING"))
+                .andExpect(jsonPath("$.deploymentId").isNotEmpty())
+                .andExpect(jsonPath("$.jobId").isNotEmpty());
+    }
 }
