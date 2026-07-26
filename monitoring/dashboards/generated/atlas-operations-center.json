@@ -1,0 +1,1026 @@
+{
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 2,
+  "fiscalYearStartMonth": 0,
+  "schemaVersion": 41,
+  "templating": {},
+  "annotations": {},
+  "title": "Atlas Operations Center",
+  "uid": "atlas-operations-center",
+  "tags": [
+    "atlas",
+    "operations"
+  ],
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "type": "row",
+      "collapsed": false,
+      "panels": [],
+      "title": "Executive Status",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "h": 1,
+        "w": 24
+      }
+    },
+    {
+      "type": "stat",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "graphMode": "none",
+        "colorMode": "background",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "percentChangeColorMode": "standard",
+        "orientation": "auto"
+      },
+      "title": "Platform Health",
+      "description": "Derived from firing ALERTS: CRITICAL (2) > WARNING (1) > HEALTHY (0). Uses non-bool comparisons so `or` priority works in PromQL.",
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "( count(ALERTS{alertstate=\"firing\",severity=\"critical\"}) > 0 ) * 2 or ( count(ALERTS{alertstate=\"firing\",severity=\"warning\"}) > 0 ) * 1 or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "yellow"
+              },
+              {
+                "value": 2,
+                "color": "red"
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "HEALTHY",
+                  "color": "green"
+                },
+                "1": {
+                  "text": "WARNING",
+                  "color": "yellow"
+                },
+                "2": {
+                  "text": "CRITICAL",
+                  "color": "red"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "graphMode": "none",
+        "colorMode": "background",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "percentChangeColorMode": "standard",
+        "orientation": "auto"
+      },
+      "title": "Critical Alerts",
+      "description": "Count of firing alerts with severity=critical.",
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\",severity=\"critical\"}) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "red"
+              }
+            ]
+          },
+          "noValue": "0"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "graphMode": "none",
+        "colorMode": "background",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "percentChangeColorMode": "standard",
+        "orientation": "auto"
+      },
+      "title": "Warning Alerts",
+      "description": "Count of firing alerts with severity=warning.",
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\",severity=\"warning\"}) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "yellow"
+              }
+            ]
+          },
+          "noValue": "0"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "graphMode": "none",
+        "colorMode": "background",
+        "justifyMode": "auto",
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "limit": 2
+        },
+        "percentChangeColorMode": "standard",
+        "orientation": "auto"
+      },
+      "title": "Services UP",
+      "description": "Instant counts: query A = `count(up == 1)` (UP), query B = `count(up)` (TOTAL). Display shows both series (e.g. 8 and 8).",
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(up == 1)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": "UP"
+        },
+        {
+          "expr": "count(up)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "B",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": "TOTAL"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "0"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "percentChangeColorMode": "standard",
+        "orientation": "auto"
+      },
+      "title": "Host Uptime",
+      "description": "Time since last host boot from node_exporter (`node_boot_time_seconds`).",
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "time() - max(node_boot_time_seconds)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations",
+          "decimals": 0
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "text",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "mode": "markdown",
+        "content": "<div style=\"display:flex;align-items:center;justify-content:center;height:100%;\">\n<span style=\"font-size:22px;font-weight:600;color:#9aa0a6;\">NOT CONFIGURED</span>\n</div>\n\n_Backup telemetry has not yet been integrated into Prometheus._"
+      },
+      "title": "Last Backup",
+      "description": "Backup telemetry has not yet been integrated into Prometheus.",
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      }
+    },
+    {
+      "type": "row",
+      "collapsed": false,
+      "panels": [],
+      "title": "Host Resources",
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "h": 1,
+        "w": 24
+      }
+    },
+    {
+      "type": "stat",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "graphMode": "none",
+        "colorMode": "background",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "percentChangeColorMode": "standard",
+        "orientation": "auto"
+      },
+      "title": "CPU Usage",
+      "description": "Average non-idle CPU across all cores (5m rate).",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 - ( avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100 )",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 70,
+                "color": "yellow"
+              },
+              {
+                "value": 90,
+                "color": "red"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "graphMode": "none",
+        "colorMode": "background",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "percentChangeColorMode": "standard",
+        "orientation": "auto"
+      },
+      "title": "Memory Usage",
+      "description": "Percent of memory in use from MemAvailable/MemTotal (averaged if multiple series).",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * ( 1 - ( avg(node_memory_MemAvailable_bytes) / avg(node_memory_MemTotal_bytes) ) )",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 75,
+                "color": "yellow"
+              },
+              {
+                "value": 90,
+                "color": "red"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "graphMode": "none",
+        "colorMode": "background",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "percentChangeColorMode": "standard",
+        "orientation": "auto"
+      },
+      "title": "Root Filesystem Usage",
+      "description": "Usage of mountpoint \"/\" excluding tmpfs/overlay/squashfs.",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * ( 1 - ( avg( node_filesystem_avail_bytes{ mountpoint=\"/\", fstype!~\"tmpfs|overlay|squashfs\" } ) / avg( node_filesystem_size_bytes{ mountpoint=\"/\", fstype!~\"tmpfs|overlay|squashfs\" } ) ) )",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 80,
+                "color": "yellow"
+              },
+              {
+                "value": 90,
+                "color": "red"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "percentChangeColorMode": "standard",
+        "orientation": "auto"
+      },
+      "title": "Network Throughput",
+      "description": "Sum of receive+transmit bytes/sec on non-virtual interfaces (excludes lo/veth/br/docker).",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum( rate(node_network_receive_bytes_total{ device!~\"lo|veth.*|br-.*|docker.*\" }[5m]) ) + sum( rate(node_network_transmit_bytes_total{ device!~\"lo|veth.*|br-.*|docker.*\" }[5m]) )",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "time_series",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "decimals": 1
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "row",
+      "collapsed": false,
+      "panels": [],
+      "title": "Service Status",
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "h": 1,
+        "w": 24
+      }
+    },
+    {
+      "type": "table",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "frameIndex": 0,
+        "showHeader": true,
+        "showTypeIcons": false,
+        "footer": {
+          "show": false,
+          "reducer": [],
+          "countRows": false
+        },
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Status",
+            "desc": false
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "inspect": false
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "title": "Service Status",
+      "description": "Prometheus scrape target health (`up`). DOWN rows sort first. Dashboard links appear only when a matching UID exists under monitoring/dashboards/official.",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "up{job!=\"\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "table",
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "Environment": true,
+              "cluster": true,
+              "container": true,
+              "endpoint": true,
+              "namespace": true,
+              "pod": true,
+              "prometheus": true,
+              "prometheus_replica": true,
+              "service": true,
+              "MetricsPath": true
+            },
+            "renameByName": {
+              "job": "Service",
+              "instance": "Instance",
+              "Value": "Status"
+            },
+            "indexByName": {
+              "Service": 0,
+              "Instance": 1,
+              "Status": 2
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Status",
+                "desc": false
+              },
+              {
+                "field": "Service",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "collapsed": false,
+      "panels": [],
+      "title": "Alerts and Logs",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "h": 1,
+        "w": 24
+      }
+    },
+    {
+      "type": "table",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "frameIndex": 0,
+        "showHeader": true,
+        "showTypeIcons": false,
+        "footer": {
+          "show": false,
+          "reducer": [],
+          "countRows": false
+        },
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Severity",
+            "desc": false
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "inspect": false
+          },
+          "noValue": "No active alerts",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "critical": {
+                  "text": "critical",
+                  "color": "red"
+                },
+                "warning": {
+                  "text": "warning",
+                  "color": "yellow"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "title": "Active Alerts",
+      "description": "Firing alerts from Prometheus `ALERTS`. Empty result means no active alerts (not an error).",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "ALERTS{alertstate=\"firing\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "table",
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "Value": true,
+              "alertstate": true,
+              "prometheus": true,
+              "prometheus_replica": true
+            },
+            "renameByName": {
+              "severity": "Severity",
+              "alertname": "Alert",
+              "job": "Service",
+              "instance": "Instance"
+            },
+            "indexByName": {
+              "Severity": 0,
+              "Alert": 1,
+              "Service": 2,
+              "Instance": 3
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Severity",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "logs",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "showLabels": false,
+        "showCommonLabels": false,
+        "showTime": true,
+        "showLogContextToggle": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "exact"
+      },
+      "title": "Recent Warnings and Errors",
+      "description": "LogQL uses a generic stream selector until Alloy labels are verified on the host. See monitoring/dashboard-generator/src/config/loki.ts and README.",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "expr": "{job=~\".+\"} |~ \"(?i)error|warn|warning|fatal|panic\"",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "refId": "A",
+          "maxLines": 100
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "collapsed": false,
+      "panels": [],
+      "title": "Quick Links",
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "h": 1,
+        "w": 24
+      }
+    },
+    {
+      "type": "text",
+      "transparent": false,
+      "repeatDirection": "h",
+      "options": {
+        "mode": "markdown",
+        "content": "### Quick Links\n\n- **Homepage** — _URL not configured_ (edit `src/config/urls.ts`)\n- **Prometheus** — _URL not configured_ (edit `src/config/urls.ts`)\n- **Alertmanager** — _URL not configured_ (edit `src/config/urls.ts`)\n- **Grafana** — _URL not configured_ (edit `src/config/urls.ts`)\n- **Loki** — _URL not configured_ (edit `src/config/urls.ts`)\n- **Traefik** — _URL not configured_ (edit `src/config/urls.ts`)\n- [GitHub](https://github.com/AdriPardo/atlas)\n- **Proxmox** — _URL not configured_ (edit `src/config/urls.ts`)\n\n_Only GitHub is hard-coded from repository evidence. Fill the remaining URLs in `src/config/urls.ts`, then regenerate._"
+      },
+      "title": "Quick Links",
+      "description": "Operational entry points for Atlas. Unconfigured destinations are intentional until hostnames are confirmed in repo or provisioning.",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      }
+    }
+  ]
+}
