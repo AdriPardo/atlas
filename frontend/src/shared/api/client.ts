@@ -25,6 +25,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      const url = String(error.config?.url ?? '')
+      // SSO probe failing is expected without Authentik headers (local/dev).
+      if (url.includes('/auth/sso')) {
+        return Promise.reject(error)
+      }
       tokenStorage.clear()
       if (!window.location.pathname.startsWith('/login')) {
         window.location.assign('/login')

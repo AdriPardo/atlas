@@ -16,3 +16,6 @@ atlas:
     admin:
       username: admin
       password: test-password
+    authentik:
+      enabled: true
+      admin-group: Atlas Admins

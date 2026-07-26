@@ -29,4 +29,16 @@ public class User {
     public static User rehydrate(UUID id, String username, String passwordHash, Role role) {
         return new User(id, username, passwordHash, role);
     }
+
+    /** Provisions a user authenticated via external SSO (unusable local password hash). */
+    public static User createSso(String username, String unusablePasswordHash, Role role) {
+        return new User(UUID.randomUUID(), username, unusablePasswordHash, role);
+    }
+
+    public User withRole(Role newRole) {
+        if (this.role == newRole) {
+            return this;
+        }
+        return new User(id, username, passwordHash, newRole);
+    }
 }

@@ -82,4 +82,46 @@ class AtlasIntegrationTest {
                 .andExpect(jsonPath("$.username").value("admin"))
                 .andExpect(jsonPath("$.role").value("ADMIN"));
     }
+
+    @Test
+    void authentikSsoProvisionsUserAndIssuesJwt() throws Exception {
+        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+                        .header("X-authentik-username", "sso-user")
+                        .header("X-authentik-groups", "Atlas Admins")
+                        .header("X-authentik-email", "sso@example.com")
+                        .header("X-authentik-name", "SSO User")
+                        .header("X-authentik-uid", "uid-sso"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andReturn();
+
+        String token = com.jayway.jsonpath.JsonPath.read(sso.getResponse().getContentAsString(), "$.accessToken");
+
+        mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("sso-user"))
+                .andExpect(jsonPath("$.role").value("ADMIN"));
+    }
+
+    @Test
+    void authentikSsoWithoutHeadersReturnsUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/sso")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void authentikSsoMapsOperatorWithoutAdminGroup() throws Exception {
+        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+                        .header("X-authentik-username", "ops-user")
+                        .header("X-authentik-groups", "viewers|operators"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = com.jayway.jsonpath.JsonPath.read(sso.getResponse().getContentAsString(), "$.accessToken");
+
+        mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("ops-user"))
+                .andExpect(jsonPath("$.role").value("OPERATOR"));
+    }
 }

@@ -11,3 +11,5 @@ atlas:
   security:
     cors:
       allowed-origins: ${ATLAS_CORS_ORIGINS:http://localhost}
+    authentik:
+      enabled: ${ATLAS_AUTHENTIK_ENABLED:true}

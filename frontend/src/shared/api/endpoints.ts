@@ -12,6 +12,8 @@ import type {
 export const authApi = {
   login: (username: string, password: string) =>
     api.post<LoginResponse>('/auth/login', { username, password }).then((r) => r.data),
+  /** Mint Atlas JWT from Authentik ForwardAuth headers (no body). */
+  sso: () => api.get<LoginResponse>('/auth/sso').then((r) => r.data),
 }
 
 export const meApi = {

@@ -41,6 +41,11 @@ atlas:
     admin:
       username: ${ATLAS_ADMIN_USERNAME:admin}
       password: ${ATLAS_ADMIN_PASSWORD:ChangeMe123!}
+    authentik:
+      # Trust X-authentik-* ForwardAuth headers only when enabled (docker/prod behind Traefik).
+      enabled: ${ATLAS_AUTHENTIK_ENABLED:false}
+      # Group name substring → ADMIN; everyone else → OPERATOR (Authentik: pipe-separated groups).
+      admin-group: ${ATLAS_AUTHENTIK_ADMIN_GROUP:Atlas Admins}
 
 springdoc:
   api-docs:

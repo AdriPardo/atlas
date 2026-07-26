@@ -151,7 +151,7 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
                 Sign in
               </Typography>
               <Typography color="text.secondary" variant="body2">
-                Use your Atlas credentials to continue.
+                Local development credentials. Behind Authentik you are signed in automatically.
               </Typography>
             </Box>
 

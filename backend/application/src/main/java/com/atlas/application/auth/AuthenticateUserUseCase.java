@@ -32,6 +32,4 @@ public class AuthenticateUserUseCase {
     }
 
     public record AuthenticateCommand(String username, String password) {}
-
-    public record AuthenticationResult(String accessToken, String tokenType, long expiresIn) {}
 }

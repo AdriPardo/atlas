@@ -21,22 +21,35 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
+async function tryAuthentikSso(): Promise<User | null> {
+  try {
+    const result = await authApi.sso()
+    tokenStorage.set(result.accessToken)
+    return await meApi.get()
+  } catch {
+    return null
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   const refreshUser = useCallback(async () => {
-    if (!tokenStorage.get()) {
-      setUser(null)
-      setLoading(false)
-      return
-    }
+    setLoading(true)
     try {
-      const profile = await meApi.get()
-      setUser(profile)
-    } catch {
-      tokenStorage.clear()
-      setUser(null)
+      if (tokenStorage.get()) {
+        try {
+          setUser(await meApi.get())
+          return
+        } catch {
+          tokenStorage.clear()
+        }
+      }
+
+      // Behind Authentik ForwardAuth, Traefik injects X-authentik-* headers → mint Atlas JWT.
+      const ssoUser = await tryAuthentikSso()
+      setUser(ssoUser)
     } finally {
       setLoading(false)
     }
