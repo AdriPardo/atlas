@@ -36,6 +36,11 @@ public class PipelineRepositoryAdapter implements PipelineRepositoryPort {
     }
 
     @Override
+    public Optional<Pipeline> findByWebhookToken(String webhookToken) {
+        return repository.findByWebhookToken(webhookToken).map(mapper::toDomain);
+    }
+
+    @Override
     public boolean existsByProjectIdAndName(UUID projectId, String name) {
         return repository.existsByProjectIdAndNameIgnoreCase(projectId, name);
     }

@@ -17,6 +17,7 @@ public class PipelineJpaMapper {
                 entity.getName(),
                 entity.getServiceId(),
                 entity.getHostId(),
+                entity.getWebhookToken(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
     }
@@ -31,6 +32,7 @@ public class PipelineJpaMapper {
         entity.setName(domain.getName());
         entity.setServiceId(domain.getServiceId());
         entity.setHostId(domain.getHostId());
+        entity.setWebhookToken(domain.getWebhookToken());
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setUpdatedAt(domain.getUpdatedAt());
         return entity;

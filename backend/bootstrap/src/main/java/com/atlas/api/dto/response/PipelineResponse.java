@@ -9,5 +9,6 @@ public record PipelineResponse(
         String name,
         UUID serviceId,
         UUID hostId,
+        String webhookToken,
         Instant createdAt,
         Instant updatedAt) {}

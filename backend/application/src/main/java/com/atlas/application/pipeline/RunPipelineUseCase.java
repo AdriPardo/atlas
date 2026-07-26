@@ -26,15 +26,28 @@ public class RunPipelineUseCase {
 
     @Transactional
     public PipelineRun execute(UUID pipelineId, String triggeredBy) {
+        return execute(pipelineId, triggeredBy, true);
+    }
+
+    /** Trusted path for git webhooks — token/signature already validated; skips actor ACL. */
+    @Transactional
+    public PipelineRun executeTrusted(UUID pipelineId, String triggeredBy) {
+        return execute(pipelineId, triggeredBy, false);
+    }
+
+    private PipelineRun execute(UUID pipelineId, String triggeredBy, boolean authorize) {
         Pipeline pipeline = pipelineRepository
                 .findById(pipelineId)
                 .orElseThrow(() -> new NotFoundException("Pipeline not found: " + pipelineId));
-        authorizationService.require(pipeline.getProjectId(), ProjectPermission.DEPLOY);
+        if (authorize) {
+            authorizationService.require(pipeline.getProjectId(), ProjectPermission.DEPLOY);
+        }
 
         PipelineRun run = pipelineRunRepository.save(PipelineRun.start(pipelineId, triggeredBy));
         try {
-            DeployServiceUseCase.DeployResult result =
-                    deployServiceUseCase.execute(pipeline.getServiceId(), pipeline.getHostId());
+            DeployServiceUseCase.DeployResult result = authorize
+                    ? deployServiceUseCase.execute(pipeline.getServiceId(), pipeline.getHostId())
+                    : deployServiceUseCase.executeTrusted(pipeline.getServiceId(), pipeline.getHostId());
             run.markRunning(result.deployment().getId(), result.job().getId());
             PipelineRun saved = pipelineRunRepository.save(run);
             recordAuditUseCase.execute(
@@ -45,6 +58,8 @@ public class RunPipelineUseCase {
                             + pipelineId
                             + "\",\"deploymentId\":\""
                             + saved.getDeploymentId()
+                            + "\",\"triggeredBy\":\""
+                            + triggeredBy
                             + "\"}");
             return saved;
         } catch (RuntimeException ex) {

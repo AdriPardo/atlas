@@ -63,6 +63,10 @@ atlas:
   observability:
     grafana-base-url: ${ATLAS_GRAFANA_BASE_URL:}
     loki-base-url: ${ATLAS_LOKI_BASE_URL:}
+  webhooks:
+    rate-limit:
+      max-requests: ${ATLAS_WEBHOOK_RATE_MAX:30}
+      window-seconds: ${ATLAS_WEBHOOK_RATE_WINDOW_SECONDS:60}
 
 springdoc:
   api-docs:

@@ -2,36 +2,35 @@
 
 ## Estado del último incremento (completado)
 
-**v0.7 — RBAC mínimo + Audit** ya está en el árbol:
+**v0.6.1 — Git webhooks** ya está en el árbol:
 
-- Flyway V10: `project_memberships` (VIEWER|DEVELOPER|OPERATOR) + `audit_entries`.
-- `ProjectAuthorizationService`: ADMIN bypass; resto requiere membership + permiso (READ/WRITE/DEPLOY/MANAGE_MEMBERS).
-- Crear project otorga membership OPERATOR al actor; list/get/update/delete/deploy/pipeline respetan ACL.
-- API: `/projects/{id}/memberships`, `/audit` (ADMIN), `/users` (ADMIN).
-- UI: Members en Project detail, página Audit, nav Audit.
-- Tests: autorización unit + smoke forbid OPERATOR sin membership + audit tras pipeline run.
+- Flyway V11: `pipelines.webhook_token` único.
+- Público: `POST /api/v1/webhooks/git/{token}` → `RunPipelineUseCase.executeTrusted` → DEPLOY_SERVICE.
+- Auth: token de path; HMAC GitHub (`X-Hub-Signature-256`) / Gitea (`X-Gitea-Signature`) si el header viene (secret = token Atlas).
+- Rate limit in-memory ~30/min por token (configurable); 429 si se excede.
+- UI pipeline detail: URL + copiar + rotar token (`POST /pipelines/{id}/webhook-token/rotate`).
+- Audit: `PIPELINE_RUN` (triggeredBy=webhook) + `PIPELINE_WEBHOOK_ROTATE`.
 
 ## Recomendación única (siguiente)
 
-**v0.6.1 / v0.7b Git webhooks** — `POST /webhooks/git/{token}` dispara pipeline run (cierra GitOps ligero).
+**v0.8a Job retention + purge** — política de retención de jobs/pipeline_runs antiguos + endpoint/cron de purge (cierra continuidad operativa sin el alcance completo de backups).
 
 ## Por qué es el paso más rentable ahora
 
-1. Pipelines + RBAC ya existen; falta el trigger automático push→deploy del roadmap v0.6.
-2. Alcance pequeño encima de `RunPipelineUseCase`.
-3. Network/domains (resto v0.7) puede esperar tras demo GitOps.
+1. GitOps ligero (pipelines + webhooks) ya dispara deploys; la cola crece sin retención.
+2. Alcance pequeño vs backups volúmenes/DB completos (resto v0.8).
+3. LOCAL deploy hardening / docs CI pueden ir en paralelo; purge desbloquea salud de prod.
 
 ## Alcance concreto del incremento
 
-1. Tabla webhook tokens por project/pipeline.
-2. Endpoint público autenticado por token → `RunPipelineUseCase`.
-3. UI: mostrar/regenerar token en pipeline detail.
-4. Tests de contrato webhook.
+1. Settings/config: retención días (jobs + pipeline_runs).
+2. Use case + worker tick o endpoint ADMIN `POST /api/v1/admin/purge`.
+3. Tests de purge + doc corta en next-step.
 
 ## Qué no hacer
 
-- No billing/AI/marketplace, no Redis/Kafka, no Traefik domains completos aún.
+- No billing/AI, no Redis/Kafka, no Traefik domains completos, no restore de volúmenes aún.
 
 ## Definición de éxito
 
-> Push (o curl webhook) encola el mismo pipeline run que “Run now”; ACL de projects intacta; audit registra el run.
+> Jobs/runs antiguos se eliminan según política; API/UI siguen verdes; webhooks y RBAC intactos.

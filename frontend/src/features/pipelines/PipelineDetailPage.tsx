@@ -3,6 +3,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom'
 import {
   Alert,
   Button,
+  IconButton,
   Link,
   Stack,
   Table,
@@ -10,8 +11,11 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { pipelinesApi } from '../../shared/api/endpoints'
 import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
@@ -20,10 +24,17 @@ import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
+import { useMemo, useState } from 'react'
+
+function webhookUrlFor(token: string) {
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  return `${origin}/api/v1/webhooks/git/${token}`
+}
 
 export function PipelineDetailPage() {
   const { id = '' } = useParams()
   const queryClient = useQueryClient()
+  const [copied, setCopied] = useState(false)
 
   const query = useQuery({
     queryKey: ['pipelines', id],
@@ -50,13 +61,31 @@ export function PipelineDetailPage() {
     },
   })
 
+  const rotateMutation = useMutation({
+    mutationFn: () => pipelinesApi.rotateWebhookToken(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['pipelines', id] })
+    },
+  })
+
   const runs = runsQuery.data?.content ?? []
+  const webhookUrl = useMemo(
+    () => (query.data?.webhookToken ? webhookUrlFor(query.data.webhookToken) : ''),
+    [query.data?.webhookToken],
+  )
+
+  const copyUrl = async () => {
+    if (!webhookUrl) return
+    await navigator.clipboard.writeText(webhookUrl)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1800)
+  }
 
   return (
     <PageShell maxWidth={960}>
       <PageHeader
         title={query.data?.name ?? 'Pipeline'}
-        description="Manual deploy pipeline — run enqueues DEPLOY_SERVICE."
+        description="Deploy pipeline — Run now or trigger via git webhook."
         actions={
           <Stack direction="row" spacing={1}>
             <Button component={RouterLink} to="/pipelines">
@@ -90,6 +119,16 @@ export function PipelineDetailPage() {
                 Unable to run pipeline.
               </Alert>
             )}
+            {rotateMutation.isSuccess && (
+              <Alert severity="info" variant="outlined">
+                Webhook token rotated. Update the secret in GitHub/Gitea to the new token.
+              </Alert>
+            )}
+            {rotateMutation.isError && (
+              <Alert severity="error" variant="outlined">
+                Unable to rotate webhook token.
+              </Alert>
+            )}
 
             <DetailPanel>
               <DetailField label="Project" mono>
@@ -110,6 +149,38 @@ export function PipelineDetailPage() {
               </DetailField>
             </DetailPanel>
 
+            <DetailPanel title="Git webhook">
+              <DetailField label="URL">
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <TextField
+                    size="small"
+                    fullWidth
+                    value={webhookUrl}
+                    InputProps={{ readOnly: true, className: 'atlas-mono' }}
+                  />
+                  <Tooltip title={copied ? 'Copied' : 'Copy URL'}>
+                    <IconButton onClick={() => void copyUrl()} aria-label="Copy webhook URL">
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </DetailField>
+              <DetailField label="Secret tip">
+                Set the GitHub/Gitea webhook secret to this pipeline token. Signature headers are
+                verified when present; path token alone is enough for curl.
+              </DetailField>
+              <DetailField label="Actions">
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  onClick={() => rotateMutation.mutate()}
+                  disabled={rotateMutation.isPending}
+                >
+                  Rotate token
+                </Button>
+              </DetailField>
+            </DetailPanel>
+
             <Stack spacing={1}>
               <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 650 }}>
                 Runs
@@ -118,7 +189,7 @@ export function PipelineDetailPage() {
                 {runs.length === 0 ? (
                   <EmptyState
                     title="No runs yet"
-                    description="Click Run now to enqueue a deploy for this pipeline."
+                    description="Click Run now or POST to the git webhook to enqueue a deploy."
                     actionLabel="Run now"
                     onAction={() => runMutation.mutate()}
                   />

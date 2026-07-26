@@ -123,6 +123,8 @@ export const pipelinesApi = {
     api.put<Pipeline>(`/pipelines/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/pipelines/${id}`),
   run: (id: string) => api.post<PipelineRun>(`/pipelines/${id}/runs`).then((r) => r.data),
+  rotateWebhookToken: (id: string) =>
+    api.post<Pipeline>(`/pipelines/${id}/webhook-token/rotate`).then((r) => r.data),
   listRuns: (id: string, params?: Record<string, string | number | undefined>) =>
     api.get<PageResponse<PipelineRun>>(`/pipelines/${id}/runs`, { params }).then((r) => r.data),
 }

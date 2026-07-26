@@ -252,6 +252,7 @@ class AtlasIntegrationTest {
                                 """.formatted(projectId, serviceId, hostId)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("deploy-default"))
+                .andExpect(jsonPath("$.webhookToken").isNotEmpty())
                 .andReturn();
 
         String pipelineId = com.jayway.jsonpath.JsonPath.read(pipeline.getResponse().getContentAsString(), "$.id");
@@ -267,6 +268,36 @@ class AtlasIntegrationTest {
                 .andExpect(jsonPath("$.status").value("RUNNING"))
                 .andExpect(jsonPath("$.deploymentId").isNotEmpty())
                 .andExpect(jsonPath("$.jobId").isNotEmpty());
+
+        String webhookToken =
+                com.jayway.jsonpath.JsonPath.read(pipeline.getResponse().getContentAsString(), "$.webhookToken");
+
+        mockMvc.perform(post("/api/v1/webhooks/git/" + webhookToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ref\":\"refs/heads/main\"}"))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.triggeredBy").value("webhook"))
+                .andExpect(jsonPath("$.status").value("RUNNING"))
+                .andExpect(jsonPath("$.deploymentId").isNotEmpty());
+
+        mockMvc.perform(post("/api/v1/webhooks/git/atk_does_not_exist")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isNotFound());
+
+        MvcResult rotated = mockMvc.perform(post("/api/v1/pipelines/" + pipelineId + "/webhook-token/rotate")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.webhookToken").isNotEmpty())
+                .andReturn();
+        String newToken =
+                com.jayway.jsonpath.JsonPath.read(rotated.getResponse().getContentAsString(), "$.webhookToken");
+        org.junit.jupiter.api.Assertions.assertNotEquals(webhookToken, newToken);
+
+        mockMvc.perform(post("/api/v1/webhooks/git/" + webhookToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isNotFound());
 
         mockMvc.perform(get("/api/v1/audit")
                         .header("Authorization", "Bearer " + token))

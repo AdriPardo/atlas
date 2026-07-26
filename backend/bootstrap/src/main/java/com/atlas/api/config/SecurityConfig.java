@@ -45,6 +45,7 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/sso").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/sso").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/webhooks/git/**").permitAll();
                     auth.requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info")
                             .permitAll();
                     if (docsEnabled) {

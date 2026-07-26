@@ -188,6 +188,7 @@ export interface Pipeline {
   name: string
   serviceId: string
   hostId: string
+  webhookToken: string
   createdAt: string
   updatedAt: string
 }

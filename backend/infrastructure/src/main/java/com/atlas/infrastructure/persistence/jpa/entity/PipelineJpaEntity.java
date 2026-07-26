@@ -26,6 +26,9 @@ public class PipelineJpaEntity {
     @Column(name = "host_id", nullable = false)
     private UUID hostId;
 
+    @Column(name = "webhook_token", nullable = false, length = 80)
+    private String webhookToken;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -70,6 +73,14 @@ public class PipelineJpaEntity {
 
     public void setHostId(UUID hostId) {
         this.hostId = hostId;
+    }
+
+    public String getWebhookToken() {
+        return webhookToken;
+    }
+
+    public void setWebhookToken(String webhookToken) {
+        this.webhookToken = webhookToken;
     }
 
     public Instant getCreatedAt() {

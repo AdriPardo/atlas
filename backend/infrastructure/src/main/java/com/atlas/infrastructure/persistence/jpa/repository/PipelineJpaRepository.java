@@ -11,4 +11,6 @@ public interface PipelineJpaRepository
     boolean existsByProjectIdAndNameIgnoreCase(UUID projectId, String name);
 
     boolean existsByProjectIdAndNameIgnoreCaseAndIdNot(UUID projectId, String name, UUID id);
+
+    java.util.Optional<PipelineJpaEntity> findByWebhookToken(String webhookToken);
 }

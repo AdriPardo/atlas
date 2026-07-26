@@ -12,6 +12,7 @@ import com.atlas.application.pipeline.DeletePipelineUseCase;
 import com.atlas.application.pipeline.GetPipelineUseCase;
 import com.atlas.application.pipeline.ListPipelineRunsUseCase;
 import com.atlas.application.pipeline.ListPipelinesUseCase;
+import com.atlas.application.pipeline.RotatePipelineWebhookTokenUseCase;
 import com.atlas.application.pipeline.RunPipelineUseCase;
 import com.atlas.application.pipeline.UpdatePipelineUseCase;
 import com.atlas.application.shared.PageQuery;
@@ -42,6 +43,7 @@ public class PipelineController {
     private final DeletePipelineUseCase deletePipelineUseCase;
     private final RunPipelineUseCase runPipelineUseCase;
     private final ListPipelineRunsUseCase listPipelineRunsUseCase;
+    private final RotatePipelineWebhookTokenUseCase rotatePipelineWebhookTokenUseCase;
     private final ApiMapper apiMapper;
 
     @PostMapping
@@ -86,6 +88,11 @@ public class PipelineController {
     public ResponseEntity<PipelineRunResponse> run(@PathVariable UUID id) {
         var run = runPipelineUseCase.execute(id, "manual");
         return ResponseEntity.accepted().body(apiMapper.toPipelineRunResponse(run));
+    }
+
+    @PostMapping("/{id}/webhook-token/rotate")
+    public ResponseEntity<PipelineResponse> rotateWebhookToken(@PathVariable UUID id) {
+        return ResponseEntity.ok(apiMapper.toPipelineResponse(rotatePipelineWebhookTokenUseCase.execute(id)));
     }
 
     @GetMapping("/{id}/runs")

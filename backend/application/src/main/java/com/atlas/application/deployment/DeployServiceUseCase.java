@@ -35,13 +35,25 @@ public class DeployServiceUseCase {
 
     @Transactional
     public DeployResult execute(UUID serviceId, UUID hostId) {
+        return execute(serviceId, hostId, true);
+    }
+
+    /** Trusted path used by git webhooks after token validation. */
+    @Transactional
+    public DeployResult executeTrusted(UUID serviceId, UUID hostId) {
+        return execute(serviceId, hostId, false);
+    }
+
+    private DeployResult execute(UUID serviceId, UUID hostId, boolean authorize) {
         ServiceUnit service = serviceRepository
                 .findById(serviceId)
                 .orElseThrow(() -> new NotFoundException("Service not found: " + serviceId));
         Project project = projectRepository
                 .findById(service.getProjectId())
                 .orElseThrow(() -> new NotFoundException("Project not found: " + service.getProjectId()));
-        authorizationService.require(project.getId(), ProjectPermission.DEPLOY);
+        if (authorize) {
+            authorizationService.require(project.getId(), ProjectPermission.DEPLOY);
+        }
         if (hostRepository.findById(hostId).isEmpty()) {
             throw new NotFoundException("Host not found: " + hostId);
         }

@@ -4,6 +4,7 @@ import com.atlas.domain.shared.ConflictException;
 import com.atlas.domain.shared.DomainException;
 import com.atlas.domain.shared.ForbiddenException;
 import com.atlas.domain.shared.NotFoundException;
+import com.atlas.domain.shared.TooManyRequestsException;
 import com.atlas.domain.shared.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -36,6 +37,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ApiError> handleForbidden(ForbiddenException ex, HttpServletRequest request) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI(), List.of());
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiError> handleTooManyRequests(TooManyRequestsException ex, HttpServletRequest request) {
+        return build(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), request.getRequestURI(), List.of());
     }
 
     @ExceptionHandler(DomainException.class)

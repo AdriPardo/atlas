@@ -12,6 +12,8 @@ public interface PipelineRepositoryPort {
 
     Optional<Pipeline> findById(UUID id);
 
+    Optional<Pipeline> findByWebhookToken(String webhookToken);
+
     boolean existsByProjectIdAndName(UUID projectId, String name);
 
     boolean existsByProjectIdAndNameAndIdNot(UUID projectId, String name, UUID id);
