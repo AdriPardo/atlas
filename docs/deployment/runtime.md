@@ -55,8 +55,21 @@ Perfil `docker`: SSO on. Secretos de producción distintos de defaults.
 ## Persistencia
 
 - Volumen `atlas_pg_data`.
+- Volumen `atlas_workspaces` (clones Git + compose working dirs).
 - Volumen `atlas_backups` para dumps lógicos (`pg_dump`); ver [backup-restore.md](./backup-restore.md).
-- Credenciales host/SSH: en DB cifradas, no en imágenes.
+- Credenciales host/SSH: en DB cifradas, no en imágenes (`ATLAS_SECRETS_MASTER_KEY` en prod).
+
+## Hosts LOCAL y Docker socket
+
+Para sync/deploy con `connectionType=LOCAL` en la misma VM:
+
+1. `docker-compose.prod.yml` (gitignored; partir de `docker-compose.prod.yml.example`) monta `/var/run/docker.sock` y `group_add: ${DOCKER_GID}` (GID de `getent group docker`).
+2. El contenedor `backend` incluye Docker CLI + compose plugin.
+3. **Seguridad:** el socket otorga control total del engine del host. Solo en instalaciones single-tenant de confianza.
+4. Repos privados: secret con nombre exacto `git.token` (PAT GitHub con scope `repo`) vía UI Secrets o `POST /api/v1/secrets`.
+5. Cuidado con choques de puertos host (`:3000` ya lo usa Atlas frontend).
+
+Dev (`docker-compose.yml`): el socket va comentado; descomentar + `group_add` solo si necesitas LOCAL en local.
 
 ## Recursos orientativos (single VM)
 

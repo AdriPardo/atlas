@@ -80,7 +80,7 @@ export function HostsListPage() {
                 description={
                   hostname
                     ? 'Try a different hostname filter.'
-                    : 'Add a host before creating deployment records.'
+                    : 'Add a LOCAL host for this Atlas server (or SSH) before Deploy. Then open the host and Sync.'
                 }
                 actionLabel={hostname ? undefined : 'New host'}
                 onAction={hostname ? undefined : () => navigate('/hosts/new')}

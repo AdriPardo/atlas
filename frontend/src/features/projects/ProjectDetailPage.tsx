@@ -20,6 +20,7 @@ import { PageShell } from '../../shared/components/PageShell'
 import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { ProjectMembersPanel } from './ProjectMembersPanel'
+import { ProjectDomainsPanel } from './ProjectDomainsPanel'
 
 export function ProjectDetailPage() {
   const { id = '' } = useParams()
@@ -49,6 +50,8 @@ export function ProjectDetailPage() {
 
   const defaultService = servicesQuery.data?.content?.[0]
   const deployTargetId = serviceId || defaultService?.id || ''
+  const hosts = hostsQuery.data?.content ?? []
+  const noHosts = !hostsQuery.isLoading && hosts.length === 0
 
   const deployMutation = useMutation({
     mutationFn: () =>
@@ -126,6 +129,11 @@ export function ProjectDetailPage() {
               )}
             </DetailPanel>
 
+            <ProjectDomainsPanel
+              projectId={id}
+              services={servicesQuery.data?.content ?? []}
+            />
+
             <ProjectMembersPanel projectId={id} />
           </Stack>
         )}
@@ -140,6 +148,24 @@ export function ProjectDetailPage() {
                 Deploy request failed
               </Alert>
             )}
+            {noHosts && (
+              <Alert
+                severity="warning"
+                variant="outlined"
+                action={
+                  <Button color="inherit" size="small" component={RouterLink} to="/hosts/new">
+                    Add host
+                  </Button>
+                }
+              >
+                No hosts registered. Create a LOCAL host (Atlas server) or SSH host, then Sync before
+                deploying.
+              </Alert>
+            )}
+            <Alert severity="info" variant="outlined">
+              Private GitHub repos need a secret named <strong>git.token</strong> (see Secrets). LOCAL
+              hosts need Docker socket access on the Atlas server.
+            </Alert>
             <TextField
               select
               label="Service"
@@ -159,10 +185,13 @@ export function ProjectDetailPage() {
               value={hostId}
               onChange={(e) => setHostId(e.target.value)}
               fullWidth
+              disabled={noHosts}
+              helperText={noHosts ? 'Add a host first' : undefined}
             >
-              {(hostsQuery.data?.content ?? []).map((host) => (
+              {hosts.map((host) => (
                 <MenuItem key={host.id} value={host.id}>
                   {host.hostname} ({host.connectionType}) — {host.ip}
+                  {host.online ? '' : ' [offline]'}
                 </MenuItem>
               ))}
             </TextField>
@@ -172,7 +201,7 @@ export function ProjectDetailPage() {
           <Button onClick={() => setDeployOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={!hostId || !deployTargetId || deployMutation.isPending}
+            disabled={!hostId || !deployTargetId || deployMutation.isPending || noHosts}
             onClick={() => deployMutation.mutate()}
           >
             Deploy

@@ -145,7 +145,17 @@ export function HostFormPage() {
               helperText={errors.ip?.message}
               {...register('ip')}
             />
-            <TextField select label="Connection type" defaultValue="LOCAL" {...register('connectionType')}>
+            <TextField
+              select
+              label="Connection type"
+              defaultValue="LOCAL"
+              helperText={
+                connectionType === 'LOCAL'
+                  ? 'Requires Docker socket mounted on the Atlas backend (see docker-compose.prod.yml.example).'
+                  : 'Requires an SSH private key secret linked below.'
+              }
+              {...register('connectionType')}
+            >
               <MenuItem value="LOCAL">LOCAL (Docker on Atlas server)</MenuItem>
               <MenuItem value="SSH">SSH</MenuItem>
             </TextField>
