@@ -102,10 +102,16 @@ Para persistir tras reboot conviene instalar el servicio systemd (`svc.sh`) cuan
 
 ## Health checks
 
+Si el frontend de producción publica un puerto host distinto de `3000` (p.ej. `3100:80` en `docker-compose.prod.yml`), define en el `.env` de la VM:
+
+```bash
+ATLAS_HEALTH_FRONTEND_URL=http://127.0.0.1:3100/
+```
+
 El Action **falla** si tras el build/up:
 
 - Backend no responde `UP` en `http://127.0.0.1:8080/actuator/health`
-- Frontend no responde HTTP 2xx en `http://127.0.0.1:3000/`
+- Frontend no responde HTTP 2xx en `ATLAS_HEALTH_FRONTEND_URL` (default `http://127.0.0.1:3000/`)
 
 Reintentos: ~3 minutos (`ATLAS_HEALTH_RETRIES` × `ATLAS_HEALTH_SLEEP_SECS`).
 
