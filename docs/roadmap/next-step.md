@@ -1,36 +1,42 @@
 # Siguiente paso de implementación
 
-## Estado del último incremento (completado)
+## Estado del último incremento
 
-**v0.7 remainder — Project roles VIEWER/DEVELOPER** ya está en el árbol:
+**Autopilot Placement (slice 1)** — producto + thin path:
 
-- Matriz `ProjectMemberRole` (VIEWER read / DEVELOPER write / OPERATOR deploy+members) con tests de dominio + auth.
-- ACL en services CRUD, pipeline update/delete, delete project (DEPLOY), alert write (DEPLOY), secrets create (ADMIN).
-- UI memberships: rol por defecto VIEWER, helper de matriz, cambio de rol inline.
-- Integration test: VIEWER lee y no escribe; DEVELOPER crea service y no despliega/borra project.
+- Docs: `docs/product/autopilot-placement.md`, ADR-0010.
+- Deploy sin `hostId` obligatorio: auto-selección / seed de Host LOCAL `atlas-local`.
+- `exposure` PUBLIC|INTERNAL en Service; PUBLIC crea stub Domain + Traefik metadata; INTERNAL no.
+- UI project detail: CTA Deploy + toggle de exposición; Hosts como Advanced.
 
-**Previo:** v0.7 Alerts + Notification channels; Domains + Traefik; v0.8b backups DB; v0.8a retention/purge.
+**Previo en árbol:** v0.7 Alerts + Domains/Traefik metadata; VIEWER/DEVELOPER ACL; v0.8b backups; Git webhooks.
 
 ## Recomendación única (siguiente)
 
-**v0.8 Cron schedules** — jobs programados de producto (SYNC_HOST / pipeline / backup-adjacent) sobre el worker embebido ya existente.
+**Autopilot slice 2 — Proxmox VM provisioner** — cuando el placement decida “new VM”, crear VM en Proxmox, registrar Host (SSH/Docker), y reutilizar el mismo `DEPLOY_SERVICE`.
 
 ## Por qué es el paso más rentable ahora
 
-1. v0.7 access/edge/alerts queda cerrado a nivel mínimo.
-2. Cron cierra el hueco de resilience v0.8 junto a backup+retention ya shipped.
-3. Hardening docs / restore UI completa pueden seguir después sin bloquear schedules.
+1. Cierra el hueco de la decision tree (reuse vs provision) sin reescribir Deploy/Jobs.
+2. Encaja con infra prod ya presente (Proxmox) sin tocar Tunnel/SSO.
+3. Cron schedules, DNS Cloudflare real y polish VIEWER quedan como secundarios tras placement usable.
 
-## Alcance concreto del incremento
+## Alcance concreto del incremento (Proxmox)
 
-1. Entidad `CronJob` (expr, target type, enabled) + migración + CRUD API ADMIN/OPERATOR.
-2. Scheduler que encola jobs existentes según cron.
-3. UI mínima `/cron`: listar/crear/enable.
+1. Puerto `VmProvisionerPort` + adapter Proxmox (API token / template).
+2. Política: cuándo provisionar vs reutilizar shared host (capacidad / flag de aislamiento).
+3. Tras VM ready → `Host` SSH + Sync → enqueue `DEPLOY_SERVICE`.
+4. No Cloudflare DNS API real aún; no quitar Hosts UI.
+
+## Secundario (si sobra capacidad)
+
+- v0.8 Cron schedules sobre el worker embebido.
+- Cloudflare DNS sync real sobre Domains ACTIVE.
 
 ## Qué no hacer
 
-- No billing/AI/marketplace, no Redis/Kafka, no Cloudflare API real, no restore UI completa, no Teams globales.
+- No billing/AI/marketplace, no Redis/Kafka obligatorio, no rewrite que elimine Hosts/Deployments.
 
-## Definición de éxito
+## Definición de éxito (slice 2)
 
-> OPERATOR puede crear un cron que encola SYNC_HOST o similar; deploy/webhooks/RBAC/alerts/backup intactos.
+> Deploy con política “isolated” provisiona VM Proxmox, registra Host, y el mismo job `DEPLOY_SERVICE` deja el servicio RUNNING.
