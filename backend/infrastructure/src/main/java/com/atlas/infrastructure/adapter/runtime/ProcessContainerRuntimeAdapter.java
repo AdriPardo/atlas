@@ -45,7 +45,7 @@ public class ProcessContainerRuntimeAdapter implements ContainerRuntimePort {
             String composeFilePath,
             Optional<String> sshPrivateKeyPem,
             Consumer<String> logSink) {
-        runCompose(host, workingDirectory, composeFilePath, sshPrivateKeyPem, logSink, "up", "-d", "--remove-orphans");
+        runCompose(host, workingDirectory, composeFilePath, sshPrivateKeyPem, logSink, "up", "-d", "--build", "--remove-orphans");
     }
 
     @Override

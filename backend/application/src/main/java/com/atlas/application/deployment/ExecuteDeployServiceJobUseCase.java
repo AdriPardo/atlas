@@ -18,7 +18,9 @@ import com.atlas.domain.service.ServiceStatus;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.domain.shared.DomainException;
 import com.atlas.domain.shared.NotFoundException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -105,6 +107,8 @@ public class ExecuteDeployServiceJobUseCase {
                     gitToken,
                     logSink);
 
+            seedAtlasEnvFile(workspace, loaded.service(), logSink);
+
             Optional<String> sshKey = resolveSshKey(loaded.host());
             containerRuntime.composeUp(
                     loaded.host(), workspace, loaded.service().getComposePath(), sshKey, logSink);
@@ -174,6 +178,45 @@ public class ExecuteDeployServiceJobUseCase {
         serviceRepository.save(service);
         project.updateStatus(projectStatus);
         projectRepository.save(project);
+    }
+
+
+    /**
+     * Customer apps often ship {@code .env.atlas.example}. Materialize {@code .env} so Compose
+     * interpolates DOMAIN / secrets without operator SSH. Existing {@code .env} is left untouched.
+     */
+    private void seedAtlasEnvFile(Path workspace, ServiceUnit service, Consumer<String> logSink) {
+        Path envFile = workspace.resolve(".env");
+        if (Files.exists(envFile)) {
+            return;
+        }
+        Path example = workspace.resolve(".env.atlas.example");
+        try {
+            String body;
+            if (Files.exists(example)) {
+                body = Files.readString(example);
+                logSink.accept("Seeding .env from .env.atlas.example");
+            } else {
+                body = "";
+                logSink.accept("Seeding minimal .env (no .env.atlas.example in repo)");
+            }
+            String domain = service.getDomain() == null ? "" : service.getDomain().trim();
+            if (!domain.isEmpty()) {
+                if (body.lines().anyMatch(line -> line.startsWith("DOMAIN="))) {
+                    body = body.lines()
+                            .map(line -> line.startsWith("DOMAIN=") ? "DOMAIN=" + domain : line)
+                            .collect(java.util.stream.Collectors.joining("\n", "", "\n"));
+                } else {
+                    body = "DOMAIN=" + domain + "\n" + body;
+                }
+            }
+            if (!body.isEmpty() && !body.endsWith("\n")) {
+                body = body + "\n";
+            }
+            Files.writeString(envFile, body, StandardOpenOption.CREATE_NEW);
+        } catch (Exception ex) {
+            throw new DomainException("Failed to seed .env for deploy: " + ex.getMessage());
+        }
     }
 
     private Optional<String> resolveSshKey(Host host) {
