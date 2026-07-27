@@ -1,6 +1,8 @@
 package com.atlas.application.service;
 
+import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.port.out.ServiceRepositoryPort;
+import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.service.ServiceStatus;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.domain.shared.ConflictException;
@@ -15,12 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateServiceUseCase {
 
     private final ServiceRepositoryPort serviceRepository;
+    private final ProjectAuthorizationService authorizationService;
 
     @Transactional
     public ServiceUnit execute(UUID id, UpdateServiceCommand command) {
         ServiceUnit service = serviceRepository
                 .findById(id)
                 .orElseThrow(() -> new NotFoundException("Service not found: " + id));
+        authorizationService.require(service.getProjectId(), ProjectPermission.WRITE);
         if (serviceRepository.existsByProjectIdAndNameAndIdNot(
                 service.getProjectId(), command.name(), id)) {
             throw new ConflictException("Service name already exists in project: " + command.name());

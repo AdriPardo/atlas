@@ -49,13 +49,38 @@ class ProjectAuthorizationServiceTest {
     }
 
     @Test
-    void viewerCannotDeploy() {
+    void viewerCanReadButNotWriteOrDeploy() {
         UUID projectId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         when(currentUserPort.current())
                 .thenReturn(Optional.of(new CurrentUserPort.Actor(userId, "viewer", Role.OPERATOR)));
         when(membershipRepository.findByProjectIdAndUserId(projectId, userId))
                 .thenReturn(Optional.of(ProjectMembership.create(projectId, userId, ProjectMemberRole.VIEWER)));
+        service.require(projectId, ProjectPermission.READ);
+        assertThrows(ForbiddenException.class, () -> service.require(projectId, ProjectPermission.WRITE));
         assertThrows(ForbiddenException.class, () -> service.require(projectId, ProjectPermission.DEPLOY));
+    }
+
+    @Test
+    void developerCanWriteButNotDeploy() {
+        UUID projectId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(currentUserPort.current())
+                .thenReturn(Optional.of(new CurrentUserPort.Actor(userId, "dev", Role.OPERATOR)));
+        when(membershipRepository.findByProjectIdAndUserId(projectId, userId))
+                .thenReturn(Optional.of(ProjectMembership.create(projectId, userId, ProjectMemberRole.DEVELOPER)));
+        service.require(projectId, ProjectPermission.WRITE);
+        assertThrows(ForbiddenException.class, () -> service.require(projectId, ProjectPermission.DEPLOY));
+    }
+
+    @Test
+    void operatorMemberCanDeploy() {
+        UUID projectId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(currentUserPort.current())
+                .thenReturn(Optional.of(new CurrentUserPort.Actor(userId, "ops", Role.OPERATOR)));
+        when(membershipRepository.findByProjectIdAndUserId(projectId, userId))
+                .thenReturn(Optional.of(ProjectMembership.create(projectId, userId, ProjectMemberRole.OPERATOR)));
+        service.require(projectId, ProjectPermission.DEPLOY);
     }
 }

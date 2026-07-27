@@ -1,7 +1,9 @@
 package com.atlas.application.service;
 
+import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
+import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.domain.shared.ConflictException;
 import com.atlas.domain.shared.NotFoundException;
@@ -16,9 +18,11 @@ public class CreateServiceUseCase {
 
     private final ProjectRepositoryPort projectRepository;
     private final ServiceRepositoryPort serviceRepository;
+    private final ProjectAuthorizationService authorizationService;
 
     @Transactional
     public ServiceUnit execute(UUID projectId, CreateServiceCommand command) {
+        authorizationService.require(projectId, ProjectPermission.WRITE);
         if (projectRepository.findById(projectId).isEmpty()) {
             throw new NotFoundException("Project not found: " + projectId);
         }

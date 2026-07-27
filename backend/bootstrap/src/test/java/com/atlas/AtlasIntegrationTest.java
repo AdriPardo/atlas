@@ -556,4 +556,139 @@ class AtlasIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void projectMembershipRolesEnforceViewerDeveloperOperatorMatrix() throws Exception {
+        MvcResult adminLogin = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        String adminToken =
+                com.jayway.jsonpath.JsonPath.read(adminLogin.getResponse().getContentAsString(), "$.accessToken");
+
+        MvcResult project = mockMvc.perform(post("/api/v1/projects")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"rbac-roles",
+                                  "description":"role matrix",
+                                  "repositoryUrl":"https://git.example/roles.git",
+                                  "branch":"main",
+                                  "composePath":"./docker-compose.yml"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String projectId = com.jayway.jsonpath.JsonPath.read(project.getResponse().getContentAsString(), "$.id");
+
+        MvcResult viewerSso = mockMvc.perform(get("/api/v1/auth/sso")
+                        .header("X-authentik-username", "role-viewer")
+                        .header("X-authentik-groups", "operators"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String viewerToken =
+                com.jayway.jsonpath.JsonPath.read(viewerSso.getResponse().getContentAsString(), "$.accessToken");
+        MvcResult viewerMe = mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + viewerToken))
+                .andExpect(status().isOk())
+                .andReturn();
+        String viewerUserId =
+                com.jayway.jsonpath.JsonPath.read(viewerMe.getResponse().getContentAsString(), "$.id");
+
+        MvcResult developerSso = mockMvc.perform(get("/api/v1/auth/sso")
+                        .header("X-authentik-username", "role-developer")
+                        .header("X-authentik-groups", "operators"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String developerToken =
+                com.jayway.jsonpath.JsonPath.read(developerSso.getResponse().getContentAsString(), "$.accessToken");
+        MvcResult developerMe = mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + developerToken))
+                .andExpect(status().isOk())
+                .andReturn();
+        String developerUserId =
+                com.jayway.jsonpath.JsonPath.read(developerMe.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(post("/api/v1/projects/" + projectId + "/memberships")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"userId":"%s","role":"VIEWER"}
+                                """.formatted(viewerUserId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.role").value("VIEWER"));
+
+        mockMvc.perform(post("/api/v1/projects/" + projectId + "/memberships")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"userId":"%s","role":"DEVELOPER"}
+                                """.formatted(developerUserId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.role").value("DEVELOPER"));
+
+        mockMvc.perform(get("/api/v1/projects/" + projectId).header("Authorization", "Bearer " + viewerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("rbac-roles"));
+
+        mockMvc.perform(post("/api/v1/projects/" + projectId + "/services")
+                        .header("Authorization", "Bearer " + viewerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"viewer-svc",
+                                  "repositoryUrl":"https://git.example/viewer.git",
+                                  "branch":"main",
+                                  "composePath":"./docker-compose.yml"
+                                }
+                                """))
+                .andExpect(status().isForbidden());
+
+        MvcResult createdService = mockMvc.perform(post("/api/v1/projects/" + projectId + "/services")
+                        .header("Authorization", "Bearer " + developerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"dev-svc",
+                                  "repositoryUrl":"https://git.example/dev.git",
+                                  "branch":"main",
+                                  "composePath":"./docker-compose.yml"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("dev-svc"))
+                .andReturn();
+        String serviceId =
+                com.jayway.jsonpath.JsonPath.read(createdService.getResponse().getContentAsString(), "$.id");
+
+        MvcResult host = mockMvc.perform(post("/api/v1/hosts")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "hostname":"rbac-host",
+                                  "ip":"10.0.0.77",
+                                  "operatingSystem":"linux",
+                                  "dockerVersion":"",
+                                  "online":true,
+                                  "connectionType":"LOCAL"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String hostId = com.jayway.jsonpath.JsonPath.read(host.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(post("/api/v1/services/" + serviceId + "/deploy")
+                        .header("Authorization", "Bearer " + developerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"hostId":"%s"}
+                                """.formatted(hostId)))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(delete("/api/v1/projects/" + projectId).header("Authorization", "Bearer " + developerToken))
+                .andExpect(status().isForbidden());
+    }
+
 }

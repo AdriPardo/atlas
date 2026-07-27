@@ -21,7 +21,8 @@ public class DeleteProjectUseCase {
 
     @Transactional
     public void execute(UUID id) {
-        authorizationService.require(id, ProjectPermission.WRITE);
+        // Destructive: OPERATOR (DEPLOY), not DEVELOPER WRITE.
+        authorizationService.require(id, ProjectPermission.DEPLOY);
         if (projectRepository.findById(id).isEmpty()) {
             throw new NotFoundException("Project not found: " + id);
         }

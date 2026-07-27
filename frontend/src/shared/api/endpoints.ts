@@ -140,6 +140,10 @@ export const membershipsApi = {
     api.get<ProjectMembership[]>(`/projects/${projectId}/memberships`).then((r) => r.data),
   add: (projectId: string, body: { userId: string; role: string }) =>
     api.post<ProjectMembership>(`/projects/${projectId}/memberships`, body).then((r) => r.data),
+  update: (projectId: string, membershipId: string, body: { role: string }) =>
+    api
+      .put<ProjectMembership>(`/projects/${projectId}/memberships/${membershipId}`, body)
+      .then((r) => r.data),
   remove: (projectId: string, membershipId: string) =>
     api.delete(`/projects/${projectId}/memberships/${membershipId}`),
 }

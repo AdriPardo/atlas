@@ -121,7 +121,8 @@ public class ManageAlertRuleUseCase {
         if (projectRepository.findById(projectId).isEmpty()) {
             throw new NotFoundException("Project not found: " + projectId);
         }
-        authorizationService.require(projectId, ProjectPermission.WRITE);
+        // Alert write is OPERATOR-grade (DEPLOY), not DEVELOPER WRITE.
+        authorizationService.require(projectId, ProjectPermission.DEPLOY);
     }
 
     private void requireOperatorOrAdmin() {

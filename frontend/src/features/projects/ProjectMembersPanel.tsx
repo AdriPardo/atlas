@@ -20,12 +20,18 @@ import { QueryState } from '../../shared/components/QueryState'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { useAuth } from '../auth/AuthContext'
 
+const ROLE_HELP: Record<string, string> = {
+  VIEWER: 'Read project, services, pipelines',
+  DEVELOPER: 'Write services/pipelines (no deploy)',
+  OPERATOR: 'Deploy, members, alerts scoped to project',
+}
+
 export function ProjectMembersPanel({ projectId }: { projectId: string }) {
   const { user } = useAuth()
   const isAdmin = user?.role === 'ADMIN'
   const queryClient = useQueryClient()
   const [userId, setUserId] = useState('')
-  const [role, setRole] = useState('OPERATOR')
+  const [role, setRole] = useState('VIEWER')
 
   const membersQuery = useQuery({
     queryKey: ['projects', projectId, 'memberships'],
@@ -54,6 +60,14 @@ export function ProjectMembersPanel({ projectId }: { projectId: string }) {
     },
   })
 
+  const updateMutation = useMutation({
+    mutationFn: ({ membershipId, nextRole }: { membershipId: string; nextRole: string }) =>
+      membershipsApi.update(projectId, membershipId, { role: nextRole }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'memberships'] })
+    },
+  })
+
   const rows = membersQuery.data ?? []
   const users = usersQuery.data ?? []
 
@@ -61,6 +75,9 @@ export function ProjectMembersPanel({ projectId }: { projectId: string }) {
     <Stack spacing={1.5}>
       <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 650 }}>
         Members
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        VIEWER read · DEVELOPER write services/pipelines · OPERATOR deploy & manage members
       </Typography>
       {isAdmin && (
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }}>
@@ -84,7 +101,8 @@ export function ProjectMembersPanel({ projectId }: { projectId: string }) {
             size="small"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            sx={{ minWidth: 140 }}
+            sx={{ minWidth: 220 }}
+            helperText={ROLE_HELP[role]}
           >
             {['VIEWER', 'DEVELOPER', 'OPERATOR'].map((r) => (
               <MenuItem key={r} value={r}>
@@ -126,13 +144,32 @@ export function ProjectMembersPanel({ projectId }: { projectId: string }) {
                     <TableRow key={m.id}>
                       <TableCell className="atlas-mono">{username || m.userId.slice(0, 8)}</TableCell>
                       <TableCell>
-                        <StatusChip label={m.role} />
+                        {isAdmin ? (
+                          <TextField
+                            select
+                            size="small"
+                            value={m.role}
+                            disabled={updateMutation.isPending}
+                            onChange={(e) =>
+                              updateMutation.mutate({ membershipId: m.id, nextRole: e.target.value })
+                            }
+                            sx={{ minWidth: 140 }}
+                          >
+                            {['VIEWER', 'DEVELOPER', 'OPERATOR'].map((r) => (
+                              <MenuItem key={r} value={r}>
+                                {r}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        ) : (
+                          <StatusChip label={m.role} />
+                        )}
                       </TableCell>
                       <TableCell align="right">
                         <Button
                           size="small"
                           color="error"
-                          disabled={removeMutation.isPending}
+                          disabled={!isAdmin || removeMutation.isPending}
                           onClick={() => removeMutation.mutate(m.id)}
                         >
                           Remove
