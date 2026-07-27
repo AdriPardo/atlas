@@ -21,9 +21,11 @@ Campos clave: `name`, `slug`, `description`, `status`, timestamps, `created_by`.
 
 ## Services
 
-**Propósito:** unidad desplegable concreta (compose path, repo ref, dominio primario, host preferido).
+**Propósito:** unidad desplegable concreta (repo ref, cómo correr, dominio primario, host preferido).
 
 Campos heredados del Application actual: `repositoryUrl`, `branch`, `composePath`, `domain`, `status`.
+
+**Dirección (ADR-0014):** `composePath` es el puente Compose de hoy; el contrato objetivo es un manifiesto `atlas.yml` (`runtime.kind` + services/build/expose/health) con runtime pluggable. Autopilot no vive en el manifiesto (placement, DNS, secrets, exposure).
 
 Estados: `REGISTERED` | `READY` | `DEPLOYING` | `RUNNING` | `DEGRADED` | `STOPPED` | `FAILED`.
 

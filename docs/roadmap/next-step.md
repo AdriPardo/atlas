@@ -32,9 +32,14 @@
 - Reuse de VMs Proxmox (`REUSED`) por hostname/tag.
 - Endurecer scopes de token Cloudflare documentados en UI Secrets hint.
 
+## Norte estratégico (no es el siguiente incremento)
+
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): el repo declara *cómo correr* en `atlas.yml`; Docker Compose es el adapter de hoy, no el ancla de producto. Autopilot sigue dueño de placement, exposure, secrets, Traefik/Tunnel/DNS. Slice posterior (post-restore / cuando toque desacoplar `composePath`); no bloquear el runbook.
+
 ## Qué no hacer
 
 - No billing/AI/marketplace, no Redis/Kafka obligatorio, no rewrite que elimine Hosts/Deployments.
+- No motor completo de manifiesto ni eliminar `composePath` antes de migrar el deploy path (ADR-0014 fases B–D).
 
 ## Definición de éxito (restore runbook)
 

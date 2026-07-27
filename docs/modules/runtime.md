@@ -8,8 +8,10 @@
 - Credenciales vía Secrets.
 - `HostConnectorPort`: ping SSH, detectar Docker, listar compose projects.
 - Job `SYNC_HOST` periódico.
-- Labels/tags (env=prod, region=…).
+- Labels/tags (env=prod, region=…, `runtime=compose|…` cuando ADR-0014 Fase D).
 - Capacidad: max concurrent deploys.
+
+**Nota:** Docker Compose es el runtime *actual* vía `ContainerRuntimePort`; la dirección de producto es orquestación por manifiesto + adapter ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)), no anclar el dominio a Docker.
 
 ## Containers
 

@@ -1,0 +1,45 @@
+# Atlas project manifest — sketch (ADR-0014)
+# Canonical filename in repo: atlas.yml  (alias: atlas.project.yml)
+# Status: design contract only; deploy path still uses Service.composePath + docker compose.
+
+apiVersion: atlas/v1alpha1
+kind: Project
+
+metadata:
+  name: example-app
+
+runtime:
+  # compose (default today) | podman-compose | kubernetes | systemd | custom
+  kind: compose
+  # Migration bridge: existing docker-compose.atlas.yml / composePath
+  composeFile: docker-compose.atlas.yml
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    expose:
+      port: 8080
+      protocol: http
+    health:
+      path: /actuator/health
+      intervalSeconds: 15
+    envFrom:
+      - secretRef: db.password
+      - configKey: DOMAIN
+
+  web:
+    image: ghcr.io/example/web:latest
+    expose:
+      port: 80
+      protocol: http
+    dependsOn:
+      - api
+    health:
+      path: /
+      intervalSeconds: 30
+
+# Autopilot may override at deploy time (PUBLIC | INTERNAL).
+exposure:
+  default: public

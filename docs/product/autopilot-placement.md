@@ -2,10 +2,12 @@
 
 ## Product vision
 
-The operator **connects an application** (repo + compose). Atlas decides:
+The operator **connects an application** (repo + how-to-run). Atlas decides:
 
-1. **Where** to run it (reuse a shared Docker host vs provision a new VM).
+1. **Where** to run it (reuse a shared host vs provision a new VM).
 2. **Whether** it is **world-accessible** (`PUBLIC`) or **internal-only** (`INTERNAL`).
+
+**North star (not yet the deploy contract):** a project manifest (`atlas.yml`) is the source of truth for *how to run*; the runtime (Docker Compose today) is a pluggable adapter — see [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md). Autopilot owns placement, exposure, secrets, and edge (Traefik / Tunnel / DNS); the manifest owns services, build, health, and runtime kind. Until that lands, the path remains **repo + `composePath`**.
 
 The user configures as little as possible. Hosts, SSH, Sync, and Deploy remain the **execution substrate** — not the primary mental model.
 
@@ -81,3 +83,4 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 - Slice 3b — guest ready (done): IP + Sync + deploy on new Host
 - Slice 4 — DNS CNAME: [ADR-0013](../decisions/ADR-0013-autopilot-dns-cname.md) (done)
 - Next — restore runbook (`docs/deployment/backup-restore.md`)
+- Later — project manifest / pluggable runtime: [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)

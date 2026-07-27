@@ -177,6 +177,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 
 - Estabilidad, UX polish, docs de operación, upgrade path v0.x→v1.0.
 - Autopilot placement maduro (reuse host + Proxmox provision + PUBLIC/INTERNAL).
+- Dirección: manifiesto de proyecto + runtime pluggable ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)); Compose sigue siendo el adapter default.
 - Plugin contract v1 (Cloudflare oficial).
 - Security review checklist cumplido.
 - AI Assistant **no** requerido (future).
@@ -188,7 +189,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 ## Fuera de v1.0 (explicitamente)
 
 - Multi-tenant SaaS.
-- Kubernetes first-class control plane.
+- Kubernetes first-class control plane (un adapter `runtime.kind: kubernetes` puede llegar después vía ADR-0014; no es el CP de Atlas).
 - Marketplace completo.
 - Kafka.
 - Cobro Stripe obligatorio.
