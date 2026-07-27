@@ -45,7 +45,7 @@ const navGroups = [
       { to: '/audit', label: 'Audit', icon: <PolicyOutlinedIcon fontSize="small" /> },
       { to: '/alerts', label: 'Alerts', icon: <NotificationsOutlinedIcon fontSize="small" /> },
       { to: '/cron', label: 'Cron', icon: <ScheduleOutlinedIcon fontSize="small" /> },
-      { to: '/secrets', label: 'Secrets', icon: <VpnKeyOutlinedIcon fontSize="small" /> },
+      { to: '/secrets', label: 'Org secrets', icon: <VpnKeyOutlinedIcon fontSize="small" /> },
     ],
   },
   {
@@ -67,7 +67,7 @@ function pageTitle(pathname: string): string {
   if (pathname.startsWith('/audit')) return 'Audit'
   if (pathname.startsWith('/alerts')) return 'Alerts'
   if (pathname.startsWith('/cron')) return 'Cron'
-  if (pathname.startsWith('/secrets')) return 'Secrets'
+  if (pathname.startsWith('/secrets')) return 'Org secrets'
   if (pathname.startsWith('/profile')) return 'Profile'
   return 'Dashboard'
 }
@@ -91,7 +91,7 @@ function pageSubtitle(pathname: string): string {
   if (pathname.startsWith('/audit')) return 'Security trail'
   if (pathname.startsWith('/alerts')) return 'Rules & channels'
   if (pathname.startsWith('/cron')) return 'Scheduled jobs'
-  if (pathname.startsWith('/secrets')) return 'Encrypted credentials'
+  if (pathname.startsWith('/secrets')) return 'Organization credentials'
   if (pathname.startsWith('/profile')) return 'Signed-in user'
   return ''
 }

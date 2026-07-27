@@ -19,6 +19,7 @@ import {
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined'
+import { Link as RouterLink } from 'react-router-dom'
 import { secretsApi } from '../../shared/api/endpoints'
 import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
@@ -52,18 +53,22 @@ export function SecretsListPage() {
   return (
     <PageShell>
       <PageHeader
-        title="Secrets"
-        description="Encrypted credentials for private Git clones (git.token) and SSH host keys."
+        title="Organization secrets"
+        description="Shared encrypted credentials (ADMIN). Prefer project secrets on each Project detail; link these when several projects share the same PAT or key."
         actions={
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreateOpen(true)}>
-            New secret
+            New org secret
           </Button>
         }
       />
 
       <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
-        Private repositories need a secret named exactly <Box component="code">git.token</Box> (GitHub
-        PAT with <Box component="code">repo</Box> scope). Deploy reads it automatically.
+        Deploy resolves <Box component="code">git.token</Box> as: project binding alias → project-owned
+        name → organization secret. Create project-scoped secrets under{' '}
+        <Button component={RouterLink} to="/projects" size="small" sx={{ verticalAlign: 'baseline', p: 0, minWidth: 0 }}>
+          Projects
+        </Button>
+        , or link an org secret into a project with alias <Box component="code">git.token</Box>.
       </Alert>
 
       <DataTableFrame>
@@ -72,9 +77,9 @@ export function SecretsListPage() {
             <Box p={2}>
               <EmptyState
                 icon={<VpnKeyOutlinedIcon />}
-                title="No secrets yet"
-                description="Create git.token for private repos, or an SSH private key PEM for remote hosts."
-                actionLabel="New secret"
+                title="No organization secrets"
+                description="Create a shared PAT or SSH key here, then link it from a project — or create secrets directly on the project."
+                actionLabel="New org secret"
                 onAction={() => setCreateOpen(true)}
               />
             </Box>
@@ -83,6 +88,7 @@ export function SecretsListPage() {
               <TableHead>
                 <TableRow>
                   <TableCell>Name</TableCell>
+                  <TableCell>Scope</TableCell>
                   <TableCell>Created</TableCell>
                   <TableCell>Updated</TableCell>
                 </TableRow>
@@ -93,6 +99,11 @@ export function SecretsListPage() {
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 600 }} className="atlas-mono">
                         {secret.name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        Organization
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -114,19 +125,19 @@ export function SecretsListPage() {
       </DataTableFrame>
 
       <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Create secret</DialogTitle>
+        <DialogTitle>Create organization secret</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             {createMutation.isError && (
               <Alert severity="error" variant="outlined">
-                Unable to create secret (name may already exist)
+                Unable to create secret (ADMIN only; name may already exist)
               </Alert>
             )}
             <TextField
               label="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              helperText='Use "git.token" for private GitHub clones'
+              helperText='e.g. "shared-github-pat" — link into projects as git.token'
               fullWidth
               autoFocus
             />

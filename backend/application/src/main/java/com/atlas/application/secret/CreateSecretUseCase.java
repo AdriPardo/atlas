@@ -19,17 +19,18 @@ public class CreateSecretUseCase {
     private final SecretCipherPort secretCipher;
     private final ProjectAuthorizationService authorizationService;
 
+    /** Creates an organization/global secret. ADMIN only. */
     @Transactional
     public Secret execute(CreateSecretCommand command) {
         CurrentUserPort.Actor actor = authorizationService.requireActor();
         if (!actor.isAdmin()) {
-            throw new ForbiddenException("Only ADMIN can create secrets");
+            throw new ForbiddenException("Only ADMIN can create organization secrets");
         }
-        if (secretRepository.existsByName(command.name())) {
+        if (secretRepository.existsGlobalByName(command.name())) {
             throw new ConflictException("Secret name already exists: " + command.name());
         }
         String ciphertext = secretCipher.encrypt(command.value());
-        return secretRepository.save(Secret.create(command.name(), ciphertext));
+        return secretRepository.save(Secret.createGlobal(command.name(), ciphertext));
     }
 
     public record CreateSecretCommand(String name, String value) {}

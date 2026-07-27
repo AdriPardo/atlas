@@ -44,7 +44,7 @@
 ### Grupo Platform
 | Ítem | Ruta | Desde |
 |------|------|-------|
-| Secrets | `/secrets` | v0.4 |
+| Secrets | `/secrets` | Organization secrets (ADMIN); project secrets on Project detail | v0.4 / v0.8 |
 | Variables | `/variables` | v0.4 |
 | Users / Teams | `/settings/users`, `/settings/teams` | v0.7 |
 | Audit | `/audit` | v0.7 |

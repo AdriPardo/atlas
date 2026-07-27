@@ -59,9 +59,8 @@ public class JGitRepositoryAdapter implements GitRepositoryPort {
                 throw new DomainException(
                         "Git authentication failed for "
                                 + repositoryUrl
-                                + ". Create a secret named '"
-                                + "git.token"
-                                + "' (GitHub PAT with repo scope) via Secrets, then retry. Cause: "
+                                + ". Provide git.token via project secret, project binding alias,"
+                                + " or organization secret (GitHub PAT with repo scope), then retry. Cause: "
                                 + message);
             }
             throw new DomainException("Git operation failed: " + message);

@@ -113,7 +113,7 @@ class ExecuteDeployServiceJobUseCaseTest {
         when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
         when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(resolveSecretValue.byName(ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
+        when(resolveSecretValue.forProject(project.getId(), ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
                 .thenReturn(Optional.empty());
 
         doAnswer(inv -> {
@@ -169,7 +169,7 @@ class ExecuteDeployServiceJobUseCaseTest {
         when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
         when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(resolveSecretValue.byName(ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
+        when(resolveSecretValue.forProject(project.getId(), ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
                 .thenReturn(Optional.empty());
 
         doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());

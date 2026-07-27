@@ -15,9 +15,13 @@ public class ListSecretsUseCase {
     private final SecretRepositoryPort secretRepository;
     private final ProjectAuthorizationService authorizationService;
 
+    /**
+     * Lists organization/global secret metadata (no values). Available to authenticated users so host
+     * SSH pickers keep working; only ADMIN can create via {@link CreateSecretUseCase}.
+     */
     @Transactional(readOnly = true)
     public List<Secret> execute() {
         authorizationService.requireActor();
-        return secretRepository.findAll();
+        return secretRepository.findAllGlobal();
     }
 }

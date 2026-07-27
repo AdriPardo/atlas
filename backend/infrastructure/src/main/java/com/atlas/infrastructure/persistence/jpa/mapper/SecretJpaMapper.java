@@ -13,6 +13,7 @@ public class SecretJpaMapper {
         }
         return Secret.rehydrate(
                 entity.getId(),
+                entity.getProjectId(),
                 entity.getName(),
                 entity.getCiphertext(),
                 entity.getCreatedAt(),
@@ -25,6 +26,7 @@ public class SecretJpaMapper {
         }
         SecretJpaEntity entity = new SecretJpaEntity();
         entity.setId(domain.getId());
+        entity.setProjectId(domain.getProjectId());
         entity.setName(domain.getName());
         entity.setCiphertext(domain.getCiphertext());
         entity.setCreatedAt(domain.getCreatedAt());

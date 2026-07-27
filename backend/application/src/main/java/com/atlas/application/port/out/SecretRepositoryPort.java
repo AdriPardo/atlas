@@ -11,9 +11,36 @@ public interface SecretRepositoryPort {
 
     Optional<Secret> findById(UUID id);
 
-    Optional<Secret> findByName(String name);
+    /** Global secret (project_id IS NULL) by name. */
+    Optional<Secret> findGlobalByName(String name);
 
-    boolean existsByName(String name);
+    Optional<Secret> findByProjectIdAndName(UUID projectId, String name);
 
-    List<Secret> findAll();
+    boolean existsGlobalByName(String name);
+
+    boolean existsByProjectIdAndName(UUID projectId, String name);
+
+    List<Secret> findAllGlobal();
+
+    List<Secret> findByProjectId(UUID projectId);
+
+    void deleteById(UUID id);
+
+    /** @deprecated use {@link #findGlobalByName(String)} */
+    @Deprecated
+    default Optional<Secret> findByName(String name) {
+        return findGlobalByName(name);
+    }
+
+    /** @deprecated use {@link #existsGlobalByName(String)} */
+    @Deprecated
+    default boolean existsByName(String name) {
+        return existsGlobalByName(name);
+    }
+
+    /** @deprecated use {@link #findAllGlobal()} */
+    @Deprecated
+    default List<Secret> findAll() {
+        return findAllGlobal();
+    }
 }

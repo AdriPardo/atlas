@@ -22,6 +22,7 @@ import type {
   PipelineRun,
   Project,
   ProjectMembership,
+  ProjectSecretEntry,
   SecretMeta,
   Service,
   ServiceExposure,
@@ -233,4 +234,19 @@ export const secretsApi = {
   list: () => api.get<SecretMeta[]>('/secrets').then((r) => r.data),
   create: (body: { name: string; value: string }) =>
     api.post<SecretMeta>('/secrets', body).then((r) => r.data),
+}
+
+export const projectSecretsApi = {
+  list: (projectId: string) =>
+    api.get<ProjectSecretEntry[]>(`/projects/${projectId}/secrets`).then((r) => r.data),
+  create: (projectId: string, body: { name: string; value: string }) =>
+    api.post<SecretMeta>(`/projects/${projectId}/secrets`, body).then((r) => r.data),
+  link: (projectId: string, body: { secretId: string; alias?: string }) =>
+    api
+      .post<ProjectSecretEntry>(`/projects/${projectId}/secrets/bindings`, body)
+      .then((r) => r.data),
+  unlink: (projectId: string, bindingId: string) =>
+    api.delete(`/projects/${projectId}/secrets/bindings/${bindingId}`),
+  removeOwned: (projectId: string, secretId: string) =>
+    api.delete(`/projects/${projectId}/secrets/${secretId}`),
 }

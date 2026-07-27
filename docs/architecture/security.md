@@ -46,10 +46,12 @@ Mapeo Authentik: grupos → roles (`ATLAS_AUTHENTIK_ADMIN_GROUP`, etc.).
 | Tipo | Almacenamiento | Visibilidad API |
 |------|----------------|-----------------|
 | Variable (no secreta) | Postgres texto | Lectura según ACL |
-| Secret | Ciphertext (envelope encryption) | Nunca en claro en listados; reveal auditado |
-| Credencial host (SSH key) | Secret store | Solo worker en memoria |
+| Secret (org o project) | Ciphertext + `project_id` nullable | Nunca en claro en listados; reveal auditado |
+| Binding | `project_secret_bindings` | Alias lógico → secret global |
+| Credencial host (SSH key) | Secret store (por id) | Solo worker en memoria |
 
-Clave maestra: env / file mount (`ATLAS_SECRETS_MASTER_KEY`); rotación documentada en settings.
+Resolución por nombre en deploy: binding alias → project-owned → org/global. Clave maestra: env / file mount (`ATLAS_SECRETS_MASTER_KEY`).
+
 
 ## Hardening operativo
 

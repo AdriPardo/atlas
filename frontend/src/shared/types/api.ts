@@ -138,7 +138,21 @@ export interface Job {
 
 export interface SecretMeta {
   id: string
+  projectId: string | null
   name: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type ProjectSecretKind = 'OWNED' | 'LINKED'
+
+export interface ProjectSecretEntry {
+  kind: ProjectSecretKind
+  secretId: string
+  name: string
+  secretName: string
+  bindingId: string | null
+  alias: string | null
   createdAt: string
   updatedAt: string
 }

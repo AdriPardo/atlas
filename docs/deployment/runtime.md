@@ -66,7 +66,7 @@ Para sync/deploy con `connectionType=LOCAL` en la misma VM:
 1. `docker-compose.prod.yml` (gitignored; partir de `docker-compose.prod.yml.example`) monta `/var/run/docker.sock` y `group_add: ${DOCKER_GID}` (GID de `getent group docker`).
 2. El contenedor `backend` incluye Docker CLI + compose plugin.
 3. **Seguridad:** el socket otorga control total del engine del host. Solo en instalaciones single-tenant de confianza.
-4. Repos privados: secret con nombre exacto `git.token` (PAT GitHub con scope `repo`) vía UI Secrets o `POST /api/v1/secrets`.
+4. Repos privados: secret lógico `git.token` (PAT GitHub con scope `repo`). Resolución: binding alias del proyecto → secret owned del proyecto → secret organization (`POST /api/v1/secrets` o UI Org secrets). Preferible crear/vincular en el Project detail.
 5. Cuidado con choques de puertos host (`:3000` ya lo usa Atlas frontend).
 
 Dev (`docker-compose.yml`): el socket va comentado; descomentar + `group_add` solo si necesitas LOCAL en local.

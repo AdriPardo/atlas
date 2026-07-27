@@ -28,17 +28,39 @@ public class SecretRepositoryAdapter implements SecretRepositoryPort {
     }
 
     @Override
-    public Optional<Secret> findByName(String name) {
-        return repository.findByNameIgnoreCase(name).map(mapper::toDomain);
+    public Optional<Secret> findGlobalByName(String name) {
+        return repository.findGlobalByNameIgnoreCase(name).map(mapper::toDomain);
     }
 
     @Override
-    public boolean existsByName(String name) {
-        return repository.existsByNameIgnoreCase(name);
+    public Optional<Secret> findByProjectIdAndName(UUID projectId, String name) {
+        return repository.findByProjectIdAndNameIgnoreCase(projectId, name).map(mapper::toDomain);
     }
 
     @Override
-    public List<Secret> findAll() {
-        return repository.findAll().stream().map(mapper::toDomain).toList();
+    public boolean existsGlobalByName(String name) {
+        return repository.existsGlobalByNameIgnoreCase(name);
+    }
+
+    @Override
+    public boolean existsByProjectIdAndName(UUID projectId, String name) {
+        return repository.existsByProjectIdAndNameIgnoreCase(projectId, name);
+    }
+
+    @Override
+    public List<Secret> findAllGlobal() {
+        return repository.findAllGlobal().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Secret> findByProjectId(UUID projectId) {
+        return repository.findByProjectIdOrderByNameAsc(projectId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        repository.deleteById(id);
     }
 }

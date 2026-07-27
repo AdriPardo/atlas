@@ -59,7 +59,12 @@ outbox_events(id, type, payload jsonb, created_at, published_at)
 
 ```text
 variables(id, scope, scope_id, key, value, created_at, updated_at)
-secrets(id, scope, scope_id, key, ciphertext, key_version, created_at, updated_at)
+secrets(id, project_id null, name, ciphertext, created_at, updated_at)
+  -- project_id NULL = org/global; set = project-owned
+  -- unique (lower(name)) where project_id is null
+  -- unique (project_id, lower(name)) where project_id is not null
+project_secret_bindings(id, project_id, secret_id, alias, created_at)
+  -- unique (project_id, secret_id); unique (project_id, lower(alias))
 ```
 
 ### Networking / obs / audit / billing / backups

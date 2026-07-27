@@ -96,7 +96,8 @@ public class ExecuteDeployServiceJobUseCase {
             logSink.accept(
                     "Starting deploy for service " + loaded.service().getName() + " (project "
                             + loaded.project().getName() + ")");
-            Optional<String> gitToken = resolveSecretValue.byName(GIT_TOKEN_SECRET_NAME);
+            Optional<String> gitToken =
+                    resolveSecretValue.forProject(loaded.project().getId(), GIT_TOKEN_SECRET_NAME);
             gitRepository.cloneOrUpdate(
                     loaded.service().getRepositoryUrl(),
                     loaded.service().getBranch(),

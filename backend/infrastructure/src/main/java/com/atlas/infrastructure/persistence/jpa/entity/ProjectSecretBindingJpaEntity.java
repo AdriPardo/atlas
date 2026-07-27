@@ -8,26 +8,23 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "secrets")
-public class SecretJpaEntity {
+@Table(name = "project_secret_bindings")
+public class ProjectSecretBindingJpaEntity {
 
     @Id
     private UUID id;
 
-    @Column(name = "project_id")
+    @Column(name = "project_id", nullable = false)
     private UUID projectId;
 
-    @Column(nullable = false, length = 255)
-    private String name;
+    @Column(name = "secret_id", nullable = false)
+    private UUID secretId;
 
-    @Column(nullable = false, columnDefinition = "text")
-    private String ciphertext;
+    @Column(nullable = false, length = 255)
+    private String alias;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
 
     public UUID getId() {
         return id;
@@ -45,20 +42,20 @@ public class SecretJpaEntity {
         this.projectId = projectId;
     }
 
-    public String getName() {
-        return name;
+    public UUID getSecretId() {
+        return secretId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setSecretId(UUID secretId) {
+        this.secretId = secretId;
     }
 
-    public String getCiphertext() {
-        return ciphertext;
+    public String getAlias() {
+        return alias;
     }
 
-    public void setCiphertext(String ciphertext) {
-        this.ciphertext = ciphertext;
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
     public Instant getCreatedAt() {
@@ -67,13 +64,5 @@ public class SecretJpaEntity {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

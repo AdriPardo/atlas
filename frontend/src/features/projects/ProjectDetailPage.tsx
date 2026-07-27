@@ -28,6 +28,7 @@ import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { ProjectMembersPanel } from './ProjectMembersPanel'
 import { ProjectDomainsPanel } from './ProjectDomainsPanel'
+import { ProjectSecretsPanel } from './ProjectSecretsPanel'
 
 export function ProjectDetailPage() {
   const { id = '' } = useParams()
@@ -143,6 +144,8 @@ export function ProjectDetailPage() {
               )}
             </DetailPanel>
 
+            <ProjectSecretsPanel projectId={id} />
+
             <ProjectDomainsPanel
               projectId={id}
               services={servicesQuery.data?.content ?? []}
@@ -163,8 +166,8 @@ export function ProjectDetailPage() {
               </Alert>
             )}
             <Alert severity="info" variant="outlined">
-              Atlas picks a suitable host automatically (LOCAL / default). Private GitHub repos need a
-              secret named <strong>git.token</strong>.
+              Atlas picks a suitable host automatically (LOCAL / default). Private GitHub repos need{' '}
+              <strong>git.token</strong> on this project (owned or linked) or as an organization secret.
             </Alert>
             <Typography variant="body2" color="text.secondary">
               Exposure

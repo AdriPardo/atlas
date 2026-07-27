@@ -8,10 +8,37 @@ Herencia: Organization defaults → Project → Service (override).
 
 ## Secrets
 
-Igual que Variables pero cifrados; API nunca lista valores en claro. Endpoint `POST .../reveal` auditado y rate-limited (ADMIN/owner).
+Almacén cifrado at-rest (`ATLAS_SECRETS_MASTER_KEY`). La API **nunca** lista valores en claro.
 
-Rotación: crear nueva versión; deploys siguientes usan latest; keep N versions.
+### Modelo (proyecto + org)
 
-## Environments (concepto transversal)
+| Ámbito | `secrets.project_id` | Quién gestiona |
+|--------|----------------------|----------------|
+| Organization / global | `NULL` | ADMIN crea; listado metadata para autenticados (picker SSH) |
+| Project-owned | UUID del project | Membership OPERATOR+ (`DEPLOY`) |
 
-No es un módulo sidebar obligatorio al inicio: flag/`environment` en Service o entidad `Environment` ligada a Project (v0.5+). Evita explosion de “projects” duplicados prod/staging.
+Además, `project_secret_bindings(project_id, secret_id, alias)` enlaza un secret **global** en un proyecto bajo un alias lógico (p. ej. `git.token`).
+
+### Resolución en deploy / Git
+
+Orden para un nombre lógico (p. ej. `git.token`) en el contexto de un proyecto:
+
+1. Binding del proyecto cuyo `alias` coincide
+2. Secret owned del proyecto con ese `name`
+3. Secret organization/global con ese `name`
+
+Hosts SSH siguen resolviendo por `sshPrivateKeySecretId` (id), sin cascada por nombre.
+
+### API
+
+| Método | Ruta | Notas |
+|--------|------|-------|
+| GET/POST | `/secrets` | Org/global; POST = ADMIN |
+| GET/POST | `/projects/{id}/secrets` | List (owned+linked) / create owned |
+| POST | `/projects/{id}/secrets/bindings` | Link global → alias |
+| DELETE | `/projects/{id}/secrets/bindings/{bindingId}` | Unlink |
+| DELETE | `/projects/{id}/secrets/{secretId}` | Delete owned |
+
+UI: panel **Secrets** en Project detail; página sidebar **Org secrets** (`/secrets`) para el almacén compartido.
+
+Rotación: crear nueva versión / reemplazar valor; deploys siguientes usan latest.

@@ -37,7 +37,8 @@ Hosts → New → hostname/IP + credencial (Secret)
 ## 5. Secretos
 
 ```text
-Secrets → New → scope + key + value
+Secrets → Project detail → create owned or link org secret (alias)
+Org secrets → ADMIN shared store
   → valor no se re-muestra
   → Reveal (confirm + audit) si permitido
 ```
