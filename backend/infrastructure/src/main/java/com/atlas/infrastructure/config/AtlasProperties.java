@@ -11,6 +11,7 @@ public class AtlasProperties {
     private final Secrets secrets = new Secrets();
     private final Adapters adapters = new Adapters();
     private final Observability observability = new Observability();
+    private final Retention retention = new Retention();
 
     public Worker getWorker() {
         return worker;
@@ -34,6 +35,10 @@ public class AtlasProperties {
 
     public Observability getObservability() {
         return observability;
+    }
+
+    public Retention getRetention() {
+        return retention;
     }
 
     public static class Worker {
@@ -144,6 +149,45 @@ public class AtlasProperties {
 
         public void setLokiBaseUrl(String lokiBaseUrl) {
             this.lokiBaseUrl = lokiBaseUrl;
+        }
+    }
+
+    public static class Retention {
+        private boolean enabled = true;
+        private int jobsDays = 30;
+        private int pipelineRunsDays = 30;
+        private String cron = "0 0 3 * * *";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getJobsDays() {
+            return jobsDays;
+        }
+
+        public void setJobsDays(int jobsDays) {
+            this.jobsDays = jobsDays;
+        }
+
+        public int getPipelineRunsDays() {
+            return pipelineRunsDays;
+        }
+
+        public void setPipelineRunsDays(int pipelineRunsDays) {
+            this.pipelineRunsDays = pipelineRunsDays;
+        }
+
+        public String getCron() {
+            return cron;
+        }
+
+        public void setCron(String cron) {
+            this.cron = cron;
         }
     }
 }

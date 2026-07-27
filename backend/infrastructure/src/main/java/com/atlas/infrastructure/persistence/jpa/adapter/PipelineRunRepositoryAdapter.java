@@ -8,6 +8,7 @@ import com.atlas.infrastructure.persistence.jpa.PageableFactory;
 import com.atlas.infrastructure.persistence.jpa.entity.PipelineRunJpaEntity;
 import com.atlas.infrastructure.persistence.jpa.mapper.PipelineRunJpaMapper;
 import com.atlas.infrastructure.persistence.jpa.repository.PipelineRunJpaRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -40,5 +42,12 @@ public class PipelineRunRepositoryAdapter implements PipelineRunRepositoryPort {
         Page<PipelineRunJpaEntity> page = repository.findAll(specification, PageableFactory.from(pageQuery));
         List<PipelineRun> content = page.getContent().stream().map(mapper::toDomain).toList();
         return PageResult.of(content, page.getNumber(), page.getSize(), page.getTotalElements(), pageQuery.sort());
+    }
+
+    @Override
+    @Transactional
+    public int deleteTerminalOlderThan(Instant cutoff) {
+        return repository.deleteByStatusInAndCreatedAtBefore(
+                List.of("SUCCEEDED", "FAILED", "CANCELLED"), cutoff);
     }
 }

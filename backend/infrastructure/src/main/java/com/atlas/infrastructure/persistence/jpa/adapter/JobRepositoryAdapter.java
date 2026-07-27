@@ -16,6 +16,7 @@ import jakarta.persistence.Query;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -97,6 +98,13 @@ public class JobRepositoryAdapter implements JobRepositoryPort {
         }
         entityManager.clear();
         return claimed;
+    }
+
+    @Override
+    @Transactional
+    public int deleteTerminalOlderThan(Instant cutoff) {
+        return repository.deleteByStatusInAndCreatedAtBefore(
+                EnumSet.of(JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED), cutoff);
     }
 
     private Job mapRow(Object[] row) {

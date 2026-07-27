@@ -348,4 +348,33 @@ class AtlasIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(0));
     }
+
+    @Test
+    void adminRetentionPurgeSmoke() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+
+        mockMvc.perform(post("/api/v1/admin/purge").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.deletedJobs").isNumber())
+                .andExpect(jsonPath("$.deletedPipelineRuns").isNumber())
+                .andExpect(jsonPath("$.ran").value(true));
+
+        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+                        .header("X-authentik-username", "ops-purge")
+                        .header("X-authentik-groups", "operators"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String opsToken = com.jayway.jsonpath.JsonPath.read(sso.getResponse().getContentAsString(), "$.accessToken");
+
+        mockMvc.perform(post("/api/v1/admin/purge").header("Authorization", "Bearer " + opsToken))
+                .andExpect(status().isForbidden());
+    }
+
 }
