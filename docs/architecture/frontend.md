@@ -55,10 +55,13 @@ Config declarativa de sidebar (grupos: Overview, Delivery, Runtime, Network, Obs
 
 ## Auth en SPA
 
-1. Arranque: `GET /api/v1/auth/sso` → si 200, guardar JWT y entrar.
-2. Si 401 SSO: mostrar login local (solo cuando Authentik off / local).
-3. Requests: `Authorization: Bearer <token>`.
-4. 401 global → logout / re-SSO.
+1. Arranque: `GET /api/v1/auth/sso` (con reintentos en host público) → si 200, guardar JWT y entrar.
+2. En `atlas.atlasops.dev`: no ofrecer login local; si SSO falla, CTA “Complete Authentik login” (re-ForwardAuth).
+3. En localhost / IP LAN: login local + enlace al URL público SSO.
+4. Requests: `Authorization: Bearer <token>`.
+5. 401 global → logout / re-SSO.
+
+El puerto host del frontend en prod debe ser loopback (`127.0.0.1:3000`) para no bypassear Traefik/Authentik desde la LAN.
 
 ## Performance
 

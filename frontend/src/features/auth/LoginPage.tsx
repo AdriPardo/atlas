@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   IconButton,
+  Link,
   Stack,
   TextField,
   Typography,
@@ -16,45 +17,19 @@ import {
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import { useAuth } from './AuthContext'
+import {
+  PUBLIC_ATLAS_URL,
+  allowLocalLogin,
+  isAtlasPublicHost,
+  isDirectAccessHost,
+} from './authHost'
 
 const schema = z.object({
   username: z.string().min(1, 'Required'),
   password: z.string().min(1, 'Required'),
 })
 
-
 type FormValues = z.infer<typeof schema>
-
-/** Explain why local login is shown (direct URL vs failed SSO behind Authentik). */
-function accessHint(): { heading: string; body: string; warn: boolean } {
-  const host = window.location.hostname
-  const isPublicHost = host === 'atlas.atlasops.dev'
-  const isLoopback = host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '::1'
-  const isLanIp = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)
-
-  if (isPublicHost) {
-    return {
-      heading: 'Sign in',
-      body:
-        'Authentik should sign you in automatically on this host. SSO did not succeed — refresh, or confirm Traefik ForwardAuth is injecting X-authentik-* headers.',
-      warn: true,
-    }
-  }
-  if (isLoopback || isLanIp) {
-    return {
-      heading: 'Sign in (direct access)',
-      body:
-        'You opened Atlas via localhost or a LAN IP/port. Authentik ForwardAuth only runs on https://atlas.atlasops.dev — use that URL for SSO, or sign in with local credentials here.',
-      warn: false,
-    }
-  }
-  return {
-    heading: 'Sign in',
-    body:
-      'Local credentials for development. Authentik SSO is only available at https://atlas.atlasops.dev.',
-    warn: false,
-  }
-}
 
 interface LoginPageProps {
   mode?: 'light' | 'dark'
@@ -64,10 +39,14 @@ interface LoginPageProps {
 export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
   const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
-  const { login, user, loading } = useAuth()
+  const { login, user, loading, retrySso } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
-  const hint = accessHint()
+  const [ssoBusy, setSsoBusy] = useState(false)
+  const publicHost = isAtlasPublicHost()
+  const directAccess = isDirectAccessHost()
+  const localAllowed = allowLocalLogin()
+
   const {
     register,
     handleSubmit,
@@ -88,6 +67,22 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
     }
   })
 
+  const continueWithAuthentik = async () => {
+    setSsoBusy(true)
+    setError(null)
+    try {
+      const ssoUser = await retrySso()
+      if (ssoUser) {
+        navigate('/')
+        return
+      }
+      // No Atlas JWT yet — bounce through Traefik so ForwardAuth can complete Authentik.
+      window.location.assign(publicHost ? `${window.location.origin}/` : PUBLIC_ATLAS_URL)
+    } catch {
+      window.location.assign(publicHost ? `${window.location.origin}/` : PUBLIC_ATLAS_URL)
+    }
+  }
+
   return (
     <Box
       className="atlas-page"
@@ -103,6 +98,31 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
       }}
     >
       <Box className="atlas-grain" />
+
+      {onToggleMode && (
+        <IconButton
+          onClick={onToggleMode}
+          aria-label="Toggle theme"
+          size="small"
+          sx={{
+            position: 'absolute',
+            top: { xs: 12, sm: 16 },
+            right: { xs: 12, sm: 16 },
+            zIndex: 2,
+            bgcolor: isDark ? 'rgba(15,23,42,0.55)' : 'rgba(255,255,255,0.72)',
+            border: (t) => `1px solid ${t.palette.divider}`,
+            '&:hover': {
+              bgcolor: isDark ? 'rgba(15,23,42,0.8)' : 'rgba(255,255,255,0.92)',
+            },
+          }}
+        >
+          {(mode ?? theme.palette.mode) === 'dark' ? (
+            <LightModeOutlinedIcon fontSize="small" />
+          ) : (
+            <DarkModeOutlinedIcon fontSize="small" />
+          )}
+        </IconButton>
+      )}
 
       <Box
         sx={{
@@ -121,27 +141,16 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
                radial-gradient(500px 300px at 80% 90%, rgba(14,165,233,0.06), transparent 55%)`,
         }}
       >
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-              color: 'primary.main',
-            }}
-          >
-            Atlas
-          </Typography>
-          {onToggleMode && (
-            <IconButton onClick={onToggleMode} aria-label="Toggle theme" size="small">
-              {(mode ?? theme.palette.mode) === 'dark' ? (
-                <LightModeOutlinedIcon fontSize="small" />
-              ) : (
-                <DarkModeOutlinedIcon fontSize="small" />
-              )}
-            </IconButton>
-          )}
-        </Box>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 700,
+            letterSpacing: '-0.03em',
+            color: 'primary.main',
+          }}
+        >
+          Atlas
+        </Typography>
 
         <Box sx={{ py: { xs: 6, md: 0 }, maxWidth: 460 }}>
           <Typography
@@ -179,61 +188,120 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
       >
         <Box sx={{ width: '100%', maxWidth: 400 }}>
           <Stack spacing={3}>
-            <Box>
-              <Typography variant="h5" component="h2" gutterBottom>
-                {hint.heading}
-              </Typography>
-              <Typography color="text.secondary" variant="body2">
-                {hint.body}
-              </Typography>
-            </Box>
+            {publicHost ? (
+              <>
+                <Box>
+                  <Typography variant="h5" component="h2" gutterBottom>
+                    Authentik SSO
+                  </Typography>
+                  <Typography color="text.secondary" variant="body2">
+                    Production uses Authentik via Traefik ForwardAuth. Local username/password is
+                    disabled on this host.
+                  </Typography>
+                </Box>
 
-            {hint.warn && (
-              <Alert severity="warning" variant="outlined">
-                Expected SSO via Authentik on this host, but Atlas could not mint a session from ForwardAuth headers.
-              </Alert>
-            )}
+                <Alert severity="info" variant="outlined">
+                  If you landed here, Atlas could not mint a JWT from Authentik headers. Complete
+                  Authentik login and retry.
+                </Alert>
 
-            {error && (
-              <Alert severity="error" variant="outlined">
-                {error}
-              </Alert>
-            )}
+                {error && (
+                  <Alert severity="error" variant="outlined">
+                    {error}
+                  </Alert>
+                )}
 
-            <Box component="form" onSubmit={onSubmit}>
-              <Stack spacing={2}>
-                <TextField
-                  label="Username"
-                  autoComplete="username"
-                  autoFocus
-                  fullWidth
-                  size="medium"
-                  error={!!errors.username}
-                  helperText={errors.username?.message}
-                  {...register('username')}
-                />
-                <TextField
-                  label="Password"
-                  type="password"
-                  autoComplete="current-password"
-                  fullWidth
-                  size="medium"
-                  error={!!errors.password}
-                  helperText={errors.password?.message}
-                  {...register('password')}
-                />
                 <Button
-                  type="submit"
                   variant="contained"
                   size="large"
                   fullWidth
-                  disabled={isSubmitting}
-                  sx={{ mt: 0.5 }}
+                  disabled={loading || ssoBusy}
+                  onClick={() => void continueWithAuthentik()}
                 >
-                  {isSubmitting ? 'Signing in…' : 'Sign in'}
+                  {ssoBusy || loading ? 'Connecting…' : 'Complete Authentik login'}
                 </Button>
-              </Stack>
-            </Box>
+
+                <Typography variant="caption" color="text.secondary">
+                  Opens Atlas through ForwardAuth (
+                  <Link href={PUBLIC_ATLAS_URL} underline="hover">
+                    atlas.atlasops.dev
+                  </Link>
+                  ).
+                </Typography>
+              </>
+            ) : (
+              <>
+                <Box>
+                  <Typography variant="h5" component="h2" gutterBottom>
+                    {directAccess ? 'Sign in (direct access)' : 'Sign in'}
+                  </Typography>
+                  <Typography color="text.secondary" variant="body2">
+                    {directAccess
+                      ? 'You opened Atlas via localhost or a LAN IP/port. Authentik only runs on '
+                      : 'Local development credentials. For SSO use '}
+                    <Link href={PUBLIC_ATLAS_URL} underline="hover">
+                      https://atlas.atlasops.dev
+                    </Link>
+                    {directAccess ? ' — use that URL for SSO, or sign in locally below.' : '.'}
+                  </Typography>
+                </Box>
+
+                {directAccess && (
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    fullWidth
+                    disabled={ssoBusy}
+                    onClick={() => void continueWithAuthentik()}
+                  >
+                    Open Authentik SSO (public URL)
+                  </Button>
+                )}
+
+                {error && (
+                  <Alert severity="error" variant="outlined">
+                    {error}
+                  </Alert>
+                )}
+
+                {localAllowed && (
+                  <Box component="form" onSubmit={onSubmit}>
+                    <Stack spacing={2}>
+                      <TextField
+                        label="Username"
+                        autoComplete="username"
+                        autoFocus
+                        fullWidth
+                        size="medium"
+                        error={!!errors.username}
+                        helperText={errors.username?.message}
+                        {...register('username')}
+                      />
+                      <TextField
+                        label="Password"
+                        type="password"
+                        autoComplete="current-password"
+                        fullWidth
+                        size="medium"
+                        error={!!errors.password}
+                        helperText={errors.password?.message}
+                        {...register('password')}
+                      />
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        fullWidth
+                        disabled={isSubmitting}
+                        sx={{ mt: 0.5 }}
+                      >
+                        {isSubmitting ? 'Signing in…' : 'Sign in'}
+                      </Button>
+                    </Stack>
+                  </Box>
+                )}
+              </>
+            )}
           </Stack>
         </Box>
       </Box>
