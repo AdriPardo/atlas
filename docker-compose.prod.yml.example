@@ -16,6 +16,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       ATLAS_WORKER_ENABLED: ${ATLAS_WORKER_ENABLED:-true}
       ATLAS_WORKSPACE_DIR: /var/lib/atlas/workspaces
+      ATLAS_BACKUP_DIR: /var/lib/atlas/backups
     ports:
       - "8080:8080"
     # LOCAL host sync/deploy needs the Docker socket. Backend user must share the host
@@ -25,6 +26,7 @@ services:
       - ${DOCKER_GID:-988}
     volumes:
       - atlas_workspaces:/var/lib/atlas/workspaces
+      - atlas_backups:/var/lib/atlas/backups
       - /var/run/docker.sock:/var/run/docker.sock
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1"]
@@ -70,6 +72,7 @@ services:
 
 volumes:
   atlas_workspaces:
+  atlas_backups:
 
 networks:
   public:

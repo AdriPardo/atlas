@@ -12,6 +12,7 @@ public class AtlasProperties {
     private final Adapters adapters = new Adapters();
     private final Observability observability = new Observability();
     private final Retention retention = new Retention();
+    private final Backup backup = new Backup();
 
     public Worker getWorker() {
         return worker;
@@ -39,6 +40,10 @@ public class AtlasProperties {
 
     public Retention getRetention() {
         return retention;
+    }
+
+    public Backup getBackup() {
+        return backup;
     }
 
     public static class Worker {
@@ -188,6 +193,54 @@ public class AtlasProperties {
 
         public void setCron(String cron) {
             this.cron = cron;
+        }
+    }
+
+    public static class Backup {
+        private boolean enabled = true;
+        private String dir = "/var/lib/atlas/backups";
+        private int keepCount = 7;
+        private String cron = "0 30 2 * * *";
+        private String pgDumpBinary = "pg_dump";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getDir() {
+            return dir;
+        }
+
+        public void setDir(String dir) {
+            this.dir = dir;
+        }
+
+        public int getKeepCount() {
+            return keepCount;
+        }
+
+        public void setKeepCount(int keepCount) {
+            this.keepCount = keepCount;
+        }
+
+        public String getCron() {
+            return cron;
+        }
+
+        public void setCron(String cron) {
+            this.cron = cron;
+        }
+
+        public String getPgDumpBinary() {
+            return pgDumpBinary;
+        }
+
+        public void setPgDumpBinary(String pgDumpBinary) {
+            this.pgDumpBinary = pgDumpBinary;
         }
     }
 }

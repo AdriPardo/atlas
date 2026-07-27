@@ -377,4 +377,31 @@ class AtlasIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void adminDatabaseBackupEnqueueSmoke() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+
+        mockMvc.perform(post("/api/v1/admin/backup").header("Authorization", "Bearer " + token))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.type").value("BACKUP_DATABASE"))
+                .andExpect(jsonPath("$.status").value("PENDING"));
+
+        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+                        .header("X-authentik-username", "ops-backup")
+                        .header("X-authentik-groups", "operators"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String opsToken = com.jayway.jsonpath.JsonPath.read(sso.getResponse().getContentAsString(), "$.accessToken");
+
+        mockMvc.perform(post("/api/v1/admin/backup").header("Authorization", "Bearer " + opsToken))
+                .andExpect(status().isForbidden());
+    }
+
 }

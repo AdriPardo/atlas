@@ -5,10 +5,11 @@ RUN ./gradlew :bootstrap:bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-# docker CLI needed for LOCAL compose deploys when /var/run/docker.sock is mounted
-RUN apk add --no-cache docker-cli docker-cli-compose \
+# docker CLI: LOCAL compose deploys when /var/run/docker.sock is mounted
+# postgresql-client: logical DB backups (pg_dump) for BACKUP_DATABASE jobs
+RUN apk add --no-cache docker-cli docker-cli-compose postgresql-client \
     && addgroup -S atlas && adduser -S atlas -G atlas \
-    && mkdir -p /var/lib/atlas/workspaces \
+    && mkdir -p /var/lib/atlas/workspaces /var/lib/atlas/backups \
     && chown -R atlas:atlas /var/lib/atlas
 COPY --from=build /workspace/bootstrap/build/libs/atlas.jar /app/atlas.jar
 USER atlas

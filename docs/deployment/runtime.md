@@ -55,7 +55,7 @@ Perfil `docker`: SSO on. Secretos de producción distintos de defaults.
 ## Persistencia
 
 - Volumen `atlas_pg_data`.
-- Futuro: volumen para artifacts/backup staging.
+- Volumen `atlas_backups` para dumps lógicos (`pg_dump`); ver [backup-restore.md](./backup-restore.md).
 - Credenciales host/SSH: en DB cifradas, no en imágenes.
 
 ## Recursos orientativos (single VM)

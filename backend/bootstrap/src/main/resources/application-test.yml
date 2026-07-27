@@ -27,3 +27,5 @@ atlas:
     master-key: test-secrets-master-key-32chars!!
   workspace:
     dir: ${java.io.tmpdir}/atlas-test-workspaces
+  backup:
+    dir: ${java.io.tmpdir}/atlas-test-backups

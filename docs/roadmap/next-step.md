@@ -2,36 +2,36 @@
 
 ## Estado del último incremento (completado)
 
-**v0.8a — Job retention + purge** ya está en el árbol:
+**v0.8b — Backups DB programados** ya está en el árbol:
 
-- Config `atlas.retention.*` (enabled, jobs-days, pipeline-runs-days, cron).
-- `PurgeRetentionUseCase`: borra pipeline_runs terminales y luego jobs terminales más antiguos que N días.
-- Scheduler diario (`RetentionPurgeScheduler`, default 03:00).
-- ADMIN: `POST /api/v1/admin/purge`.
-- Audit `RETENTION_PURGE`.
+- Job `BACKUP_DATABASE` + handler `pg_dump` → `$ATLAS_BACKUP_DIR/atlas-*.sql.gz`.
+- Config `atlas.backup.*` (enabled, dir, keep-count, cron).
+- Scheduler diario (`DatabaseBackupScheduler`, default 02:30 UTC).
+- ADMIN: `POST /api/v1/admin/backup` (202 + job).
+- Runbook: `docs/deployment/backup-restore.md`.
 
-**Previo:** v0.6.1 Git webhooks (`POST /api/v1/webhooks/git/{token}`).
+**Previo:** v0.8a retention/purge; v0.6.1 Git webhooks.
 
 ## Recomendación única (siguiente)
 
-**v0.8b Backups DB programados** — snapshot lógico Postgres (pg_dump) vía job + restore documentado (cierra continuidad tras purge).
+**v0.7 remainder — Domains + Traefik metadata** — registrar dominios/certs por project y adapters básicos (cierra edge multi-tenant tras ACL).
 
 ## Por qué es el paso más rentable ahora
 
-1. Purge reduce churn; falta backup antes de operar en serio.
-2. Alcance acotado vs restore de volúmenes Docker.
-3. Domains/Traefik (resto v0.7) y billing pueden esperar.
+1. Continuidad (purge + backup) ya cubierta.
+2. Domains desbloquean el resto de v0.7 (alerts pueden esperar).
+3. Billing/AI siguen fuera de alcance.
 
 ## Alcance concreto del incremento
 
-1. Job type `BACKUP_DATABASE` + handler pg_dump a path configurable.
-2. Schedule/cron config + UI mínima o endpoint ADMIN trigger.
-3. Doc restore de prueba en runbook corto.
+1. Entidad Domain + API CRUD mínima por project (ADMIN/OPERATOR con ACL).
+2. Metadata certificados + adapter Traefik/Cloudflare stub o lectura de labels.
+3. UI mínima: listar/añadir dominio en project detail.
 
 ## Qué no hacer
 
-- No billing/AI/marketplace, no Redis/Kafka, no Traefik domains completos aún.
+- No billing/AI/marketplace, no Redis/Kafka, no restore UI completa aún.
 
 ## Definición de éxito
 
-> Backup programado o manual produce artefacto recuperable; restore de prueba documentado; webhooks/RBAC/purge intactos.
+> Project puede registrar un dominio verificado (metadata); webhooks/RBAC/purge/backup intactos.

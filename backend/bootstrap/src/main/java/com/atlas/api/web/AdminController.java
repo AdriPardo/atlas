@@ -1,5 +1,8 @@
 package com.atlas.api.web;
 
+import com.atlas.api.dto.response.JobResponse;
+import com.atlas.api.mapper.ApiMapper;
+import com.atlas.application.backup.EnqueueBackupDatabaseUseCase;
 import com.atlas.application.retention.PurgeRetentionUseCase;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
 
     private final PurgeRetentionUseCase purgeRetentionUseCase;
+    private final EnqueueBackupDatabaseUseCase enqueueBackupDatabaseUseCase;
+    private final ApiMapper apiMapper;
 
     @PostMapping("/purge")
     public ResponseEntity<Map<String, Object>> purge() {
@@ -22,5 +27,11 @@ public class AdminController {
                 "deletedJobs", result.deletedJobs(),
                 "deletedPipelineRuns", result.deletedPipelineRuns(),
                 "ran", result.ran()));
+    }
+
+    @PostMapping("/backup")
+    public ResponseEntity<JobResponse> backup() {
+        var job = enqueueBackupDatabaseUseCase.executeAsAdmin();
+        return ResponseEntity.accepted().body(apiMapper.toJobResponse(job));
     }
 }

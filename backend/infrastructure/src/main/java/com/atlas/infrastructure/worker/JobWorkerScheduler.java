@@ -1,5 +1,6 @@
 package com.atlas.infrastructure.worker;
 
+import com.atlas.application.backup.ExecuteBackupDatabaseJobUseCase;
 import com.atlas.application.deployment.ExecuteDeployServiceJobUseCase;
 import com.atlas.application.host.ExecuteSyncHostJobUseCase;
 import com.atlas.application.job.ClaimJobsUseCase;
@@ -29,6 +30,7 @@ public class JobWorkerScheduler {
     private final FailJobUseCase failJobUseCase;
     private final ExecuteSyncHostJobUseCase executeSyncHostJobUseCase;
     private final ExecuteDeployServiceJobUseCase executeDeployServiceJobUseCase;
+    private final ExecuteBackupDatabaseJobUseCase executeBackupDatabaseJobUseCase;
     private final AtlasProperties atlasProperties;
     private final ObjectMapper objectMapper;
 
@@ -50,6 +52,8 @@ public class JobWorkerScheduler {
             } else if (job.getType() == JobType.DEPLOY_SERVICE) {
                 UUID deploymentId = UUID.fromString(payload.get("deploymentId").asText());
                 executeDeployServiceJobUseCase.execute(deploymentId);
+            } else if (job.getType() == JobType.BACKUP_DATABASE) {
+                executeBackupDatabaseJobUseCase.execute();
             } else {
                 throw new IllegalStateException("Unsupported job type: " + job.getType());
             }

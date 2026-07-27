@@ -72,6 +72,12 @@ atlas:
     jobs-days: ${ATLAS_RETENTION_JOBS_DAYS:30}
     pipeline-runs-days: ${ATLAS_RETENTION_PIPELINE_RUNS_DAYS:30}
     cron: ${ATLAS_RETENTION_CRON:0 0 3 * * *}
+  backup:
+    enabled: ${ATLAS_BACKUP_ENABLED:true}
+    dir: ${ATLAS_BACKUP_DIR:/var/lib/atlas/backups}
+    keep-count: ${ATLAS_BACKUP_KEEP_COUNT:7}
+    cron: ${ATLAS_BACKUP_CRON:0 30 2 * * *}
+    pg-dump-binary: ${ATLAS_BACKUP_PG_DUMP_BINARY:pg_dump}
 
 springdoc:
   api-docs:
