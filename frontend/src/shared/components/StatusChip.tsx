@@ -16,6 +16,12 @@ const STATUS_TONE: Record<string, StatusTone> = {
   OFFLINE: 'default',
   LOCAL: 'info',
   SSH: 'default',
+  OK: 'success',
+  FIRING: 'error',
+  SILENCED: 'default',
+  ACTIVE: 'success',
+  PENDING_DNS: 'info',
+  ERROR: 'error',
 }
 
 const LIVE_STATUSES = new Set(['DEPLOYING', 'RUNNING', 'PENDING'])

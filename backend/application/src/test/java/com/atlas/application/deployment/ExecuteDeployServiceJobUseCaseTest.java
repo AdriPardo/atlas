@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atlas.application.observability.EvaluateProductAlertsUseCase;
 import com.atlas.application.port.out.ContainerRuntimePort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.GitRepositoryPort;
@@ -56,6 +57,9 @@ class ExecuteDeployServiceJobUseCaseTest {
     @Mock
     private ResolveSecretValueUseCase resolveSecretValue;
 
+    @Mock
+    private EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
+
     private ExecuteDeployServiceJobUseCase useCase;
     private Path workspace;
 
@@ -70,7 +74,8 @@ class ExecuteDeployServiceJobUseCaseTest {
                 gitRepository,
                 containerRuntime,
                 resolveSecretValue,
-                id -> workspace);
+                id -> workspace,
+                evaluateProductAlertsUseCase);
     }
 
     @Test

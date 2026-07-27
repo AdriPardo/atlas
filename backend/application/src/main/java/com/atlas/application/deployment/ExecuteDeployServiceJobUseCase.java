@@ -1,5 +1,6 @@
 package com.atlas.application.deployment;
 
+import com.atlas.application.observability.EvaluateProductAlertsUseCase;
 import com.atlas.application.port.out.ContainerRuntimePort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.GitRepositoryPort;
@@ -10,6 +11,7 @@ import com.atlas.application.secret.ResolveSecretValueUseCase;
 import com.atlas.domain.deployment.Deployment;
 import com.atlas.domain.host.ConnectionType;
 import com.atlas.domain.host.Host;
+import com.atlas.domain.observability.AlertEventType;
 import com.atlas.domain.project.Project;
 import com.atlas.domain.project.ProjectStatus;
 import com.atlas.domain.service.ServiceStatus;
@@ -38,6 +40,7 @@ public class ExecuteDeployServiceJobUseCase {
     private final ContainerRuntimePort containerRuntime;
     private final ResolveSecretValueUseCase resolveSecretValue;
     private final WorkspacePathResolver workspacePathResolver;
+    private final EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
 
     @Transactional
     public void execute(UUID deploymentId) {
@@ -96,6 +99,12 @@ public class ExecuteDeployServiceJobUseCase {
             deploymentRepository.save(failed);
 
             updateStatuses(service, project, ServiceStatus.FAILED, ProjectStatus.FAILED);
+            evaluateProductAlertsUseCase.execute(
+                    AlertEventType.DEPLOY_FAILED,
+                    project.getId(),
+                    "Deploy failed: " + message,
+                    "deployment",
+                    failed.getId());
             throw new DomainException("Deploy failed: " + message);
         }
     }

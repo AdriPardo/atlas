@@ -257,3 +257,30 @@ export interface AuditEntry {
   metadata: string
   createdAt: string
 }
+
+export type NotificationChannelType = 'WEBHOOK' | 'EMAIL'
+export type AlertEventType = 'DEPLOY_FAILED' | 'JOB_FAILED'
+export type AlertRuleStatus = 'OK' | 'PENDING' | 'FIRING' | 'SILENCED'
+
+export interface NotificationChannel {
+  id: string
+  name: string
+  type: NotificationChannelType
+  target: string
+  enabled: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AlertRule {
+  id: string
+  name: string
+  eventType: AlertEventType
+  projectId: string | null
+  channelId: string
+  status: AlertRuleStatus
+  lastFiredAt: string | null
+  lastError: string | null
+  createdAt: string
+  updatedAt: string
+}

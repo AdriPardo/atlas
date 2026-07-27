@@ -1,5 +1,7 @@
 import { api } from './client'
 import type {
+  AlertEventType,
+  AlertRule,
   AuditEntry,
   ContainerLogs,
   ContainerSnapshot,
@@ -10,6 +12,8 @@ import type {
   Host,
   Job,
   LoginResponse,
+  NotificationChannel,
+  NotificationChannelType,
   ObservabilitySettings,
   PageResponse,
   Pipeline,
@@ -155,6 +159,25 @@ export const domainsApi = {
 export const auditApi = {
   list: (params?: Record<string, string | number | undefined>) =>
     api.get<PageResponse<AuditEntry>>('/audit', { params }).then((r) => r.data),
+}
+
+export const notificationChannelsApi = {
+  list: () => api.get<NotificationChannel[]>('/notification-channels').then((r) => r.data),
+  create: (body: { name: string; type: NotificationChannelType; target: string }) =>
+    api.post<NotificationChannel>('/notification-channels', body).then((r) => r.data),
+  remove: (channelId: string) => api.delete(`/notification-channels/${channelId}`),
+}
+
+export const alertsApi = {
+  list: () => api.get<AlertRule[]>('/alerts').then((r) => r.data),
+  create: (body: {
+    name: string
+    eventType: AlertEventType
+    projectId?: string
+    channelId: string
+  }) => api.post<AlertRule>('/alerts', body).then((r) => r.data),
+  silence: (ruleId: string) => api.post<AlertRule>(`/alerts/${ruleId}/silence`).then((r) => r.data),
+  remove: (ruleId: string) => api.delete(`/alerts/${ruleId}`),
 }
 
 export const usersApi = {

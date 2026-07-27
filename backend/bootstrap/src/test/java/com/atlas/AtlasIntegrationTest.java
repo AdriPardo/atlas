@@ -495,4 +495,65 @@ class AtlasIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void alertRuleAndNotificationChannelCrudSmoke() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+
+        MvcResult channel = mockMvc.perform(post("/api/v1/notification-channels")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"ops-hook","type":"WEBHOOK","target":"stub://local"}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("ops-hook"))
+                .andExpect(jsonPath("$.type").value("WEBHOOK"))
+                .andExpect(jsonPath("$.enabled").value(true))
+                .andReturn();
+        String channelId = com.jayway.jsonpath.JsonPath.read(channel.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(get("/api/v1/notification-channels").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(channelId));
+
+        MvcResult rule = mockMvc.perform(post("/api/v1/alerts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Deploy failed","eventType":"DEPLOY_FAILED","channelId":"%s"}
+                                """.formatted(channelId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.eventType").value("DEPLOY_FAILED"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.channelId").value(channelId))
+                .andReturn();
+        String ruleId = com.jayway.jsonpath.JsonPath.read(rule.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(get("/api/v1/alerts").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(ruleId));
+
+        mockMvc.perform(post("/api/v1/alerts/" + ruleId + "/silence")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SILENCED"));
+
+        mockMvc.perform(delete("/api/v1/alerts/" + ruleId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(delete("/api/v1/notification-channels/" + channelId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/alerts/" + ruleId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
 }
