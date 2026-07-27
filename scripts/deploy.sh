@@ -6,8 +6,6 @@ set -euo pipefail
 APP_DIR="${ATLAS_APP_DIR:-/opt/atlas/atlas}"
 BRANCH="${ATLAS_DEPLOY_BRANCH:-master}"
 REMOTE="${ATLAS_DEPLOY_REMOTE:-origin}"
-HEALTH_BACKEND_URL="${ATLAS_HEALTH_BACKEND_URL:-http://127.0.0.1:8080/actuator/health}"
-HEALTH_FRONTEND_URL="${ATLAS_HEALTH_FRONTEND_URL:-http://127.0.0.1:3000/}"
 HEALTH_RETRIES="${ATLAS_HEALTH_RETRIES:-36}"
 HEALTH_SLEEP_SECS="${ATLAS_HEALTH_SLEEP_SECS:-5}"
 
@@ -15,6 +13,23 @@ log() { printf '[deploy] %s\n' "$*"; }
 die() { printf '[deploy] ERROR: %s\n' "$*" >&2; exit 1; }
 
 cd "$APP_DIR" || die "cannot cd to $APP_DIR"
+
+# Load health URL overrides from .env (compose env_file does not export to this shell).
+# Explicit environment still wins.
+if [[ -f .env ]]; then
+  for key in ATLAS_HEALTH_BACKEND_URL ATLAS_HEALTH_FRONTEND_URL ATLAS_HEALTH_RETRIES ATLAS_HEALTH_SLEEP_SECS; do
+    if [[ -z "${!key:-}" ]]; then
+      line="$(grep -E "^${key}=" .env | tail -n1 || true)"
+      if [[ -n "$line" ]]; then
+        export "$line"
+      fi
+    fi
+  done
+fi
+HEALTH_BACKEND_URL="${ATLAS_HEALTH_BACKEND_URL:-http://127.0.0.1:8080/actuator/health}"
+HEALTH_FRONTEND_URL="${ATLAS_HEALTH_FRONTEND_URL:-http://127.0.0.1:3000/}"
+HEALTH_RETRIES="${ATLAS_HEALTH_RETRIES:-36}"
+HEALTH_SLEEP_SECS="${ATLAS_HEALTH_SLEEP_SECS:-5}"
 
 command -v git >/dev/null || die "git not found"
 command -v docker >/dev/null || die "docker not found"
