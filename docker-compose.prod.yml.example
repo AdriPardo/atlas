@@ -51,7 +51,9 @@ services:
       - "3000:80"
     depends_on:
       backend:
-        condition: service_healthy
+        # Prefer service_started so slow backend boot / Flyway does not abort compose up.
+        # scripts/deploy.sh still waits for /actuator/health UP.
+        condition: service_started
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=atlas-public"

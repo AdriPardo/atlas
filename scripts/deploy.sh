@@ -63,7 +63,16 @@ fi
 
 log "docker compose up -d --build..."
 # Never use down -v — preserves volumes / data
+set +e
 docker compose "${compose_args[@]}" up -d --build
+compose_rc=$?
+set -e
+if [[ "$compose_rc" -ne 0 ]]; then
+  log "compose up exited $compose_rc — dumping recent backend logs"
+  docker compose "${compose_args[@]}" logs backend --tail 120 || true
+  docker compose "${compose_args[@]}" ps || true
+  log "continuing to health polls (backend may still be starting)"
+fi
 
 wait_http() {
   local url="$1" label="$2" expect_body="${3:-}"

@@ -54,8 +54,30 @@ public class JGitRepositoryAdapter implements GitRepositoryPort {
                 }
             }
         } catch (GitAPIException | java.io.IOException ex) {
-            throw new DomainException("Git operation failed: " + ex.getMessage());
+            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+            if (accessToken.isEmpty() && looksLikeAuthFailure(message)) {
+                throw new DomainException(
+                        "Git authentication failed for "
+                                + repositoryUrl
+                                + ". Create a secret named '"
+                                + "git.token"
+                                + "' (GitHub PAT with repo scope) via Secrets, then retry. Cause: "
+                                + message);
+            }
+            throw new DomainException("Git operation failed: " + message);
         }
+    }
+
+    private static boolean looksLikeAuthFailure(String message) {
+        String lower = message.toLowerCase();
+        return lower.contains("auth")
+                || lower.contains("not authorized")
+                || lower.contains("authentication")
+                || lower.contains("credentials")
+                || lower.contains("unable to access")
+                || lower.contains("could not read username")
+                || lower.contains("401")
+                || lower.contains("403");
     }
 
     private static UsernamePasswordCredentialsProvider credentials(String token) {

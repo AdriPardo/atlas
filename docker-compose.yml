@@ -60,7 +60,8 @@ services:
       - "3000:80"
     depends_on:
       backend:
-        condition: service_healthy
+        # Prefer service_started so slow backend boot does not abort compose up.
+        condition: service_started
     networks:
       - public
       - internal
