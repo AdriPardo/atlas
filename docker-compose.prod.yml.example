@@ -48,7 +48,9 @@ services:
       dockerfile: docker/Dockerfile.frontend
     restart: unless-stopped
     ports:
-      - "3000:80"
+      # Loopback only: public traffic must go through Traefik + Authentik (atlas.atlasops.dev).
+      # Binding 0.0.0.0 would expose the SPA/login without SSO on the LAN.
+      - "127.0.0.1:3000:80"
     depends_on:
       backend:
         # Prefer service_started so slow backend boot / Flyway does not abort compose up.

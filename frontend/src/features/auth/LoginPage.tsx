@@ -22,7 +22,39 @@ const schema = z.object({
   password: z.string().min(1, 'Required'),
 })
 
+
 type FormValues = z.infer<typeof schema>
+
+/** Explain why local login is shown (direct URL vs failed SSO behind Authentik). */
+function accessHint(): { heading: string; body: string; warn: boolean } {
+  const host = window.location.hostname
+  const isPublicHost = host === 'atlas.atlasops.dev'
+  const isLoopback = host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '::1'
+  const isLanIp = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)
+
+  if (isPublicHost) {
+    return {
+      heading: 'Sign in',
+      body:
+        'Authentik should sign you in automatically on this host. SSO did not succeed — refresh, or confirm Traefik ForwardAuth is injecting X-authentik-* headers.',
+      warn: true,
+    }
+  }
+  if (isLoopback || isLanIp) {
+    return {
+      heading: 'Sign in (direct access)',
+      body:
+        'You opened Atlas via localhost or a LAN IP/port. Authentik ForwardAuth only runs on https://atlas.atlasops.dev — use that URL for SSO, or sign in with local credentials here.',
+      warn: false,
+    }
+  }
+  return {
+    heading: 'Sign in',
+    body:
+      'Local credentials for development. Authentik SSO is only available at https://atlas.atlasops.dev.',
+    warn: false,
+  }
+}
 
 interface LoginPageProps {
   mode?: 'light' | 'dark'
@@ -35,6 +67,7 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
   const { login, user, loading } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
+  const hint = accessHint()
   const {
     register,
     handleSubmit,
@@ -148,12 +181,18 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
           <Stack spacing={3}>
             <Box>
               <Typography variant="h5" component="h2" gutterBottom>
-                Sign in
+                {hint.heading}
               </Typography>
               <Typography color="text.secondary" variant="body2">
-                Local development credentials. Behind Authentik you are signed in automatically.
+                {hint.body}
               </Typography>
             </Box>
+
+            {hint.warn && (
+              <Alert severity="warning" variant="outlined">
+                Expected SSO via Authentik on this host, but Atlas could not mint a session from ForwardAuth headers.
+              </Alert>
+            )}
 
             {error && (
               <Alert severity="error" variant="outlined">
