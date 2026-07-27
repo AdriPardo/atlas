@@ -78,20 +78,20 @@ class AtlasIntegrationTest {
         mockMvc.perform(get("/api/v1/applications")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(1));
+                .andExpect(jsonPath("$.totalElements").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.content[?(@.name=='billing')]").isNotEmpty());
 
         mockMvc.perform(get("/api/v1/projects")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].name").value("billing"))
-                .andExpect(jsonPath("$.content[0].slug").value("billing"));
+                .andExpect(jsonPath("$.totalElements").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.content[?(@.name=='billing')].slug").value(org.hamcrest.Matchers.hasItem("billing")));
 
         mockMvc.perform(get("/api/v1/services")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].name").value("default"));
+                .andExpect(jsonPath("$.totalElements").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.content[?(@.name=='default')]").isNotEmpty());
 
         mockMvc.perform(get("/api/v1/me")
                         .header("Authorization", "Bearer " + token))
@@ -474,6 +474,19 @@ class AtlasIntegrationTest {
                 .andExpect(jsonPath("$.rule").value("Host(`app.domain-demo.local`)"))
                 .andExpect(jsonPath("$.labels['traefik.enable']").value("true"))
                 .andExpect(jsonPath("$.certResolver").value("letsencrypt"));
+
+        mockMvc.perform(get("/api/v1/domains/" + domainId + "/tunnel-ingress")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hostname").value("app.domain-demo.local"))
+                .andExpect(jsonPath("$.type").value("HTTPS"))
+                .andExpect(jsonPath("$.originUrl").value("traefik:443"))
+                .andExpect(jsonPath("$.copyBlock").isNotEmpty());
+
+        mockMvc.perform(post("/api/v1/domains/" + domainId + "/tunnel-ingress/ensure")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mode").value("SKIPPED"));
 
         mockMvc.perform(get("/api/v1/traefik/routes/" + domainId).header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())

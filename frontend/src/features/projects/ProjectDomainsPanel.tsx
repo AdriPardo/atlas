@@ -31,6 +31,12 @@ export function ProjectDomainsPanel({
   const [hostname, setHostname] = useState('')
   const [serviceId, setServiceId] = useState('')
   const [labelsPreview, setLabelsPreview] = useState<string | null>(null)
+  const [tunnelPreview, setTunnelPreview] = useState<{
+    title: string
+    body: string
+    hint?: string
+  } | null>(null)
+  const [copyStatus, setCopyStatus] = useState<string | null>(null)
 
   const domainsQuery = useQuery({
     queryKey: ['projects', projectId, 'domains'],
@@ -61,6 +67,7 @@ export function ProjectDomainsPanel({
     mutationFn: (domainId: string) => domainsApi.remove(domainId),
     onSuccess: async () => {
       setLabelsPreview(null)
+      setTunnelPreview(null)
       await queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'domains'] })
     },
   })
@@ -68,6 +75,7 @@ export function ProjectDomainsPanel({
   const traefikMutation = useMutation({
     mutationFn: (domainId: string) => domainsApi.traefik(domainId),
     onSuccess: (data) => {
+      setTunnelPreview(null)
       setLabelsPreview(
         Object.entries(data.labels)
           .map(([k, v]) => `${k}=${v}`)
@@ -75,6 +83,38 @@ export function ProjectDomainsPanel({
       )
     },
   })
+
+  const tunnelMutation = useMutation({
+    mutationFn: (domainId: string) => domainsApi.tunnelIngress(domainId),
+    onSuccess: (data) => {
+      setLabelsPreview(null)
+      setTunnelPreview({
+        title: 'Cloudflare Tunnel ingress',
+        body: data.copyBlock,
+        hint: data.zeroTrustHint,
+      })
+    },
+  })
+
+  const ensureTunnelMutation = useMutation({
+    mutationFn: (domainId: string) => domainsApi.ensureTunnel(domainId),
+    onSuccess: (data) => {
+      setLabelsPreview(null)
+      const modeLabel = data.mode ? `[${data.mode}] ` : ''
+      setTunnelPreview({
+        title: `${modeLabel}Cloudflare Tunnel`,
+        body: [data.message, '', data.copyBlock].filter(Boolean).join('\n'),
+        hint: data.zeroTrustHint,
+      })
+    },
+  })
+
+  const copyTunnel = async () => {
+    if (!tunnelPreview?.body) return
+    await navigator.clipboard.writeText(tunnelPreview.body)
+    setCopyStatus('Copied')
+    window.setTimeout(() => setCopyStatus(null), 2000)
+  }
 
   const rows = domainsQuery.data ?? []
 
@@ -124,7 +164,7 @@ export function ProjectDomainsPanel({
         {rows.length === 0 ? (
           <EmptyState
             title="No domains"
-            description="Register a hostname to track DNS challenge and Traefik labels."
+            description="Register a hostname to track DNS challenge, Traefik labels, and Tunnel ingress."
           />
         ) : (
           <DataTableFrame>
@@ -154,7 +194,7 @@ export function ProjectDomainsPanel({
                         : '—'}
                     </TableCell>
                     <TableCell align="right">
-                      <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                      <Stack direction="row" spacing={0.5} justifyContent="flex-end" flexWrap="wrap">
                         {d.status !== 'ACTIVE' && (
                           <Button
                             size="small"
@@ -170,6 +210,20 @@ export function ProjectDomainsPanel({
                           onClick={() => traefikMutation.mutate(d.id)}
                         >
                           Traefik
+                        </Button>
+                        <Button
+                          size="small"
+                          disabled={tunnelMutation.isPending}
+                          onClick={() => tunnelMutation.mutate(d.id)}
+                        >
+                          Tunnel
+                        </Button>
+                        <Button
+                          size="small"
+                          disabled={ensureTunnelMutation.isPending}
+                          onClick={() => ensureTunnelMutation.mutate(d.id)}
+                        >
+                          Ensure
                         </Button>
                         <Button
                           size="small"
@@ -199,6 +253,30 @@ export function ProjectDomainsPanel({
             sx={{ m: 0, whiteSpace: 'pre-wrap', fontFamily: 'ui-monospace, monospace' }}
           >
             {labelsPreview}
+          </Typography>
+        </Alert>
+      )}
+      {tunnelPreview && (
+        <Alert severity="info" variant="outlined" onClose={() => setTunnelPreview(null)}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+            <Typography variant="subtitle2" sx={{ flex: 1 }}>
+              {tunnelPreview.title}
+            </Typography>
+            <Button size="small" onClick={() => void copyTunnel()}>
+              {copyStatus ?? 'Copy ingress'}
+            </Button>
+          </Stack>
+          {tunnelPreview.hint && (
+            <Typography variant="caption" display="block" sx={{ mb: 0.5, opacity: 0.85 }}>
+              {tunnelPreview.hint}
+            </Typography>
+          )}
+          <Typography
+            component="pre"
+            variant="body2"
+            sx={{ m: 0, whiteSpace: 'pre-wrap', fontFamily: 'ui-monospace, monospace' }}
+          >
+            {tunnelPreview.body}
           </Typography>
         </Alert>
       )}

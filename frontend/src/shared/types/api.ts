@@ -264,6 +264,22 @@ export interface TraefikMetadata {
   labels: Record<string, string>
 }
 
+export interface TunnelIngress {
+  hostname: string
+  subdomain: string
+  zone: string
+  type: string
+  originUrl: string
+  originService: string
+  noTlsVerify: boolean
+  tunnelId: string | null
+  cnameTarget: string
+  copyBlock: string
+  zeroTrustHint: string
+  mode: string | null
+  message: string | null
+}
+
 export interface AuditEntry {
   id: string
   actorUserId: string | null

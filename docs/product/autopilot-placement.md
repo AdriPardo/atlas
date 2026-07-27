@@ -68,9 +68,13 @@ Nothing in the Host/Deploy/Jobs stack is throwaway. Future Proxmox VMs become ne
 ## Out of scope (explicit)
 
 - Real Proxmox VM create API
-- Real Cloudflare DNS API
+- Automatic Cloudflare DNS CNAME (copy block documents target; Tunnel Public Hostname is assisted via ADR-0011)
 - Removing the Hosts UI/API (kept as Advanced)
 
 ## Success for the first slice
 
 > Create a project → Deploy with exposure toggle → Atlas picks/creates a LOCAL host → `DEPLOY_SERVICE` runs → PUBLIC gets a Domain stub; INTERNAL does not.
+
+## Follow-on (slice 2 — Tunnel)
+
+See [ADR-0011](../decisions/ADR-0011-autopilot-tunnel-ingress.md) and [public-customer-hostname.md](../deployment/public-customer-hostname.md).

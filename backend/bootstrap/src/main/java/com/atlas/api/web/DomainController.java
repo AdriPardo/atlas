@@ -4,9 +4,13 @@ import com.atlas.api.dto.request.CreateDomainRequest;
 import com.atlas.api.dto.request.UpdateDomainRequest;
 import com.atlas.api.dto.response.DomainResponse;
 import com.atlas.api.dto.response.TraefikMetadataResponse;
+import com.atlas.api.dto.response.TunnelIngressResponse;
+import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
 import com.atlas.application.networking.GetDomainTraefikMetadataUseCase;
+import com.atlas.application.networking.GetDomainTunnelIngressUseCase;
 import com.atlas.application.networking.ManageDomainUseCase;
 import com.atlas.application.networking.VerifyDomainUseCase;
+import com.atlas.application.port.out.CloudflareTunnelPort;
 import com.atlas.application.port.out.TraefikMetadataPort;
 import com.atlas.domain.networking.Domain;
 import jakarta.validation.Valid;
@@ -30,6 +34,8 @@ public class DomainController {
     private final ManageDomainUseCase manageDomainUseCase;
     private final VerifyDomainUseCase verifyDomainUseCase;
     private final GetDomainTraefikMetadataUseCase getDomainTraefikMetadataUseCase;
+    private final GetDomainTunnelIngressUseCase getDomainTunnelIngressUseCase;
+    private final EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
 
     @GetMapping("/api/v1/projects/{projectId}/domains")
     public ResponseEntity<List<DomainResponse>> listByProject(@PathVariable UUID projectId) {
@@ -86,6 +92,36 @@ public class DomainController {
     @GetMapping("/api/v1/traefik/routes/{domainId}")
     public ResponseEntity<TraefikMetadataResponse> traefikRoute(@PathVariable UUID domainId) {
         return traefik(domainId);
+    }
+
+    @GetMapping("/api/v1/domains/{domainId}/tunnel-ingress")
+    public ResponseEntity<TunnelIngressResponse> tunnelIngress(@PathVariable UUID domainId) {
+        CloudflareTunnelPort.TunnelIngressSpec spec = getDomainTunnelIngressUseCase.execute(domainId);
+        return ResponseEntity.ok(toTunnelResponse(spec, null, null));
+    }
+
+    @PostMapping("/api/v1/domains/{domainId}/tunnel-ingress/ensure")
+    public ResponseEntity<TunnelIngressResponse> ensureTunnelIngress(@PathVariable UUID domainId) {
+        CloudflareTunnelPort.EnsureResult result = ensureDomainTunnelIngressUseCase.execute(domainId);
+        return ResponseEntity.ok(toTunnelResponse(result.ingress(), result.mode().name(), result.message()));
+    }
+
+    private static TunnelIngressResponse toTunnelResponse(
+            CloudflareTunnelPort.TunnelIngressSpec spec, String mode, String message) {
+        return new TunnelIngressResponse(
+                spec.hostname(),
+                spec.subdomain(),
+                spec.zone(),
+                spec.type(),
+                spec.originUrl(),
+                spec.originService(),
+                spec.noTlsVerify(),
+                spec.tunnelId(),
+                spec.cnameTarget(),
+                spec.copyBlock(),
+                spec.zeroTrustHint(),
+                mode,
+                message);
     }
 
     private DomainResponse toResponse(Domain domain) {

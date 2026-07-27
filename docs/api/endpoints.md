@@ -57,6 +57,8 @@ Leyenda versión: **MVP** | **v0.2+** | **v0.4+** | **v0.5+** | **v0.6+** | **v0
 |--------|------|---------|
 | CRUD | `/domains` | v0.7 |
 | POST | `/domains/{id}/verify` | v0.7 |
+| GET | `/domains/{id}/tunnel-ingress` | v0.8.1 Autopilot |
+| POST | `/domains/{id}/tunnel-ingress/ensure` | v0.8.1 Autopilot |
 | GET | `/certificates` | v0.7 |
 | CRUD | `/dns-records` | v0.7 |
 | GET/PUT | `/traefik/routes` | v0.7 |

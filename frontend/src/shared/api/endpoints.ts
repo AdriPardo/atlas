@@ -27,6 +27,7 @@ import type {
   Service,
   ServiceExposure,
   TraefikMetadata,
+  TunnelIngress,
   User,
 } from '../types/api'
 
@@ -162,6 +163,10 @@ export const domainsApi = {
   remove: (domainId: string) => api.delete(`/domains/${domainId}`),
   traefik: (domainId: string) =>
     api.get<TraefikMetadata>(`/domains/${domainId}/traefik`).then((r) => r.data),
+  tunnelIngress: (domainId: string) =>
+    api.get<TunnelIngress>(`/domains/${domainId}/tunnel-ingress`).then((r) => r.data),
+  ensureTunnel: (domainId: string) =>
+    api.post<TunnelIngress>(`/domains/${domainId}/tunnel-ingress/ensure`).then((r) => r.data),
 }
 
 export const auditApi = {

@@ -20,7 +20,12 @@ Challenge TXT expuesto en la respuesta Domain (`dnsTxtName` / `dnsTxtValue`). Sy
 
 ## Cloudflare
 
-Provider adapter stub: documenta el TXT a crear manualmente. Token en Secrets + API sync = incremento futuro.
+`CloudflareTunnelPort` / `CloudflareTunnelAdapter` (ADR-0011):
+
+- `GET /api/v1/domains/{id}/tunnel-ingress` — copy-ready Public Hostname fields.
+- `POST /api/v1/domains/{id}/tunnel-ingress/ensure` — API merge into remotely-managed tunnel when `ATLAS_CF_*` + secret `cloudflare.api.token` exist; else `MANUAL`.
+
+Challenge TXT sync opcional vía `DnsProviderPort` (stub hoy; CNAME API después).
 
 ## Traefik
 

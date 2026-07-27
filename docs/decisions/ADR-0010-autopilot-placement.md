@@ -14,7 +14,7 @@ El modelo “el operador configura Hosts / SSH / Sync / Deploy” no encaja con 
 3. Si no hay `hostId`, la plataforma selecciona un Host adecuado (preferir `LOCAL` online / `atlas-local` / `default`) o **crea** un Host LOCAL por defecto.
 4. `exposure` se persiste en **Service**; `PUBLIC` asegura stub de Domain + metadata Traefik; `INTERNAL` no crea dominio público.
 5. El job `DEPLOY_SERVICE` existente sigue siendo el ejecutor (Git + compose).
-6. Provisionamiento Proxmox (VM nueva) y sync DNS Cloudflare real quedan para slices posteriores; Hosts UI permanece como Advanced.
+6. Provisionamiento Proxmox (VM nueva) queda para slices posteriores; sync DNS CNAME Cloudflare real también. Hosts UI permanece como Advanced. Tunnel Public Hostname: ADR-0011.
 
 ## Consecuencias
 

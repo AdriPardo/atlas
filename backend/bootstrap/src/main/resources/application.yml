@@ -81,6 +81,11 @@ atlas:
   networking:
     traefik-cert-resolver: ${ATLAS_TRAEFIK_CERT_RESOLVER:letsencrypt}
     traefik-backend-port: ${ATLAS_TRAEFIK_BACKEND_PORT:80}
+    cloudflare-account-id: ${ATLAS_CF_ACCOUNT_ID:}
+    cloudflare-tunnel-id: ${ATLAS_CF_TUNNEL_ID:}
+    cloudflare-zone: ${ATLAS_CF_ZONE:}
+    cloudflare-tunnel-origin: ${ATLAS_CF_TUNNEL_ORIGIN:https://traefik:443}
+    cloudflare-tunnel-no-tls-verify: ${ATLAS_CF_TUNNEL_NO_TLS_VERIFY:true}
 
 springdoc:
   api-docs:

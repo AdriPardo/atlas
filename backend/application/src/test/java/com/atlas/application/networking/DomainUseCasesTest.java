@@ -11,11 +11,13 @@ import static org.mockito.Mockito.when;
 
 import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.audit.RecordAuditUseCase;
+import com.atlas.application.port.out.CloudflareTunnelPort;
 import com.atlas.application.port.out.DnsProviderPort;
 import com.atlas.application.port.out.DomainRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.application.port.out.TraefikMetadataPort;
+import com.atlas.application.secret.ResolveSecretValueUseCase;
 import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.networking.Domain;
 import com.atlas.domain.networking.DomainStatus;
@@ -55,6 +57,12 @@ class DomainUseCasesTest {
     @Mock
     private TraefikMetadataPort traefikMetadataPort;
 
+    @Mock
+    private CloudflareTunnelPort cloudflareTunnelPort;
+
+    @Mock
+    private ResolveSecretValueUseCase resolveSecretValue;
+
     @InjectMocks
     private ManageDomainUseCase manageDomainUseCase;
 
@@ -63,6 +71,12 @@ class DomainUseCasesTest {
 
     @InjectMocks
     private GetDomainTraefikMetadataUseCase getDomainTraefikMetadataUseCase;
+
+    @InjectMocks
+    private GetDomainTunnelIngressUseCase getDomainTunnelIngressUseCase;
+
+    @InjectMocks
+    private EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
 
     @Test
     void createRequiresWriteAndPersists() {
@@ -137,5 +151,58 @@ class DomainUseCasesTest {
         assertEquals("Host(`edge.example.com`)", metadata.rule());
         assertTrue(metadata.labels().containsKey("traefik.enable"));
         verify(authorizationService).require(domain.getProjectId(), ProjectPermission.READ);
+    }
+
+    @Test
+    void tunnelIngressRequiresRead() {
+        Domain domain = Domain.create(UUID.randomUUID(), "reelpath.atlasops.dev", null);
+        when(domainRepository.findById(domain.getId())).thenReturn(Optional.of(domain));
+        CloudflareTunnelPort.TunnelIngressSpec expected = new CloudflareTunnelPort.TunnelIngressSpec(
+                "reelpath.atlasops.dev",
+                "reelpath",
+                "atlasops.dev",
+                "HTTPS",
+                "traefik:443",
+                "https://traefik:443",
+                true,
+                "tid",
+                "tid.cfargotunnel.com",
+                "copy",
+                "hint");
+        when(cloudflareTunnelPort.describe(domain)).thenReturn(expected);
+
+        CloudflareTunnelPort.TunnelIngressSpec spec = getDomainTunnelIngressUseCase.execute(domain.getId());
+
+        assertEquals("reelpath", spec.subdomain());
+        verify(authorizationService).require(domain.getProjectId(), ProjectPermission.READ);
+    }
+
+    @Test
+    void ensureTunnelRequiresWriteAndAudits() {
+        Domain domain = Domain.create(UUID.randomUUID(), "app.atlasops.dev", null);
+        when(domainRepository.findById(domain.getId())).thenReturn(Optional.of(domain));
+        when(resolveSecretValue.forProject(domain.getProjectId(), CloudflareTunnelPort.API_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.empty());
+        CloudflareTunnelPort.TunnelIngressSpec ingress = new CloudflareTunnelPort.TunnelIngressSpec(
+                "app.atlasops.dev",
+                "app",
+                "atlasops.dev",
+                "HTTPS",
+                "traefik:443",
+                "https://traefik:443",
+                true,
+                null,
+                "<tunnel-id>.cfargotunnel.com",
+                "copy",
+                "hint");
+        when(cloudflareTunnelPort.ensurePublicHostname(eq(domain), eq(Optional.empty())))
+                .thenReturn(new CloudflareTunnelPort.EnsureResult(
+                        CloudflareTunnelPort.EnsureMode.MANUAL, "need token", ingress));
+
+        CloudflareTunnelPort.EnsureResult result = ensureDomainTunnelIngressUseCase.execute(domain.getId());
+
+        assertEquals(CloudflareTunnelPort.EnsureMode.MANUAL, result.mode());
+        verify(authorizationService).require(domain.getProjectId(), ProjectPermission.WRITE);
+        verify(recordAuditUseCase).execute(eq("DOMAIN_TUNNEL_ENSURE"), eq("domain"), eq(domain.getId()), anyString());
     }
 }

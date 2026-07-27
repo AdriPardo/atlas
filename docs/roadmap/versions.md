@@ -15,6 +15,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.7** | RBAC + Network + Alerts | Multi-user serio |
 | **v0.7.1** | Autopilot Placement (slice 1) | Connect app → Deploy; plataforma elige host + exposure |
 | **v0.8** | Backups + Cron | Continuidad |
+| **v0.8.1** | Autopilot Tunnel ingress (slice 2) | PUBLIC hostname: API o copy Zero Trust sin adivinar campos |
 | **v0.8.x** | Autopilot Proxmox provisioner | VM on-demand sobre Host/Deploy existentes |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |

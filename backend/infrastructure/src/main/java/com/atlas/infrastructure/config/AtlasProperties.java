@@ -252,6 +252,16 @@ public class AtlasProperties {
     public static class Networking {
         private String traefikCertResolver = "letsencrypt";
         private int traefikBackendPort = 80;
+        /** Cloudflare account id for Tunnel configuration API (optional). */
+        private String cloudflareAccountId = "";
+        /** Remotely-managed tunnel id (optional). */
+        private String cloudflareTunnelId = "";
+        /** Public zone used to split subdomain (e.g. atlasops.dev). */
+        private String cloudflareZone = "";
+        /** Origin service for public hostnames (docker DNS to Traefik). */
+        private String cloudflareTunnelOrigin = "https://traefik:443";
+        /** Match Zero Trust "No TLS Verify" for Traefik origin. */
+        private boolean cloudflareTunnelNoTlsVerify = true;
 
         public String getTraefikCertResolver() {
             return traefikCertResolver;
@@ -267,6 +277,46 @@ public class AtlasProperties {
 
         public void setTraefikBackendPort(int traefikBackendPort) {
             this.traefikBackendPort = traefikBackendPort;
+        }
+
+        public String getCloudflareAccountId() {
+            return cloudflareAccountId;
+        }
+
+        public void setCloudflareAccountId(String cloudflareAccountId) {
+            this.cloudflareAccountId = cloudflareAccountId;
+        }
+
+        public String getCloudflareTunnelId() {
+            return cloudflareTunnelId;
+        }
+
+        public void setCloudflareTunnelId(String cloudflareTunnelId) {
+            this.cloudflareTunnelId = cloudflareTunnelId;
+        }
+
+        public String getCloudflareZone() {
+            return cloudflareZone;
+        }
+
+        public void setCloudflareZone(String cloudflareZone) {
+            this.cloudflareZone = cloudflareZone;
+        }
+
+        public String getCloudflareTunnelOrigin() {
+            return cloudflareTunnelOrigin;
+        }
+
+        public void setCloudflareTunnelOrigin(String cloudflareTunnelOrigin) {
+            this.cloudflareTunnelOrigin = cloudflareTunnelOrigin;
+        }
+
+        public boolean isCloudflareTunnelNoTlsVerify() {
+            return cloudflareTunnelNoTlsVerify;
+        }
+
+        public void setCloudflareTunnelNoTlsVerify(boolean cloudflareTunnelNoTlsVerify) {
+            this.cloudflareTunnelNoTlsVerify = cloudflareTunnelNoTlsVerify;
         }
     }
 }

@@ -1,8 +1,11 @@
 package com.atlas.application.deployment;
 
+import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
+import com.atlas.application.port.out.CloudflareTunnelPort;
 import com.atlas.application.port.out.ContainerRuntimePort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
+import com.atlas.application.port.out.DomainRepositoryPort;
 import com.atlas.application.port.out.GitRepositoryPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
@@ -11,9 +14,11 @@ import com.atlas.application.secret.ResolveSecretValueUseCase;
 import com.atlas.domain.deployment.Deployment;
 import com.atlas.domain.host.ConnectionType;
 import com.atlas.domain.host.Host;
+import com.atlas.domain.networking.Domain;
 import com.atlas.domain.observability.AlertEventType;
 import com.atlas.domain.project.Project;
 import com.atlas.domain.project.ProjectStatus;
+import com.atlas.domain.service.ServiceExposure;
 import com.atlas.domain.service.ServiceStatus;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.domain.shared.DomainException;
@@ -37,11 +42,13 @@ public class ExecuteDeployServiceJobUseCase {
     private final ServiceRepositoryPort serviceRepository;
     private final ProjectRepositoryPort projectRepository;
     private final HostRepositoryPort hostRepository;
+    private final DomainRepositoryPort domainRepository;
     private final GitRepositoryPort gitRepository;
     private final ContainerRuntimePort containerRuntime;
     private final ResolveSecretValueUseCase resolveSecretValue;
     private final WorkspacePathResolver workspacePathResolver;
     private final EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
+    private final EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
     private final TransactionTemplate transactionTemplate;
 
     public ExecuteDeployServiceJobUseCase(
@@ -49,21 +56,25 @@ public class ExecuteDeployServiceJobUseCase {
             ServiceRepositoryPort serviceRepository,
             ProjectRepositoryPort projectRepository,
             HostRepositoryPort hostRepository,
+            DomainRepositoryPort domainRepository,
             GitRepositoryPort gitRepository,
             ContainerRuntimePort containerRuntime,
             ResolveSecretValueUseCase resolveSecretValue,
             WorkspacePathResolver workspacePathResolver,
             EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
+            EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase,
             PlatformTransactionManager transactionManager) {
         this.deploymentRepository = deploymentRepository;
         this.serviceRepository = serviceRepository;
         this.projectRepository = projectRepository;
         this.hostRepository = hostRepository;
+        this.domainRepository = domainRepository;
         this.gitRepository = gitRepository;
         this.containerRuntime = containerRuntime;
         this.resolveSecretValue = resolveSecretValue;
         this.workspacePathResolver = workspacePathResolver;
         this.evaluateProductAlertsUseCase = evaluateProductAlertsUseCase;
+        this.ensureDomainTunnelIngressUseCase = ensureDomainTunnelIngressUseCase;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
@@ -129,6 +140,8 @@ public class ExecuteDeployServiceJobUseCase {
                         .orElseThrow(() -> new NotFoundException("Project not found: " + loaded.project().getId()));
                 updateStatuses(service, project, ServiceStatus.RUNNING, ProjectStatus.RUNNING);
             });
+
+            ensurePublicTunnelIngress(loaded.service(), logSink);
         } catch (Exception ex) {
             String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
             transactionTemplate.executeWithoutResult(status -> {
@@ -180,7 +193,6 @@ public class ExecuteDeployServiceJobUseCase {
         projectRepository.save(project);
     }
 
-
     /**
      * Customer apps often ship {@code .env.atlas.example}. Materialize {@code .env} so Compose
      * interpolates DOMAIN / secrets without operator SSH. Existing {@code .env} is left untouched.
@@ -228,6 +240,39 @@ public class ExecuteDeployServiceJobUseCase {
                     "SSH host requires sshPrivateKeySecretId (create a secret and link it to the host)");
         }
         return Optional.of(resolveSecretValue.byId(host.getSshPrivateKeySecretId()));
+    }
+
+    /**
+     * Autopilot PUBLIC: after compose is up, try Cloudflare Tunnel hostname registration (or log
+     * copy-ready ingress when API credentials are absent). Never fails the deploy.
+     */
+    private void ensurePublicTunnelIngress(ServiceUnit service, Consumer<String> logSink) {
+        if (service.getExposure() != ServiceExposure.PUBLIC) {
+            return;
+        }
+        String hostname = service.getDomain();
+        if (hostname == null || hostname.isBlank()) {
+            return;
+        }
+        try {
+            Optional<Domain> domain = domainRepository.findByProjectId(service.getProjectId()).stream()
+                    .filter(d -> hostname.equalsIgnoreCase(d.getHostname()))
+                    .findFirst();
+            if (domain.isEmpty()) {
+                logSink.accept("Tunnel: no Domain stub for " + hostname + " — skip");
+                return;
+            }
+            CloudflareTunnelPort.EnsureResult result =
+                    ensureDomainTunnelIngressUseCase.executeAsSystem(domain.get());
+            logSink.accept("Tunnel [" + result.mode() + "]: " + result.message());
+            if (result.mode() == CloudflareTunnelPort.EnsureMode.MANUAL
+                    || result.mode() == CloudflareTunnelPort.EnsureMode.FAILED) {
+                logSink.accept("Tunnel ingress (copy into Zero Trust):\n" + result.ingress().copyBlock());
+            }
+        } catch (Exception ex) {
+            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+            logSink.accept("Tunnel assist skipped: " + message);
+        }
     }
 
     private record Loaded(ServiceUnit service, Project project, Host host) {}

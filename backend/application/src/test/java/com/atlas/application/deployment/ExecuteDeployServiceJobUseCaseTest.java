@@ -10,9 +10,11 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
 import com.atlas.application.port.out.ContainerRuntimePort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
+import com.atlas.application.port.out.DomainRepositoryPort;
 import com.atlas.application.port.out.GitRepositoryPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
@@ -33,6 +35,7 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -40,6 +43,9 @@ import org.springframework.transaction.support.SimpleTransactionStatus;
 
 @ExtendWith(MockitoExtension.class)
 class ExecuteDeployServiceJobUseCaseTest {
+
+    @TempDir
+    Path workspace;
 
     @Mock
     private DeploymentRepositoryPort deploymentRepository;
@@ -66,25 +72,31 @@ class ExecuteDeployServiceJobUseCaseTest {
     private EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
 
     @Mock
+    private DomainRepositoryPort domainRepository;
+
+    @Mock
+    private EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
+
+    @Mock
     private PlatformTransactionManager transactionManager;
 
     private ExecuteDeployServiceJobUseCase useCase;
-    private Path workspace;
 
     @BeforeEach
     void setUp() {
-        workspace = Path.of("/tmp/atlas-test-ws");
         when(transactionManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
         useCase = new ExecuteDeployServiceJobUseCase(
                 deploymentRepository,
                 serviceRepository,
                 projectRepository,
                 hostRepository,
+                domainRepository,
                 gitRepository,
                 containerRuntime,
                 resolveSecretValue,
                 id -> workspace,
                 evaluateProductAlertsUseCase,
+                ensureDomainTunnelIngressUseCase,
                 transactionManager);
     }
 
