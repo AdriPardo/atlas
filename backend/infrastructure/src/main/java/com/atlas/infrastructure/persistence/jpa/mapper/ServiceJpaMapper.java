@@ -1,5 +1,6 @@
 package com.atlas.infrastructure.persistence.jpa.mapper;
 
+import com.atlas.domain.service.ServiceExposure;
 import com.atlas.domain.service.ServiceStatus;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.infrastructure.persistence.jpa.entity.ServiceJpaEntity;
@@ -12,6 +13,10 @@ public class ServiceJpaMapper {
         if (entity == null) {
             return null;
         }
+        ServiceExposure exposure = ServiceExposure.PUBLIC;
+        if (entity.getExposure() != null && !entity.getExposure().isBlank()) {
+            exposure = ServiceExposure.valueOf(entity.getExposure());
+        }
         return ServiceUnit.rehydrate(
                 entity.getId(),
                 entity.getProjectId(),
@@ -21,6 +26,7 @@ public class ServiceJpaMapper {
                 entity.getComposePath(),
                 entity.getDomain(),
                 entity.getEnvironment(),
+                exposure,
                 ServiceStatus.valueOf(entity.getStatus()),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
@@ -39,6 +45,7 @@ public class ServiceJpaMapper {
         entity.setComposePath(domain.getComposePath());
         entity.setDomain(domain.getDomain());
         entity.setEnvironment(domain.getEnvironment());
+        entity.setExposure(domain.getExposure() == null ? ServiceExposure.PUBLIC.name() : domain.getExposure().name());
         entity.setStatus(domain.getStatus().name());
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setUpdatedAt(domain.getUpdatedAt());

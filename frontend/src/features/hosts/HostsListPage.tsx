@@ -53,7 +53,7 @@ export function HostsListPage() {
     <PageShell>
       <PageHeader
         title="Hosts"
-        description="Register servers that will run applications."
+        description="Advanced infrastructure. Autopilot usually picks or seeds a LOCAL host on Deploy."
         actions={
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/hosts/new')}>
             New host
@@ -80,7 +80,7 @@ export function HostsListPage() {
                 description={
                   hostname
                     ? 'Try a different hostname filter.'
-                    : 'Add a LOCAL host for this Atlas server (or SSH) before Deploy. Then open the host and Sync.'
+                    : 'Optional: Autopilot creates atlas-local on Deploy. Add SSH hosts only when you need a remote target.'
                 }
                 actionLabel={hostname ? undefined : 'New host'}
                 onAction={hostname ? undefined : () => navigate('/hosts/new')}

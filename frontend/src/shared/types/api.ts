@@ -22,6 +22,8 @@ export type DeploymentStatus =
 
 export type ConnectionType = 'LOCAL' | 'SSH'
 
+export type ServiceExposure = 'PUBLIC' | 'INTERNAL'
+
 export type JobStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED'
 
 export type JobType = 'DEPLOY_SERVICE' | 'SYNC_HOST'
@@ -68,6 +70,7 @@ export interface Service {
   composePath: string
   domain: string
   environment: string
+  exposure?: ServiceExposure
   status: ServiceStatus
   createdAt: string
   updatedAt: string

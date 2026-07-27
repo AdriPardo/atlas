@@ -22,6 +22,7 @@ public class ServiceUnit {
     private String composePath;
     private String domain;
     private String environment;
+    private ServiceExposure exposure;
     private ServiceStatus status;
     private final Instant createdAt;
     private Instant updatedAt;
@@ -35,13 +36,14 @@ public class ServiceUnit {
             String composePath,
             String domain,
             String environment,
+            ServiceExposure exposure,
             ServiceStatus status,
             Instant createdAt,
             Instant updatedAt) {
         this.id = Objects.requireNonNull(id, "id is required");
         this.projectId = Objects.requireNonNull(projectId, "projectId is required");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
-        apply(name, repositoryUrl, branch, composePath, domain, environment, status, updatedAt);
+        apply(name, repositoryUrl, branch, composePath, domain, environment, exposure, status, updatedAt);
     }
 
     public static ServiceUnit createDefault(
@@ -60,6 +62,7 @@ public class ServiceUnit {
                 composePath,
                 domain,
                 "default",
+                ServiceExposure.PUBLIC,
                 ServiceStatus.REGISTERED,
                 now,
                 now);
@@ -83,6 +86,7 @@ public class ServiceUnit {
                 composePath,
                 domain,
                 environment == null || environment.isBlank() ? "default" : environment,
+                ServiceExposure.PUBLIC,
                 ServiceStatus.REGISTERED,
                 now,
                 now);
@@ -97,6 +101,7 @@ public class ServiceUnit {
             String composePath,
             String domain,
             String environment,
+            ServiceExposure exposure,
             ServiceStatus status,
             Instant createdAt,
             Instant updatedAt) {
@@ -109,6 +114,7 @@ public class ServiceUnit {
                 composePath,
                 domain,
                 environment,
+                exposure == null ? ServiceExposure.PUBLIC : exposure,
                 status,
                 createdAt,
                 updatedAt);
@@ -129,12 +135,30 @@ public class ServiceUnit {
                 composePath,
                 domain,
                 environment == null || environment.isBlank() ? "default" : environment,
+                exposure,
                 status,
                 Instant.now());
     }
 
     public void updateStatus(ServiceStatus status) {
-        apply(name, repositoryUrl, branch, composePath, domain, environment, status, Instant.now());
+        apply(name, repositoryUrl, branch, composePath, domain, environment, exposure, status, Instant.now());
+    }
+
+    public void updateExposure(ServiceExposure exposure) {
+        apply(
+                name,
+                repositoryUrl,
+                branch,
+                composePath,
+                domain,
+                environment,
+                exposure == null ? ServiceExposure.PUBLIC : exposure,
+                status,
+                Instant.now());
+    }
+
+    public void updateDomain(String domain) {
+        apply(name, repositoryUrl, branch, composePath, domain, environment, exposure, status, Instant.now());
     }
 
     private void apply(
@@ -144,6 +168,7 @@ public class ServiceUnit {
             String composePath,
             String domain,
             String environment,
+            ServiceExposure exposure,
             ServiceStatus status,
             Instant updatedAt) {
         this.name = requireText(name, "name");
@@ -152,6 +177,7 @@ public class ServiceUnit {
         this.composePath = requireText(composePath, "composePath");
         this.domain = domain == null ? "" : domain.trim();
         this.environment = requireText(environment, "environment");
+        this.exposure = Objects.requireNonNull(exposure, "exposure is required");
         this.status = Objects.requireNonNull(status, "status is required");
         this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt is required");
     }

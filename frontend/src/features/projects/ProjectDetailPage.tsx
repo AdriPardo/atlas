@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Button,
   Dialog,
@@ -11,9 +14,13 @@ import {
   MenuItem,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { hostsApi, projectsApi, servicesApi } from '../../shared/api/endpoints'
+import type { ServiceExposure } from '../../shared/types/api'
 import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
@@ -29,6 +36,7 @@ export function ProjectDetailPage() {
   const [deployOpen, setDeployOpen] = useState(false)
   const [hostId, setHostId] = useState('')
   const [serviceId, setServiceId] = useState('')
+  const [exposure, setExposure] = useState<ServiceExposure>('PUBLIC')
 
   const query = useQuery({
     queryKey: ['projects', id],
@@ -51,16 +59,19 @@ export function ProjectDetailPage() {
   const defaultService = servicesQuery.data?.content?.[0]
   const deployTargetId = serviceId || defaultService?.id || ''
   const hosts = hostsQuery.data?.content ?? []
-  const noHosts = !hostsQuery.isLoading && hosts.length === 0
 
   const deployMutation = useMutation({
     mutationFn: () =>
       deployTargetId
-        ? servicesApi.deploy(deployTargetId, hostId)
-        : projectsApi.deploy(id, hostId),
+        ? servicesApi.deploy(deployTargetId, {
+            hostId: hostId || undefined,
+            exposure,
+          })
+        : projectsApi.deploy(id, { hostId: hostId || undefined, exposure }),
     onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: ['projects', id] })
       await queryClient.invalidateQueries({ queryKey: ['deployments'] })
+      await queryClient.invalidateQueries({ queryKey: ['projects', id, 'services'] })
       setDeployOpen(false)
       navigate(`/deployments/${result.deploymentId}`)
     },
@@ -70,16 +81,16 @@ export function ProjectDetailPage() {
     <PageShell maxWidth={760}>
       <PageHeader
         title={query.data?.name ?? 'Project'}
-        description="Project and its deployable services."
+        description="Connect the app; Atlas places and deploys it."
         actions={
           <Stack direction="row" spacing={1}>
             <Button component={RouterLink} to="/projects">
               Back
             </Button>
-            <Button variant="outlined" onClick={() => setDeployOpen(true)}>
+            <Button variant="contained" onClick={() => setDeployOpen(true)}>
               Deploy
             </Button>
-            <Button variant="contained" onClick={() => navigate(`/projects/${id}/edit`)}>
+            <Button variant="outlined" onClick={() => navigate(`/projects/${id}/edit`)}>
               Edit
             </Button>
           </Stack>
@@ -109,6 +120,9 @@ export function ProjectDetailPage() {
                 <Stack key={svc.id} spacing={1} sx={{ mb: 2 }}>
                   <DetailField label="Name">
                     {svc.name} <StatusChip label={svc.status} />
+                  </DetailField>
+                  <DetailField label="Exposure">
+                    <StatusChip label={svc.exposure ?? 'PUBLIC'} />
                   </DetailField>
                   <DetailField label="Repository" mono>
                     {svc.repositoryUrl}
@@ -140,7 +154,7 @@ export function ProjectDetailPage() {
       </QueryState>
 
       <Dialog open={deployOpen} onClose={() => setDeployOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Deploy service</DialogTitle>
+        <DialogTitle>Deploy</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             {deployMutation.isError && (
@@ -148,60 +162,84 @@ export function ProjectDetailPage() {
                 Deploy request failed
               </Alert>
             )}
-            {noHosts && (
-              <Alert
-                severity="warning"
-                variant="outlined"
-                action={
-                  <Button color="inherit" size="small" component={RouterLink} to="/hosts/new">
-                    Add host
-                  </Button>
-                }
-              >
-                No hosts registered. Create a LOCAL host (Atlas server) or SSH host, then Sync before
-                deploying.
-              </Alert>
-            )}
             <Alert severity="info" variant="outlined">
-              Private GitHub repos need a secret named <strong>git.token</strong> (see Secrets). LOCAL
-              hosts need Docker socket access on the Atlas server.
+              Atlas picks a suitable host automatically (LOCAL / default). Private GitHub repos need a
+              secret named <strong>git.token</strong>.
             </Alert>
-            <TextField
-              select
-              label="Service"
-              value={serviceId || defaultService?.id || ''}
-              onChange={(e) => setServiceId(e.target.value)}
+            <Typography variant="body2" color="text.secondary">
+              Exposure
+            </Typography>
+            <ToggleButtonGroup
+              exclusive
               fullWidth
+              size="small"
+              value={exposure}
+              onChange={(_, value: ServiceExposure | null) => {
+                if (value) setExposure(value)
+              }}
             >
-              {(servicesQuery.data?.content ?? []).map((svc) => (
-                <MenuItem key={svc.id} value={svc.id}>
-                  {svc.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Target host"
-              value={hostId}
-              onChange={(e) => setHostId(e.target.value)}
-              fullWidth
-              disabled={noHosts}
-              helperText={noHosts ? 'Add a host first' : undefined}
-            >
-              {hosts.map((host) => (
-                <MenuItem key={host.id} value={host.id}>
-                  {host.hostname} ({host.connectionType}) — {host.ip}
-                  {host.online ? '' : ' [offline]'}
-                </MenuItem>
-              ))}
-            </TextField>
+              <ToggleButton value="PUBLIC">Public</ToggleButton>
+              <ToggleButton value="INTERNAL">Internal</ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant="caption" color="text.secondary">
+              Public creates a domain stub + Traefik metadata. Internal stays LAN / private entrypoint
+              only.
+            </Typography>
+            {(servicesQuery.data?.content?.length ?? 0) > 1 && (
+              <TextField
+                select
+                label="Service"
+                value={serviceId || defaultService?.id || ''}
+                onChange={(e) => setServiceId(e.target.value)}
+                fullWidth
+              >
+                {(servicesQuery.data?.content ?? []).map((svc) => (
+                  <MenuItem key={svc.id} value={svc.id}>
+                    {svc.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+            <Accordion disableGutters elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="body2">Advanced — host override</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={1.5}>
+                  <Typography variant="caption" color="text.secondary">
+                    Leave empty for Autopilot placement. Manual Host management lives under Hosts.
+                  </Typography>
+                  <TextField
+                    select
+                    label="Target host (optional)"
+                    value={hostId}
+                    onChange={(e) => setHostId(e.target.value)}
+                    fullWidth
+                    helperText="Optional. Atlas will seed atlas-local if no hosts exist."
+                  >
+                    <MenuItem value="">
+                      <em>Autopilot (recommended)</em>
+                    </MenuItem>
+                    {hosts.map((host) => (
+                      <MenuItem key={host.id} value={host.id}>
+                        {host.hostname} ({host.connectionType}) — {host.ip}
+                        {host.online ? '' : ' [offline]'}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <Button size="small" component={RouterLink} to="/hosts" sx={{ alignSelf: 'flex-start' }}>
+                    Open Hosts (advanced)
+                  </Button>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeployOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={!hostId || !deployTargetId || deployMutation.isPending || noHosts}
+            disabled={!deployTargetId || deployMutation.isPending}
             onClick={() => deployMutation.mutate()}
           >
             Deploy

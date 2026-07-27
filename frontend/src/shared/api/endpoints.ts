@@ -22,6 +22,7 @@ import type {
   ProjectMembership,
   SecretMeta,
   Service,
+  ServiceExposure,
   TraefikMetadata,
   User,
 } from '../types/api'
@@ -68,8 +69,8 @@ export const projectsApi = {
       environment?: string
     },
   ) => api.post<Service>(`/projects/${projectId}/services`, body).then((r) => r.data),
-  deploy: (projectId: string, hostId: string) =>
-    api.post<DeployResponse>(`/projects/${projectId}/deploy`, { hostId }).then((r) => r.data),
+  deploy: (projectId: string, body?: { hostId?: string; exposure?: ServiceExposure }) =>
+    api.post<DeployResponse>(`/projects/${projectId}/deploy`, body ?? {}).then((r) => r.data),
 }
 
 export const servicesApi = {
@@ -89,8 +90,8 @@ export const servicesApi = {
     },
   ) => api.put<Service>(`/services/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/services/${id}`),
-  deploy: (id: string, hostId: string) =>
-    api.post<DeployResponse>(`/services/${id}/deploy`, { hostId }).then((r) => r.data),
+  deploy: (id: string, body?: { hostId?: string; exposure?: ServiceExposure }) =>
+    api.post<DeployResponse>(`/services/${id}/deploy`, body ?? {}).then((r) => r.data),
 }
 
 export const hostsApi = {

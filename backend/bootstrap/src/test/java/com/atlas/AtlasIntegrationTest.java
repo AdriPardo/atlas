@@ -691,4 +691,115 @@ class AtlasIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void autopilotDeployWithoutHostIdSeedsLocalAndCreatesPublicDomain() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+
+        MvcResult project = mockMvc.perform(post("/api/v1/projects")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"autopilot-app",
+                                  "description":"Autopilot smoke",
+                                  "repositoryUrl":"https://git.example/autopilot.git",
+                                  "branch":"main",
+                                  "composePath":"./docker-compose.yml"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String projectId = com.jayway.jsonpath.JsonPath.read(project.getResponse().getContentAsString(), "$.id");
+
+        MvcResult services = mockMvc.perform(get("/api/v1/projects/" + projectId + "/services")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].exposure").value("PUBLIC"))
+                .andReturn();
+        String serviceId =
+                com.jayway.jsonpath.JsonPath.read(services.getResponse().getContentAsString(), "$.content[0].id");
+
+        mockMvc.perform(post("/api/v1/services/" + serviceId + "/deploy")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"exposure":"PUBLIC"}
+                                """))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.deploymentId").isNotEmpty())
+                .andExpect(jsonPath("$.jobId").isNotEmpty())
+                .andExpect(jsonPath("$.status").value("PENDING"));
+
+        mockMvc.perform(get("/api/v1/hosts")
+                        .header("Authorization", "Bearer " + token)
+                        .param("hostname", "atlas-local"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].hostname").value("atlas-local"))
+                .andExpect(jsonPath("$.content[0].connectionType").value("LOCAL"));
+
+        mockMvc.perform(get("/api/v1/services/" + serviceId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exposure").value("PUBLIC"))
+                .andExpect(jsonPath("$.domain").value("default.atlas.local"))
+                .andExpect(jsonPath("$.status").value("DEPLOYING"));
+
+        mockMvc.perform(get("/api/v1/projects/" + projectId + "/domains")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].hostname").value("default.atlas.local"));
+
+        mockMvc.perform(post("/api/v1/projects")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"autopilot-internal",
+                                  "repositoryUrl":"https://git.example/internal.git",
+                                  "branch":"main",
+                                  "composePath":"./docker-compose.yml"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        MvcResult internalProject = mockMvc.perform(get("/api/v1/projects")
+                        .header("Authorization", "Bearer " + token)
+                        .param("name", "autopilot-internal"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String internalProjectId = com.jayway.jsonpath.JsonPath.read(
+                internalProject.getResponse().getContentAsString(), "$.content[0].id");
+        MvcResult internalServices = mockMvc.perform(get("/api/v1/projects/" + internalProjectId + "/services")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        String internalServiceId = com.jayway.jsonpath.JsonPath.read(
+                internalServices.getResponse().getContentAsString(), "$.content[0].id");
+
+        mockMvc.perform(post("/api/v1/services/" + internalServiceId + "/deploy")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"exposure":"INTERNAL"}
+                                """))
+                .andExpect(status().isAccepted());
+
+        mockMvc.perform(get("/api/v1/projects/" + internalProjectId + "/domains")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        mockMvc.perform(get("/api/v1/services/" + internalServiceId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exposure").value("INTERNAL"));
+    }
+
+
 }

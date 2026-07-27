@@ -1,6 +1,9 @@
 package com.atlas.api.dto.request;
 
-import jakarta.validation.constraints.NotNull;
+import com.atlas.domain.service.ServiceExposure;
 import java.util.UUID;
 
-public record DeployServiceRequest(@NotNull UUID hostId) {}
+/**
+ * Autopilot deploy request. {@code hostId} is optional — platform places the service when omitted.
+ */
+public record DeployServiceRequest(UUID hostId, ServiceExposure exposure) {}

@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -36,8 +37,20 @@ public class HostRepositoryAdapter implements HostRepositoryPort {
     }
 
     @Override
+    public Optional<Host> findByHostnameIgnoreCase(String hostname) {
+        return repository.findByHostnameIgnoreCase(hostname).map(mapper::toDomain);
+    }
+
+    @Override
     public boolean existsByHostname(String hostname) {
         return repository.existsByHostnameIgnoreCase(hostname);
+    }
+
+    @Override
+    public List<Host> listForPlacement() {
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "createdAt")).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.atlas.api.dto.response;
 
+import com.atlas.domain.service.ServiceExposure;
 import com.atlas.domain.service.ServiceStatus;
 import java.time.Instant;
 import java.util.UUID;
@@ -13,6 +14,7 @@ public record ServiceResponse(
         String composePath,
         String domain,
         String environment,
+        ServiceExposure exposure,
         ServiceStatus status,
         Instant createdAt,
         Instant updatedAt) {}

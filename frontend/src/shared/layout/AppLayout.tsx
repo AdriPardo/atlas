@@ -38,7 +38,7 @@ const navGroups = [
     items: [
       { to: '/', label: 'Dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
       { to: '/projects', label: 'Projects', icon: <FolderOutlinedIcon fontSize="small" /> },
-      { to: '/hosts', label: 'Hosts', icon: <DnsOutlinedIcon fontSize="small" /> },
+      { to: '/hosts', label: 'Hosts · adv.', icon: <DnsOutlinedIcon fontSize="small" /> },
       { to: '/deployments', label: 'Deployments', icon: <RocketLaunchOutlinedIcon fontSize="small" /> },
       { to: '/pipelines', label: 'Pipelines', icon: <AccountTreeOutlinedIcon fontSize="small" /> },
       { to: '/audit', label: 'Audit', icon: <PolicyOutlinedIcon fontSize="small" /> },

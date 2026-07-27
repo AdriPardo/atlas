@@ -35,6 +35,9 @@ public class ServiceJpaEntity {
     @Column(nullable = false, length = 50)
     private String environment;
 
+    @Column(nullable = false, length = 20)
+    private String exposure;
+
     @Column(nullable = false, length = 50)
     private String status;
 
@@ -106,6 +109,14 @@ public class ServiceJpaEntity {
 
     public void setEnvironment(String environment) {
         this.environment = environment;
+    }
+
+    public String getExposure() {
+        return exposure;
+    }
+
+    public void setExposure(String exposure) {
+        this.exposure = exposure;
     }
 
     public String getStatus() {

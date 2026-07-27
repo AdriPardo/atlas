@@ -129,8 +129,9 @@ public class ProjectController {
 
     @PostMapping("/{projectId}/deploy")
     public ResponseEntity<DeployResponse> deployDefaultService(
-            @PathVariable UUID projectId, @Valid @RequestBody DeployServiceRequest request) {
-        var result = deployServiceUseCase.executeForProject(projectId, request.hostId());
+            @PathVariable UUID projectId, @RequestBody(required = false) @Valid DeployServiceRequest request) {
+        DeployServiceRequest body = request == null ? new DeployServiceRequest(null, null) : request;
+        var result = deployServiceUseCase.executeForProject(projectId, body.hostId(), body.exposure());
         return ResponseEntity.accepted()
                 .body(new DeployResponse(
                         result.deployment().getId(),

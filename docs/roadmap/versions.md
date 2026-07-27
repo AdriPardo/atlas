@@ -13,9 +13,11 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.5** | Runtime visibility | Containers, logs, metrics links |
 | **v0.6** | Pipelines + webhooks | GitOps ligero |
 | **v0.7** | RBAC + Network + Alerts | Multi-user serio |
+| **v0.7.1** | Autopilot Placement (slice 1) | Connect app → Deploy; plataforma elige host + exposure |
 | **v0.8** | Backups + Cron | Continuidad |
+| **v0.8.x** | Autopilot Proxmox provisioner | VM on-demand sobre Host/Deploy existentes |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
-| **v1.0** | GA | Producto comercial self-host |
+| **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
 ---
 
@@ -95,6 +97,19 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 
 ---
 
+## v0.7.1 — Autopilot Placement (slice 1)
+
+- Deploy sin obligar `hostId`; auto-pick / seed Host LOCAL.
+- `exposure` PUBLIC|INTERNAL en Service; Domain stub + Traefik metadata solo en PUBLIC.
+- UI: CTA Deploy + toggle; Hosts como Advanced.
+- ADR-0010 + `docs/product/autopilot-placement.md`.
+
+**Criterio done:** Connect project → Deploy (3–5 clics) sin configurar Host manualmente.
+
+**Camino a v1.0:** slice 2 provisiona VMs Proxmox reutilizando Host + `DEPLOY_SERVICE` (sin tirar el control plane).
+
+---
+
 ## v0.8 — Resilience
 
 - Backups/Restore volúmenes o DB registradas.
@@ -120,6 +135,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 ## v1.0 — GA
 
 - Estabilidad, UX polish, docs de operación, upgrade path v0.x→v1.0.
+- Autopilot placement maduro (reuse host + Proxmox provision + PUBLIC/INTERNAL).
 - Plugin contract v1 (Cloudflare oficial).
 - Security review checklist cumplido.
 - AI Assistant **no** requerido (future).

@@ -83,8 +83,9 @@ public class ServiceController {
 
     @PostMapping("/{id}/deploy")
     public ResponseEntity<DeployResponse> deploy(
-            @PathVariable UUID id, @Valid @RequestBody DeployServiceRequest request) {
-        var result = deployServiceUseCase.execute(id, request.hostId());
+            @PathVariable UUID id, @RequestBody(required = false) @Valid DeployServiceRequest request) {
+        DeployServiceRequest body = request == null ? new DeployServiceRequest(null, null) : request;
+        var result = deployServiceUseCase.execute(id, body.hostId(), body.exposure());
         return ResponseEntity.accepted()
                 .body(new DeployResponse(
                         result.deployment().getId(),
