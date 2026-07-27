@@ -1,10 +1,12 @@
 package com.atlas.application.deployment;
 
+import com.atlas.application.networking.EnsureDomainDnsCnameUseCase;
 import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
 import com.atlas.application.port.out.CloudflareTunnelPort;
 import com.atlas.application.port.out.ContainerRuntimePort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
+import com.atlas.application.port.out.DnsProviderPort;
 import com.atlas.application.port.out.DomainRepositoryPort;
 import com.atlas.application.port.out.GitRepositoryPort;
 import com.atlas.application.port.out.HostRepositoryPort;
@@ -49,6 +51,7 @@ public class ExecuteDeployServiceJobUseCase {
     private final WorkspacePathResolver workspacePathResolver;
     private final EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
     private final EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
+    private final EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase;
     private final TransactionTemplate transactionTemplate;
 
     public ExecuteDeployServiceJobUseCase(
@@ -63,6 +66,7 @@ public class ExecuteDeployServiceJobUseCase {
             WorkspacePathResolver workspacePathResolver,
             EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
             EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase,
+            EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase,
             PlatformTransactionManager transactionManager) {
         this.deploymentRepository = deploymentRepository;
         this.serviceRepository = serviceRepository;
@@ -75,6 +79,7 @@ public class ExecuteDeployServiceJobUseCase {
         this.workspacePathResolver = workspacePathResolver;
         this.evaluateProductAlertsUseCase = evaluateProductAlertsUseCase;
         this.ensureDomainTunnelIngressUseCase = ensureDomainTunnelIngressUseCase;
+        this.ensureDomainDnsCnameUseCase = ensureDomainDnsCnameUseCase;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
@@ -142,6 +147,7 @@ public class ExecuteDeployServiceJobUseCase {
             });
 
             ensurePublicTunnelIngress(loaded.service(), logSink);
+            ensurePublicDnsCname(loaded.service(), logSink);
         } catch (Exception ex) {
             String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
             transactionTemplate.executeWithoutResult(status -> {
@@ -272,6 +278,39 @@ public class ExecuteDeployServiceJobUseCase {
         } catch (Exception ex) {
             String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
             logSink.accept("Tunnel assist skipped: " + message);
+        }
+    }
+
+    /**
+     * Autopilot PUBLIC: upsert Cloudflare DNS CNAME → tunnel target (or log copy-ready record).
+     * Never fails the deploy.
+     */
+    private void ensurePublicDnsCname(ServiceUnit service, Consumer<String> logSink) {
+        if (service.getExposure() != ServiceExposure.PUBLIC) {
+            return;
+        }
+        String hostname = service.getDomain();
+        if (hostname == null || hostname.isBlank()) {
+            return;
+        }
+        try {
+            Optional<Domain> domain = domainRepository.findByProjectId(service.getProjectId()).stream()
+                    .filter(d -> hostname.equalsIgnoreCase(d.getHostname()))
+                    .findFirst();
+            if (domain.isEmpty()) {
+                logSink.accept("DNS CNAME: no Domain stub for " + hostname + " — skip");
+                return;
+            }
+            DnsProviderPort.CnameEnsureResult result =
+                    ensureDomainDnsCnameUseCase.executeAsSystem(domain.get());
+            logSink.accept("DNS CNAME [" + result.mode() + "]: " + result.message());
+            if (result.mode() == DnsProviderPort.CnameEnsureMode.MANUAL
+                    || result.mode() == DnsProviderPort.CnameEnsureMode.FAILED) {
+                logSink.accept("DNS CNAME (copy into Cloudflare DNS):\n" + result.spec().copyBlock());
+            }
+        } catch (Exception ex) {
+            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+            logSink.accept("DNS CNAME assist skipped: " + message);
         }
     }
 

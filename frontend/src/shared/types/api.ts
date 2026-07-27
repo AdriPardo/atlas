@@ -282,6 +282,17 @@ export interface TunnelIngress {
   message: string | null
 }
 
+export interface DnsCname {
+  hostname: string
+  zone: string
+  recordName: string
+  cnameTarget: string
+  proxied: boolean
+  copyBlock: string
+  mode: string | null
+  message: string | null
+}
+
 export interface AuditEntry {
   id: string
   actorUserId: string | null

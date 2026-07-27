@@ -29,6 +29,7 @@ import type {
   PlacementMode,
   TraefikMetadata,
   TunnelIngress,
+  DnsCname,
   User,
 } from '../types/api'
 
@@ -168,6 +169,10 @@ export const domainsApi = {
     api.get<TunnelIngress>(`/domains/${domainId}/tunnel-ingress`).then((r) => r.data),
   ensureTunnel: (domainId: string) =>
     api.post<TunnelIngress>(`/domains/${domainId}/tunnel-ingress/ensure`).then((r) => r.data),
+  dnsCname: (domainId: string) =>
+    api.get<DnsCname>(`/domains/${domainId}/dns-cname`).then((r) => r.data),
+  ensureDnsCname: (domainId: string) =>
+    api.post<DnsCname>(`/domains/${domainId}/dns-cname/ensure`).then((r) => r.data),
 }
 
 export const auditApi = {

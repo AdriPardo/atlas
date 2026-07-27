@@ -2,15 +2,19 @@ package com.atlas.api.web;
 
 import com.atlas.api.dto.request.CreateDomainRequest;
 import com.atlas.api.dto.request.UpdateDomainRequest;
+import com.atlas.api.dto.response.DnsCnameResponse;
 import com.atlas.api.dto.response.DomainResponse;
 import com.atlas.api.dto.response.TraefikMetadataResponse;
 import com.atlas.api.dto.response.TunnelIngressResponse;
+import com.atlas.application.networking.EnsureDomainDnsCnameUseCase;
 import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
+import com.atlas.application.networking.GetDomainDnsCnameUseCase;
 import com.atlas.application.networking.GetDomainTraefikMetadataUseCase;
 import com.atlas.application.networking.GetDomainTunnelIngressUseCase;
 import com.atlas.application.networking.ManageDomainUseCase;
 import com.atlas.application.networking.VerifyDomainUseCase;
 import com.atlas.application.port.out.CloudflareTunnelPort;
+import com.atlas.application.port.out.DnsProviderPort;
 import com.atlas.application.port.out.TraefikMetadataPort;
 import com.atlas.domain.networking.Domain;
 import jakarta.validation.Valid;
@@ -36,6 +40,8 @@ public class DomainController {
     private final GetDomainTraefikMetadataUseCase getDomainTraefikMetadataUseCase;
     private final GetDomainTunnelIngressUseCase getDomainTunnelIngressUseCase;
     private final EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
+    private final GetDomainDnsCnameUseCase getDomainDnsCnameUseCase;
+    private final EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase;
 
     @GetMapping("/api/v1/projects/{projectId}/domains")
     public ResponseEntity<List<DomainResponse>> listByProject(@PathVariable UUID projectId) {
@@ -106,6 +112,18 @@ public class DomainController {
         return ResponseEntity.ok(toTunnelResponse(result.ingress(), result.mode().name(), result.message()));
     }
 
+    @GetMapping("/api/v1/domains/{domainId}/dns-cname")
+    public ResponseEntity<DnsCnameResponse> dnsCname(@PathVariable UUID domainId) {
+        DnsProviderPort.CnameSpec spec = getDomainDnsCnameUseCase.execute(domainId);
+        return ResponseEntity.ok(toDnsCnameResponse(spec, null, null));
+    }
+
+    @PostMapping("/api/v1/domains/{domainId}/dns-cname/ensure")
+    public ResponseEntity<DnsCnameResponse> ensureDnsCname(@PathVariable UUID domainId) {
+        DnsProviderPort.CnameEnsureResult result = ensureDomainDnsCnameUseCase.execute(domainId);
+        return ResponseEntity.ok(toDnsCnameResponse(result.spec(), result.mode().name(), result.message()));
+    }
+
     private static TunnelIngressResponse toTunnelResponse(
             CloudflareTunnelPort.TunnelIngressSpec spec, String mode, String message) {
         return new TunnelIngressResponse(
@@ -120,6 +138,19 @@ public class DomainController {
                 spec.cnameTarget(),
                 spec.copyBlock(),
                 spec.zeroTrustHint(),
+                mode,
+                message);
+    }
+
+    private static DnsCnameResponse toDnsCnameResponse(
+            DnsProviderPort.CnameSpec spec, String mode, String message) {
+        return new DnsCnameResponse(
+                spec.hostname(),
+                spec.zone(),
+                spec.recordName(),
+                spec.cnameTarget(),
+                spec.proxied(),
+                spec.copyBlock(),
                 mode,
                 message);
     }

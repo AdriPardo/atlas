@@ -19,5 +19,5 @@ Tras Autopilot slice 1, un deploy `PUBLIC` crea Domain + labels Traefik, pero el
 
 - (+) Menos clics Zero Trust; Autopilot se acerca a “connect → expose”.
 - (+) Sin credenciales, el operador sigue teniendo los valores exactos (no adivinar).
-- (−) DNS CNAME automático sigue fuera (token DNS distinto); documentado en copy block.
+- (−) DNS CNAME automático: ver [ADR-0013](./ADR-0013-autopilot-dns-cname.md) (token Zone DNS Edit).
 - (−) PUT de tunnel config es full-replace de ingress: el adapter hace merge GET→PUT y preserva catch-all 404.

@@ -67,7 +67,7 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 
 ## Out of scope (explicit)
 
-- Automatic Cloudflare DNS CNAME (copy block documents target; Tunnel Public Hostname is assisted via ADR-0011)
+- Automatic Cloudflare DNS CNAME — done via ADR-0013 (API or copy block)
 - Removing the Hosts UI/API (kept as Advanced)
 
 ## Success for the first slice
@@ -79,4 +79,5 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 - Slice 2 — Tunnel: [ADR-0011](../decisions/ADR-0011-autopilot-tunnel-ingress.md)
 - Slice 3 — Proxmox provisioner: [ADR-0012](../decisions/ADR-0012-autopilot-proxmox-provisioner.md)
 - Slice 3b — guest ready (done): IP + Sync + deploy on new Host
-- Next — DNS CNAME Cloudflare real over Domains ACTIVE
+- Slice 4 — DNS CNAME: [ADR-0013](../decisions/ADR-0013-autopilot-dns-cname.md) (done)
+- Next — restore runbook (`docs/deployment/backup-restore.md`)

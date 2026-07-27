@@ -10,6 +10,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atlas.application.networking.EnsureDomainDnsCnameUseCase;
 import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
 import com.atlas.application.port.out.ContainerRuntimePort;
@@ -78,6 +79,9 @@ class ExecuteDeployServiceJobUseCaseTest {
     private EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
 
     @Mock
+    private EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase;
+
+    @Mock
     private PlatformTransactionManager transactionManager;
 
     private ExecuteDeployServiceJobUseCase useCase;
@@ -97,6 +101,7 @@ class ExecuteDeployServiceJobUseCaseTest {
                 id -> workspace,
                 evaluateProductAlertsUseCase,
                 ensureDomainTunnelIngressUseCase,
+                ensureDomainDnsCnameUseCase,
                 transactionManager);
     }
 

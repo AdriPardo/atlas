@@ -78,6 +78,12 @@ class DomainUseCasesTest {
     @InjectMocks
     private EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
 
+    @InjectMocks
+    private GetDomainDnsCnameUseCase getDomainDnsCnameUseCase;
+
+    @InjectMocks
+    private EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase;
+
     @Test
     void createRequiresWriteAndPersists() {
         UUID projectId = UUID.randomUUID();
@@ -204,5 +210,77 @@ class DomainUseCasesTest {
         assertEquals(CloudflareTunnelPort.EnsureMode.MANUAL, result.mode());
         verify(authorizationService).require(domain.getProjectId(), ProjectPermission.WRITE);
         verify(recordAuditUseCase).execute(eq("DOMAIN_TUNNEL_ENSURE"), eq("domain"), eq(domain.getId()), anyString());
+    }
+
+    @Test
+    void dnsCnameRequiresRead() {
+        Domain domain = Domain.create(UUID.randomUUID(), "reelpath.atlasops.dev", null);
+        when(domainRepository.findById(domain.getId())).thenReturn(Optional.of(domain));
+        CloudflareTunnelPort.TunnelIngressSpec ingress = new CloudflareTunnelPort.TunnelIngressSpec(
+                "reelpath.atlasops.dev",
+                "reelpath",
+                "atlasops.dev",
+                "HTTPS",
+                "traefik:443",
+                "https://traefik:443",
+                true,
+                "tid",
+                "tid.cfargotunnel.com",
+                "copy",
+                "hint");
+        when(cloudflareTunnelPort.describe(domain)).thenReturn(ingress);
+        DnsProviderPort.CnameSpec expected = new DnsProviderPort.CnameSpec(
+                "reelpath.atlasops.dev",
+                "atlasops.dev",
+                "reelpath.atlasops.dev",
+                "tid.cfargotunnel.com",
+                true,
+                "copy");
+        when(dnsProviderPort.describeCname(domain, "tid.cfargotunnel.com")).thenReturn(expected);
+
+        DnsProviderPort.CnameSpec spec = getDomainDnsCnameUseCase.execute(domain.getId());
+
+        assertEquals("tid.cfargotunnel.com", spec.cnameTarget());
+        verify(authorizationService).require(domain.getProjectId(), ProjectPermission.READ);
+    }
+
+    @Test
+    void ensureDnsCnameRequiresWriteAuditsAndMarksActive() {
+        Domain domain = Domain.create(UUID.randomUUID(), "app.atlasops.dev", null);
+        when(domainRepository.findById(domain.getId())).thenReturn(Optional.of(domain));
+        when(resolveSecretValue.forProject(domain.getProjectId(), DnsProviderPort.API_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.of("tok"));
+        CloudflareTunnelPort.TunnelIngressSpec ingress = new CloudflareTunnelPort.TunnelIngressSpec(
+                "app.atlasops.dev",
+                "app",
+                "atlasops.dev",
+                "HTTPS",
+                "traefik:443",
+                "https://traefik:443",
+                true,
+                "tid",
+                "tid.cfargotunnel.com",
+                "copy",
+                "hint");
+        when(cloudflareTunnelPort.describe(domain)).thenReturn(ingress);
+        DnsProviderPort.CnameSpec spec = new DnsProviderPort.CnameSpec(
+                "app.atlasops.dev",
+                "atlasops.dev",
+                "app.atlasops.dev",
+                "tid.cfargotunnel.com",
+                true,
+                "copy");
+        when(dnsProviderPort.ensureCname(eq(domain), eq("tid.cfargotunnel.com"), eq(Optional.of("tok"))))
+                .thenReturn(new DnsProviderPort.CnameEnsureResult(
+                        DnsProviderPort.CnameEnsureMode.APPLIED, "created", spec));
+        when(domainRepository.save(any(Domain.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        DnsProviderPort.CnameEnsureResult result = ensureDomainDnsCnameUseCase.execute(domain.getId());
+
+        assertEquals(DnsProviderPort.CnameEnsureMode.APPLIED, result.mode());
+        assertEquals(DomainStatus.ACTIVE, domain.getStatus());
+        verify(authorizationService).require(domain.getProjectId(), ProjectPermission.WRITE);
+        verify(recordAuditUseCase)
+                .execute(eq("DOMAIN_DNS_CNAME_ENSURE"), eq("domain"), eq(domain.getId()), anyString());
     }
 }

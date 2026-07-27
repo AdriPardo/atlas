@@ -263,6 +263,8 @@ public class AtlasProperties {
         private String cloudflareTunnelId = "";
         /** Public zone used to split subdomain (e.g. atlasops.dev). */
         private String cloudflareZone = "";
+        /** Optional zone id — skips GET /zones?name= when set. */
+        private String cloudflareZoneId = "";
         /** Origin service for public hostnames (docker DNS to Traefik). */
         private String cloudflareTunnelOrigin = "https://traefik:443";
         /** Match Zero Trust "No TLS Verify" for Traefik origin. */
@@ -306,6 +308,14 @@ public class AtlasProperties {
 
         public void setCloudflareZone(String cloudflareZone) {
             this.cloudflareZone = cloudflareZone;
+        }
+
+        public String getCloudflareZoneId() {
+            return cloudflareZoneId;
+        }
+
+        public void setCloudflareZoneId(String cloudflareZoneId) {
+            this.cloudflareZoneId = cloudflareZoneId;
         }
 
         public String getCloudflareTunnelOrigin() {

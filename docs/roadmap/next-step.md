@@ -2,40 +2,40 @@
 
 ## Estado del último incremento (completado)
 
-**Autopilot slice 3b — Proxmox guest ready** (ADR-0012):
+**Autopilot DNS CNAME (Cloudflare)** (ADR-0013):
 
-- Tras clone: wait UPID → start VM → poll qemu-guest-agent IPv4 (fallback `ATLAS_PROXMOX_DEFAULT_GUEST_IP`).
-- Registrar Host SSH con secret `proxmox.ssh.private_key` + enqueue `SYNC_HOST`.
-- `DEPLOY_SERVICE` usa ese Host cuando `placementMode=ISOLATED` y la VM queda ready.
-- Props `ATLAS_PROXMOX_GUEST_READY_TIMEOUT_SECONDS` / `POLL_INTERVAL_MS`.
+- `DnsProviderPort.ensureCname` + `CloudflareDnsAdapter` (upsert CNAME proxied → `{tunnel-id}.cfargotunnel.com`).
+- Tras `DEPLOY_SERVICE` PUBLIC: Tunnel ensure + DNS CNAME ensure (nunca rompe el deploy).
+- API `GET/POST …/dns-cname[/ensure]`; UI Domains **DNS** / **Ensure DNS**.
+- Token `cloudflare.api.token` con Zone DNS Edit (+ Tunnel Edit si se comparte).
 
-**Previo:** slice 3 SHARED/ISOLATED (`aa87f70`); Tunnel PUBLIC; placement; cron; Domains/Traefik.
+**Previo:** guest-ready 3b (`49c3a85`); Tunnel PUBLIC; SHARED/ISOLATED; Domains/Traefik.
 
 ## Recomendación única (siguiente)
 
-**Autopilot DNS CNAME (Cloudflare)** — sobre Domains ACTIVE / PUBLIC: crear o actualizar CNAME hacia el Tunnel/hostname con token DNS de zona (`cloudflare.api.token` + zona), para cerrar el loop “Deploy PUBLIC → hostname resoluble” sin pegar records a mano.
+**Runbook restore de prueba** — documentar y validar restore lógico Postgres (`docs/deployment/backup-restore.md`) sobre un backup real del stack, para cerrar el hueco de continuidad de v0.8 sin bloquear Autopilot.
 
 ## Por qué es el paso más rentable ahora
 
-1. Guest-ready ya deja Isolated usable; el hueco siguiente en el journey Autopilot es DNS real (Tunnel Public Hostname ya está asistido).
-2. Reutiliza Domains + secret Cloudflare existentes; thin slice sin rewrite.
-3. Restore UI / runbook pueden ir en paralelo.
+1. Autopilot PUBLIC ya cierra Tunnel + DNS; el gap operativo más barato es restore verificable.
+2. Backup job ya existe; falta runbook + prueba documentada.
+3. Reuse Proxmox VMs (`REUSED`) puede ir en paralelo si hay capacidad.
 
-## Alcance concreto del incremento (DNS CNAME)
+## Alcance concreto del incremento (restore runbook)
 
-1. Puerto o extensión de `DnsProviderPort` / Cloudflare: upsert CNAME para Domain ACTIVE.
-2. Cablear ensure en path PUBLIC deploy o acción explícita en Domain detail.
-3. Documentar scopes del token DNS (zona) vs Tunnel API token.
+1. Runbook restore: stop API → restore dump → migrate/health → smoke SSO.
+2. Checklist de verificación en `docs/deployment/backup-restore.md` (o crear si falta).
+3. Nota en `runtime.md` / next-step success.
 
 ## Secundario (si sobra capacidad)
 
-- Runbook restore de prueba (`docs/deployment/backup-restore.md`).
 - Reuse de VMs Proxmox (`REUSED`) por hostname/tag.
+- Endurecer scopes de token Cloudflare documentados en UI Secrets hint.
 
 ## Qué no hacer
 
 - No billing/AI/marketplace, no Redis/Kafka obligatorio, no rewrite que elimine Hosts/Deployments.
 
-## Definición de éxito (DNS CNAME)
+## Definición de éxito (restore runbook)
 
-> Deploy PUBLIC (o ensure Domain) deja un CNAME Cloudflare apuntando al Tunnel/target documentado; el hostname resuelve sin edición manual en Zero Trust DNS.
+> Un operador puede restaurar un backup lógico de Atlas siguiendo el runbook y verificar health + login SSO/JWT sin improvisar comandos.

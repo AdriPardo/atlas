@@ -488,6 +488,18 @@ class AtlasIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.mode").value("SKIPPED"));
 
+        mockMvc.perform(get("/api/v1/domains/" + domainId + "/dns-cname")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hostname").value("app.domain-demo.local"))
+                .andExpect(jsonPath("$.copyBlock").isNotEmpty())
+                .andExpect(jsonPath("$.proxied").value(true));
+
+        mockMvc.perform(post("/api/v1/domains/" + domainId + "/dns-cname/ensure")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mode").value("SKIPPED"));
+
         mockMvc.perform(get("/api/v1/traefik/routes/" + domainId).header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.routerName").isNotEmpty());

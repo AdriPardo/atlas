@@ -109,6 +109,32 @@ export function ProjectDomainsPanel({
     },
   })
 
+  const dnsCnameMutation = useMutation({
+    mutationFn: (domainId: string) => domainsApi.dnsCname(domainId),
+    onSuccess: (data) => {
+      setLabelsPreview(null)
+      setTunnelPreview({
+        title: 'Cloudflare DNS CNAME',
+        body: data.copyBlock,
+        hint: 'DNS → zone → Add record (CNAME, proxied)',
+      })
+    },
+  })
+
+  const ensureDnsCnameMutation = useMutation({
+    mutationFn: (domainId: string) => domainsApi.ensureDnsCname(domainId),
+    onSuccess: async (data) => {
+      setLabelsPreview(null)
+      const modeLabel = data.mode ? `[${data.mode}] ` : ''
+      setTunnelPreview({
+        title: `${modeLabel}Cloudflare DNS CNAME`,
+        body: [data.message, '', data.copyBlock].filter(Boolean).join('\n'),
+        hint: 'DNS → zone → CNAME (proxied) → tunnel target',
+      })
+      await queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'domains'] })
+    },
+  })
+
   const copyTunnel = async () => {
     if (!tunnelPreview?.body) return
     await navigator.clipboard.writeText(tunnelPreview.body)
@@ -227,6 +253,20 @@ export function ProjectDomainsPanel({
                         </Button>
                         <Button
                           size="small"
+                          disabled={dnsCnameMutation.isPending}
+                          onClick={() => dnsCnameMutation.mutate(d.id)}
+                        >
+                          DNS
+                        </Button>
+                        <Button
+                          size="small"
+                          disabled={ensureDnsCnameMutation.isPending}
+                          onClick={() => ensureDnsCnameMutation.mutate(d.id)}
+                        >
+                          Ensure DNS
+                        </Button>
+                        <Button
+                          size="small"
                           color="error"
                           disabled={removeMutation.isPending}
                           onClick={() => removeMutation.mutate(d.id)}
@@ -263,7 +303,7 @@ export function ProjectDomainsPanel({
               {tunnelPreview.title}
             </Typography>
             <Button size="small" onClick={() => void copyTunnel()}>
-              {copyStatus ?? 'Copy ingress'}
+              {copyStatus ?? 'Copy'}
             </Button>
           </Stack>
           {tunnelPreview.hint && (

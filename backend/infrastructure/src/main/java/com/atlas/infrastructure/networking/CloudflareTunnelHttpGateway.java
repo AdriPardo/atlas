@@ -34,15 +34,36 @@ public class CloudflareTunnelHttpGateway {
 
     public String put(String url, String bearerToken, String jsonBody)
             throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+        return send(url, bearerToken, "PUT", jsonBody);
+    }
+
+    public String post(String url, String bearerToken, String jsonBody)
+            throws IOException, InterruptedException {
+        return send(url, bearerToken, "POST", jsonBody);
+    }
+
+    public String patch(String url, String bearerToken, String jsonBody)
+            throws IOException, InterruptedException {
+        return send(url, bearerToken, "PATCH", jsonBody);
+    }
+
+    private String send(String url, String bearerToken, String method, String jsonBody)
+            throws IOException, InterruptedException {
+        HttpRequest.Builder builder = HttpRequest.newBuilder(URI.create(url))
                 .timeout(Duration.ofSeconds(30))
                 .header("Authorization", "Bearer " + bearerToken)
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
-                .build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                .header("Content-Type", "application/json");
+        HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(jsonBody == null ? "" : jsonBody);
+        switch (method) {
+            case "PUT" -> builder.PUT(body);
+            case "POST" -> builder.POST(body);
+            case "PATCH" -> builder.method("PATCH", body);
+            default -> throw new IllegalArgumentException("Unsupported method: " + method);
+        }
+        HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
-            throw new IOException("Cloudflare PUT " + response.statusCode() + ": " + truncate(response.body()));
+            throw new IOException(
+                    "Cloudflare " + method + " " + response.statusCode() + ": " + truncate(response.body()));
         }
         return response.body();
     }

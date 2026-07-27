@@ -84,6 +84,7 @@ atlas:
     cloudflare-account-id: ${ATLAS_CF_ACCOUNT_ID:}
     cloudflare-tunnel-id: ${ATLAS_CF_TUNNEL_ID:}
     cloudflare-zone: ${ATLAS_CF_ZONE:}
+    cloudflare-zone-id: ${ATLAS_CF_ZONE_ID:}
     cloudflare-tunnel-origin: ${ATLAS_CF_TUNNEL_ORIGIN:https://traefik:443}
     cloudflare-tunnel-no-tls-verify: ${ATLAS_CF_TUNNEL_NO_TLS_VERIFY:true}
   proxmox:

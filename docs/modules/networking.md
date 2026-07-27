@@ -16,7 +16,13 @@ Metadata embebida en Domain (`certificateIssuer`, `certificateExpiresAt`, `certi
 
 ## DNS
 
-Challenge TXT expuesto en la respuesta Domain (`dnsTxtName` / `dnsTxtValue`). Sync opcional vía `DnsProviderPort` (stub hoy; Cloudflare API después).
+Challenge TXT expuesto en la respuesta Domain (`dnsTxtName` / `dnsTxtValue`). Sync challenge sigue instructional.
+
+CNAME Autopilot (ADR-0013) vía `DnsProviderPort` / `CloudflareDnsAdapter`:
+
+- `GET /api/v1/domains/{id}/dns-cname` — copy-ready CNAME → tunnel target.
+- `POST /api/v1/domains/{id}/dns-cname/ensure` — upsert cuando `ATLAS_CF_ZONE` (+ opcional `ZONE_ID`) + tunnel id + secret `cloudflare.api.token`; else `MANUAL`.
+- Tras PUBLIC deploy: ensure automático (no falla el job). Ensure exitoso puede marcar Domain `ACTIVE`.
 
 ## Cloudflare
 
@@ -25,7 +31,7 @@ Challenge TXT expuesto en la respuesta Domain (`dnsTxtName` / `dnsTxtValue`). Sy
 - `GET /api/v1/domains/{id}/tunnel-ingress` — copy-ready Public Hostname fields.
 - `POST /api/v1/domains/{id}/tunnel-ingress/ensure` — API merge into remotely-managed tunnel when `ATLAS_CF_*` + secret `cloudflare.api.token` exist; else `MANUAL`.
 
-Challenge TXT sync opcional vía `DnsProviderPort` (stub hoy; CNAME API después).
+Token scopes: Zone DNS Edit (CNAME) + Tunnel/Cloudflare One Edit (ingress). Un solo secret `cloudflare.api.token` puede cubrir ambos.
 
 ## Proxmox (Autopilot ISOLATED)
 

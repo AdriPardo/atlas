@@ -12,19 +12,31 @@ Cloudflare Tunnel ingress is **remotely managed**. Autopilot assists registratio
    - `POST /api/v1/domains/{id}/tunnel-ingress/ensure` — API register when configured; else `MANUAL`.
    - After PUBLIC `DEPLOY_SERVICE` success, deploy logs include mode + copy block if needed.
    - UI project Domains: **Tunnel** (copy) / **Ensure**.
+4. **DNS CNAME** (ADR-0013):
+   - `GET /api/v1/domains/{id}/dns-cname` — CNAME → `<tunnel-id>.cfargotunnel.com` (proxied).
+   - `POST /api/v1/domains/{id}/dns-cname/ensure` — upsert when zone + token configured; else `MANUAL`.
+   - Same PUBLIC deploy path also runs DNS ensure after Tunnel.
+   - UI: **DNS** / **Ensure DNS**.
 
 ## Config for API automation (optional)
 
 | Setting / secret | Purpose |
 |------------------|---------|
-| `ATLAS_CF_ACCOUNT_ID` | Cloudflare account id |
-| `ATLAS_CF_TUNNEL_ID` | Remotely-managed tunnel id |
-| `ATLAS_CF_ZONE` | Zone used to split subdomain (e.g. `atlasops.dev`) |
+| `ATLAS_CF_ACCOUNT_ID` | Cloudflare account id (Tunnel API) |
+| `ATLAS_CF_TUNNEL_ID` | Remotely-managed tunnel id (+ CNAME target) |
+| `ATLAS_CF_ZONE` | Zone name (subdomain split + DNS upsert) |
+| `ATLAS_CF_ZONE_ID` | Optional zone id (skips zone name lookup) |
 | `ATLAS_CF_TUNNEL_ORIGIN` | Default `https://traefik:443` |
 | `ATLAS_CF_TUNNEL_NO_TLS_VERIFY` | Default `true` (match atlas edge) |
-| Secret `cloudflare.api.token` | API token with **Cloudflare Tunnel / Cloudflare One** edit |
+| Secret `cloudflare.api.token` | **Tunnel Edit** and/or **Zone DNS Edit** |
 
-Without account/tunnel/token, Atlas still returns the exact paste values (mode `MANUAL`).
+Without zone/tunnel/token, Atlas still returns the exact paste values (mode `MANUAL`).
+
+### Token scopes
+
+- Tunnel Public Hostname: Account → Cloudflare Tunnel / Cloudflare One → Edit.
+- DNS CNAME: Zone → DNS → Edit (on `ATLAS_CF_ZONE`).
+- One token with both scopes is fine; same secret name `cloudflare.api.token`.
 
 ## Manual step (Zero Trust) — only if Ensure is MANUAL/FAILED
 
@@ -40,7 +52,7 @@ Cloudflare Zero Trust → Networks → Tunnels → (atlas tunnel) → **Public H
 
 Prefer copying from Atlas UI **Tunnel** / deploy logs instead of guessing.
 
-DNS `CNAME` → `<tunnel-id>.cfargotunnel.com` (proxied) remains separate (DNS token); the copy block includes the target.
+DNS `CNAME` → `<tunnel-id>.cfargotunnel.com` (proxied): use **Ensure DNS** or the DNS copy block when API token lacks Zone DNS Edit.
 
 Do **not** put Authentik ForwardAuth in front of customer apps unless requested.
 

@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,6 +28,7 @@ public class ProxmoxVmProvisionerAdapter implements VmProvisionerPort {
     private final ObjectMapper objectMapper;
     private final ProxmoxSleeper sleeper;
 
+    @Autowired
     public ProxmoxVmProvisionerAdapter(
             AtlasProperties properties, ProxmoxHttpGateway httpGateway, ObjectMapper objectMapper) {
         this(properties, httpGateway, objectMapper, ms -> {
