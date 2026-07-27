@@ -22,12 +22,11 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
-@RequiredArgsConstructor
 public class ExecuteDeployServiceJobUseCase {
 
     public static final String GIT_TOKEN_SECRET_NAME = "git.token";
@@ -41,9 +40,118 @@ public class ExecuteDeployServiceJobUseCase {
     private final ResolveSecretValueUseCase resolveSecretValue;
     private final WorkspacePathResolver workspacePathResolver;
     private final EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
+    private final TransactionTemplate transactionTemplate;
 
-    @Transactional
+    public ExecuteDeployServiceJobUseCase(
+            DeploymentRepositoryPort deploymentRepository,
+            ServiceRepositoryPort serviceRepository,
+            ProjectRepositoryPort projectRepository,
+            HostRepositoryPort hostRepository,
+            GitRepositoryPort gitRepository,
+            ContainerRuntimePort containerRuntime,
+            ResolveSecretValueUseCase resolveSecretValue,
+            WorkspacePathResolver workspacePathResolver,
+            EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
+            PlatformTransactionManager transactionManager) {
+        this.deploymentRepository = deploymentRepository;
+        this.serviceRepository = serviceRepository;
+        this.projectRepository = projectRepository;
+        this.hostRepository = hostRepository;
+        this.gitRepository = gitRepository;
+        this.containerRuntime = containerRuntime;
+        this.resolveSecretValue = resolveSecretValue;
+        this.workspacePathResolver = workspacePathResolver;
+        this.evaluateProductAlertsUseCase = evaluateProductAlertsUseCase;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
+
+    /**
+     * Runs outside a single long transaction so compose/git logs commit incrementally and failure
+     * status is not rolled back when the worker rethrows.
+     */
     public void execute(UUID deploymentId) {
+        Loaded loaded = transactionTemplate.execute(status -> load(deploymentId));
+        if (loaded == null) {
+            throw new NotFoundException("Deployment not found: " + deploymentId);
+        }
+
+        transactionTemplate.executeWithoutResult(status -> {
+            Deployment running = deploymentRepository
+                    .findById(deploymentId)
+                    .orElseThrow(() -> new NotFoundException("Deployment not found: " + deploymentId));
+            running.markRunning();
+            deploymentRepository.save(running);
+        });
+
+        Path workspace = workspacePathResolver.resolve(deploymentId);
+        Consumer<String> logSink = line -> transactionTemplate.executeWithoutResult(status -> {
+            Deployment current = deploymentRepository
+                    .findById(deploymentId)
+                    .orElseThrow(() -> new NotFoundException("Deployment not found: " + deploymentId));
+            current.appendLog(line);
+            deploymentRepository.save(current);
+        });
+
+        try {
+            logSink.accept(
+                    "Starting deploy for service " + loaded.service().getName() + " (project "
+                            + loaded.project().getName() + ")");
+            Optional<String> gitToken = resolveSecretValue.byName(GIT_TOKEN_SECRET_NAME);
+            gitRepository.cloneOrUpdate(
+                    loaded.service().getRepositoryUrl(),
+                    loaded.service().getBranch(),
+                    workspace,
+                    gitToken,
+                    logSink);
+
+            Optional<String> sshKey = resolveSshKey(loaded.host());
+            containerRuntime.composeUp(
+                    loaded.host(), workspace, loaded.service().getComposePath(), sshKey, logSink);
+
+            transactionTemplate.executeWithoutResult(status -> {
+                Deployment succeeded = deploymentRepository
+                        .findById(deploymentId)
+                        .orElseThrow(() -> new NotFoundException("Deployment not found: " + deploymentId));
+                succeeded.appendLog("Deploy finished successfully");
+                succeeded.markSucceeded();
+                deploymentRepository.save(succeeded);
+
+                ServiceUnit service = serviceRepository
+                        .findById(loaded.service().getId())
+                        .orElseThrow(() -> new NotFoundException("Service not found: " + loaded.service().getId()));
+                Project project = projectRepository
+                        .findById(loaded.project().getId())
+                        .orElseThrow(() -> new NotFoundException("Project not found: " + loaded.project().getId()));
+                updateStatuses(service, project, ServiceStatus.RUNNING, ProjectStatus.RUNNING);
+            });
+        } catch (Exception ex) {
+            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+            transactionTemplate.executeWithoutResult(status -> {
+                Deployment failed = deploymentRepository
+                        .findById(deploymentId)
+                        .orElseThrow(() -> new NotFoundException("Deployment not found: " + deploymentId));
+                failed.markFailed("ERROR: " + message);
+                deploymentRepository.save(failed);
+
+                ServiceUnit service = serviceRepository
+                        .findById(loaded.service().getId())
+                        .orElseThrow(() -> new NotFoundException("Service not found: " + loaded.service().getId()));
+                Project project = projectRepository
+                        .findById(loaded.project().getId())
+                        .orElseThrow(() -> new NotFoundException("Project not found: " + loaded.project().getId()));
+                updateStatuses(service, project, ServiceStatus.FAILED, ProjectStatus.FAILED);
+                evaluateProductAlertsUseCase.execute(
+                        AlertEventType.DEPLOY_FAILED,
+                        project.getId(),
+                        "Deploy failed: " + message,
+                        "deployment",
+                        failed.getId());
+            });
+            throw new DomainException("Deploy failed: " + message);
+        }
+    }
+
+    private Loaded load(UUID deploymentId) {
         Deployment deployment = deploymentRepository
                 .findById(deploymentId)
                 .orElseThrow(() -> new NotFoundException("Deployment not found: " + deploymentId));
@@ -56,57 +164,7 @@ public class ExecuteDeployServiceJobUseCase {
         Host host = hostRepository
                 .findById(deployment.getHostId())
                 .orElseThrow(() -> new NotFoundException("Host not found: " + deployment.getHostId()));
-
-        deployment.markRunning();
-        deploymentRepository.save(deployment);
-
-        Path workspace = workspacePathResolver.resolve(deployment.getId());
-        Consumer<String> logSink = line -> {
-            Deployment current = deploymentRepository
-                    .findById(deploymentId)
-                    .orElseThrow(() -> new NotFoundException("Deployment not found: " + deploymentId));
-            current.appendLog(line);
-            deploymentRepository.save(current);
-        };
-
-        try {
-            logSink.accept("Starting deploy for service " + service.getName() + " (project " + project.getName() + ")");
-            Optional<String> gitToken = resolveSecretValue.byName(GIT_TOKEN_SECRET_NAME);
-            gitRepository.cloneOrUpdate(
-                    service.getRepositoryUrl(),
-                    service.getBranch(),
-                    workspace,
-                    gitToken,
-                    logSink);
-
-            Optional<String> sshKey = resolveSshKey(host);
-            containerRuntime.composeUp(host, workspace, service.getComposePath(), sshKey, logSink);
-
-            Deployment succeeded = deploymentRepository
-                    .findById(deploymentId)
-                    .orElseThrow(() -> new NotFoundException("Deployment not found: " + deploymentId));
-            succeeded.appendLog("Deploy finished successfully");
-            succeeded.markSucceeded();
-            deploymentRepository.save(succeeded);
-
-            updateStatuses(service, project, ServiceStatus.RUNNING, ProjectStatus.RUNNING);
-        } catch (Exception ex) {
-            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
-            Deployment failed = deploymentRepository
-                    .findById(deploymentId)
-                    .orElseThrow(() -> new NotFoundException("Deployment not found: " + deploymentId));
-            failed.markFailed("ERROR: " + message);
-            deploymentRepository.save(failed);
-
-            updateStatuses(service, project, ServiceStatus.FAILED, ProjectStatus.FAILED);
-            evaluateProductAlertsUseCase.execute(
-                    AlertEventType.DEPLOY_FAILED,
-                    project.getId(),
-                    "Deploy failed: " + message,
-                    "deployment",
-                    failed.getId());
-            throw new DomainException("Deploy failed: " + message);
-        }
+        return new Loaded(service, project, host);
     }
 
     private void updateStatuses(
@@ -127,6 +185,8 @@ public class ExecuteDeployServiceJobUseCase {
         }
         return Optional.of(resolveSecretValue.byId(host.getSshPrivateKeySecretId()));
     }
+
+    private record Loaded(ServiceUnit service, Project project, Host host) {}
 
     public interface WorkspacePathResolver {
         Path resolve(UUID deploymentId);

@@ -1,10 +1,12 @@
 package com.atlas.application.deployment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +25,7 @@ import com.atlas.domain.host.Host;
 import com.atlas.domain.project.Project;
 import com.atlas.domain.service.ServiceStatus;
 import com.atlas.domain.service.ServiceUnit;
+import com.atlas.domain.shared.DomainException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,6 +35,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 @ExtendWith(MockitoExtension.class)
 class ExecuteDeployServiceJobUseCaseTest {
@@ -60,12 +65,16 @@ class ExecuteDeployServiceJobUseCaseTest {
     @Mock
     private EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
 
+    @Mock
+    private PlatformTransactionManager transactionManager;
+
     private ExecuteDeployServiceJobUseCase useCase;
     private Path workspace;
 
     @BeforeEach
     void setUp() {
         workspace = Path.of("/tmp/atlas-test-ws");
+        when(transactionManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
         useCase = new ExecuteDeployServiceJobUseCase(
                 deploymentRepository,
                 serviceRepository,
@@ -75,7 +84,8 @@ class ExecuteDeployServiceJobUseCaseTest {
                 containerRuntime,
                 resolveSecretValue,
                 id -> workspace,
-                evaluateProductAlertsUseCase);
+                evaluateProductAlertsUseCase,
+                transactionManager);
     }
 
     @Test
@@ -132,5 +142,45 @@ class ExecuteDeployServiceJobUseCaseTest {
                 .composeUp(eq(host), eq(workspace), eq("docker-compose.yml"), eq(Optional.empty()), any());
         assertEquals(ServiceStatus.RUNNING, service.getStatus());
         assertTrue(running.getLogs().contains("compose up ok") || running.getStatus() == DeploymentStatus.SUCCEEDED);
+    }
+
+    @Test
+    void persistsFailedStatusWhenComposeThrows() {
+        Project project = Project.create("demo", "d");
+        ServiceUnit service = ServiceUnit.createDefault(
+                project.getId(), "https://example.com/demo.git", "main", "docker-compose.yml", "");
+        Host host = Host.create("local", "127.0.0.1", "linux", "26", true, ConnectionType.LOCAL, null, 22, null);
+        Deployment deployment = Deployment.create(service.getId(), host.getId());
+        Deployment running = Deployment.rehydrate(
+                deployment.getId(),
+                deployment.getServiceId(),
+                deployment.getHostId(),
+                DeploymentStatus.PENDING,
+                null,
+                null,
+                "",
+                deployment.getCreatedAt(),
+                deployment.getUpdatedAt());
+
+        when(deploymentRepository.findById(deployment.getId())).thenReturn(Optional.of(running));
+        when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(hostRepository.findById(host.getId())).thenReturn(Optional.of(host));
+        when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(resolveSecretValue.byName(ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.empty());
+
+        doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());
+        doThrow(new DomainException("Command failed (1): docker compose"))
+                .when(containerRuntime)
+                .composeUp(any(), any(), any(), any(), any());
+
+        assertThrows(DomainException.class, () -> useCase.execute(deployment.getId()));
+
+        assertEquals(DeploymentStatus.FAILED, running.getStatus());
+        assertEquals(ServiceStatus.FAILED, service.getStatus());
+        assertTrue(running.getLogs().contains("ERROR:"));
     }
 }

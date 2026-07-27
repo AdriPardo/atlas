@@ -47,8 +47,10 @@ public class ProcessCommandRunner {
                 throw new DomainException("Command timed out: " + String.join(" ", command));
             }
             if (process.exitValue() != 0) {
+                String detail = tailLines(output.toString(), 40);
                 throw new DomainException(
-                        "Command failed (" + process.exitValue() + "): " + String.join(" ", command));
+                        "Command failed (" + process.exitValue() + "): " + String.join(" ", command)
+                                + (detail.isBlank() ? "" : "\n" + detail));
             }
             return output.toString();
         } catch (DomainException ex) {
@@ -56,5 +58,14 @@ public class ProcessCommandRunner {
         } catch (Exception ex) {
             throw new DomainException("Command execution failed: " + ex.getMessage());
         }
+    }
+
+    private static String tailLines(String text, int maxLines) {
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+        String[] lines = text.split("\n");
+        int from = Math.max(0, lines.length - maxLines);
+        return String.join("\n", java.util.Arrays.copyOfRange(lines, from, lines.length));
     }
 }
