@@ -5,6 +5,8 @@ import type {
   AuditEntry,
   ContainerLogs,
   ContainerSnapshot,
+  CronJob,
+  CronTargetType,
   DashboardStats,
   DeployResponse,
   Deployment,
@@ -183,6 +185,27 @@ export const alertsApi = {
   }) => api.post<AlertRule>('/alerts', body).then((r) => r.data),
   silence: (ruleId: string) => api.post<AlertRule>(`/alerts/${ruleId}/silence`).then((r) => r.data),
   remove: (ruleId: string) => api.delete(`/alerts/${ruleId}`),
+}
+
+export const cronJobsApi = {
+  list: () => api.get<CronJob[]>('/cron-jobs').then((r) => r.data),
+  create: (body: {
+    name: string
+    cronExpression: string
+    targetType: CronTargetType
+    targetId?: string
+  }) => api.post<CronJob>('/cron-jobs', body).then((r) => r.data),
+  update: (
+    id: string,
+    body: {
+      name: string
+      cronExpression: string
+      targetType: CronTargetType
+      targetId?: string | null
+      enabled: boolean
+    },
+  ) => api.put<CronJob>(`/cron-jobs/${id}`, body).then((r) => r.data),
+  remove: (id: string) => api.delete(`/cron-jobs/${id}`),
 }
 
 export const usersApi = {

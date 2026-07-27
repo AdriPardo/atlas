@@ -23,6 +23,7 @@ import RocketLaunchOutlinedIcon from '@mui/icons-material/RocketLaunchOutlined'
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined'
 import PolicyOutlinedIcon from '@mui/icons-material/PolicyOutlined'
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined'
+import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined'
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
@@ -43,6 +44,7 @@ const navGroups = [
       { to: '/pipelines', label: 'Pipelines', icon: <AccountTreeOutlinedIcon fontSize="small" /> },
       { to: '/audit', label: 'Audit', icon: <PolicyOutlinedIcon fontSize="small" /> },
       { to: '/alerts', label: 'Alerts', icon: <NotificationsOutlinedIcon fontSize="small" /> },
+      { to: '/cron', label: 'Cron', icon: <ScheduleOutlinedIcon fontSize="small" /> },
       { to: '/secrets', label: 'Secrets', icon: <VpnKeyOutlinedIcon fontSize="small" /> },
     ],
   },
@@ -64,6 +66,7 @@ function pageTitle(pathname: string): string {
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
   if (pathname.startsWith('/audit')) return 'Audit'
   if (pathname.startsWith('/alerts')) return 'Alerts'
+  if (pathname.startsWith('/cron')) return 'Cron'
   if (pathname.startsWith('/secrets')) return 'Secrets'
   if (pathname.startsWith('/profile')) return 'Profile'
   return 'Dashboard'
@@ -87,6 +90,7 @@ function pageSubtitle(pathname: string): string {
   if (pathname.startsWith('/pipelines')) return 'Deploy automation'
   if (pathname.startsWith('/audit')) return 'Security trail'
   if (pathname.startsWith('/alerts')) return 'Rules & channels'
+  if (pathname.startsWith('/cron')) return 'Scheduled jobs'
   if (pathname.startsWith('/secrets')) return 'Encrypted credentials'
   if (pathname.startsWith('/profile')) return 'Signed-in user'
   return ''

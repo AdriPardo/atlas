@@ -801,5 +801,76 @@ class AtlasIntegrationTest {
                 .andExpect(jsonPath("$.exposure").value("INTERNAL"));
     }
 
+    @Test
+    void cronJobCrudSmoke() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+
+        MvcResult host = mockMvc.perform(post("/api/v1/hosts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "hostname":"cron-host",
+                                  "ip":"10.0.0.88",
+                                  "operatingSystem":"linux",
+                                  "dockerVersion":"",
+                                  "online":true,
+                                  "connectionType":"LOCAL"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String hostId = com.jayway.jsonpath.JsonPath.read(host.getResponse().getContentAsString(), "$.id");
+
+        MvcResult created = mockMvc.perform(post("/api/v1/cron-jobs")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"sync-cron-host",
+                                  "cronExpression":"0 */15 * * * *",
+                                  "targetType":"SYNC_HOST",
+                                  "targetId":"%s"
+                                }
+                                """.formatted(hostId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("sync-cron-host"))
+                .andExpect(jsonPath("$.targetType").value("SYNC_HOST"))
+                .andExpect(jsonPath("$.enabled").value(true))
+                .andReturn();
+        String cronId = com.jayway.jsonpath.JsonPath.read(created.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(get("/api/v1/cron-jobs").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(cronId));
+
+        mockMvc.perform(put("/api/v1/cron-jobs/" + cronId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"sync-cron-host",
+                                  "cronExpression":"0 */30 * * * *",
+                                  "targetType":"SYNC_HOST",
+                                  "targetId":"%s",
+                                  "enabled":false
+                                }
+                                """.formatted(hostId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(false));
+
+        mockMvc.perform(delete("/api/v1/cron-jobs/" + cronId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/cron-jobs/" + cronId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
 
 }

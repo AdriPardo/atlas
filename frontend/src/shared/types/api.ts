@@ -287,3 +287,18 @@ export interface AlertRule {
   createdAt: string
   updatedAt: string
 }
+
+export type CronTargetType = 'SYNC_HOST' | 'BACKUP_DATABASE'
+
+export interface CronJob {
+  id: string
+  name: string
+  cronExpression: string
+  targetType: CronTargetType
+  targetId: string | null
+  enabled: boolean
+  lastFiredAt: string | null
+  lastError: string | null
+  createdAt: string
+  updatedAt: string
+}

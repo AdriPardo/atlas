@@ -22,6 +22,8 @@ const STATUS_TONE: Record<string, StatusTone> = {
   ACTIVE: 'success',
   PENDING_DNS: 'info',
   ERROR: 'error',
+  ENABLED: 'success',
+  DISABLED: 'default',
 }
 
 const LIVE_STATUSES = new Set(['DEPLOYING', 'RUNNING', 'PENDING'])
