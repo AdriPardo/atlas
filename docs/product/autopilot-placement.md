@@ -43,7 +43,7 @@ Connect app → Deploy(exposure?, placementMode?)
 | Decision | When | Status |
 |----------|------|--------|
 | **Reuse shared host** (`SHARED`) | Default | Auto-pick LOCAL / default host |
-| **Provision new VM** (`ISOLATED`) | Isolation / capacity | Port + adapter wired; clone opt-in; guest-IP ready = next slice |
+| **Provision new VM** (`ISOLATED`) | Isolation / capacity | Clone + guest-agent IP + Host SSH/Sync (ADR-0012 slice 3b) |
 
 ### Exposure
 
@@ -69,7 +69,6 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 
 - Automatic Cloudflare DNS CNAME (copy block documents target; Tunnel Public Hostname is assisted via ADR-0011)
 - Removing the Hosts UI/API (kept as Advanced)
-- Full guest-agent wait / cloud-init IP discovery (next thin slice)
 
 ## Success for the first slice
 
@@ -79,4 +78,5 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 
 - Slice 2 — Tunnel: [ADR-0011](../decisions/ADR-0011-autopilot-tunnel-ingress.md)
 - Slice 3 — Proxmox provisioner: [ADR-0012](../decisions/ADR-0012-autopilot-proxmox-provisioner.md)
-- Slice 3b — guest ready (IP + Sync + deploy on new Host)
+- Slice 3b — guest ready (done): IP + Sync + deploy on new Host
+- Next — DNS CNAME Cloudflare real over Domains ACTIVE

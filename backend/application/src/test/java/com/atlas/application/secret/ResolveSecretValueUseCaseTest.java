@@ -83,4 +83,16 @@ class ResolveSecretValueUseCaseTest {
 
         assertEquals(Optional.of("token-global"), useCase.forProject(projectId, "git.token"));
     }
+
+    @Test
+    void idForProjectReturnsSecretIdViaSameCascade() {
+        Secret global = Secret.createGlobal("proxmox.ssh.private_key", "cipher-key");
+        when(bindingRepository.findByProjectIdAndAlias(projectId, "proxmox.ssh.private_key"))
+                .thenReturn(Optional.empty());
+        when(secretRepository.findByProjectIdAndName(projectId, "proxmox.ssh.private_key"))
+                .thenReturn(Optional.empty());
+        when(secretRepository.findGlobalByName("proxmox.ssh.private_key")).thenReturn(Optional.of(global));
+
+        assertEquals(Optional.of(global.getId()), useCase.idForProject(projectId, "proxmox.ssh.private_key"));
+    }
 }

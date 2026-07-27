@@ -52,7 +52,7 @@ Variables: ver `.env.example` (`ATLAS_DB_*`, `ATLAS_JWT_*`, `ATLAS_AUTHENTIK_*`,
 
 Perfil `docker`: SSO on. Secretos de producción distintos de defaults.
 
-Autopilot ISOLATED (Proxmox): `ATLAS_PROXMOX_API_URL` / `NODE` / `TEMPLATE_VMID` + secret `proxmox.api.token`. Clone off por defecto (`ATLAS_PROXMOX_CLONE_ENABLED=false`); ver [ADR-0012](../decisions/ADR-0012-autopilot-proxmox-provisioner.md).
+Autopilot ISOLATED (Proxmox): `ATLAS_PROXMOX_API_URL` / `NODE` / `TEMPLATE_VMID` + secrets `proxmox.api.token` y `proxmox.ssh.private_key`. Clone off por defecto (`ATLAS_PROXMOX_CLONE_ENABLED=false`); con clone on, Atlas espera guest-agent (o `ATLAS_PROXMOX_DEFAULT_GUEST_IP`). Ver [ADR-0012](../decisions/ADR-0012-autopilot-proxmox-provisioner.md).
 
 ## Persistencia
 

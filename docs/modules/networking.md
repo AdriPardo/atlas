@@ -29,12 +29,13 @@ Challenge TXT sync opcional vía `DnsProviderPort` (stub hoy; CNAME API después
 
 ## Proxmox (Autopilot ISOLATED)
 
-`VmProvisionerPort` / `ProxmoxVmProvisionerAdapter` (ADR-0012):
+`VmProvisionerPort` / `ProxmoxVmProvisionerAdapter` (ADR-0012 slice 3b):
 
 - Deploy body `placementMode: SHARED | ISOLATED` (default SHARED).
-- Config: `ATLAS_PROXMOX_API_URL`, `NODE`, `TEMPLATE_VMID`, …; secret `proxmox.api.token`.
-- Sin credenciales / clone off → `STUBBED` y placement cae a shared LOCAL.
-- Clone real: `ATLAS_PROXMOX_CLONE_ENABLED=true` + guest IP (`ATLAS_PROXMOX_DEFAULT_GUEST_IP` o agent en slice 3b).
+- Config: `ATLAS_PROXMOX_API_URL`, `NODE`, `TEMPLATE_VMID`, …; secrets `proxmox.api.token` + `proxmox.ssh.private_key`.
+- Sin credenciales / clone off / sin IP / sin SSH key → `STUBBED` (o fallback) y placement cae a shared LOCAL.
+- Clone real: `ATLAS_PROXMOX_CLONE_ENABLED=true` → start + poll guest-agent (`ATLAS_PROXMOX_DEFAULT_GUEST_IP` opcional).
+- Tras ready: Host SSH registrado + `SYNC_HOST`; `DEPLOY_SERVICE` en esa VM.
 
 ## Traefik
 

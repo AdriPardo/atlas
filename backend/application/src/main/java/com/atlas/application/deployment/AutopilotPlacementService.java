@@ -1,5 +1,6 @@
 package com.atlas.application.deployment;
 
+import com.atlas.application.host.SyncHostUseCase;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.VmProvisionerPort;
 import com.atlas.application.secret.ResolveSecretValueUseCase;
@@ -17,8 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Autopilot host resolution (ADR-0010 / ADR-0012). Prefer shared LOCAL Docker hosts; optionally
- * request an isolated Proxmox VM and register it as a Host when the provisioner returns one.
+ * Autopilot host resolution (ADR-0010 / ADR-0012 / slice 3b). Prefer shared LOCAL Docker hosts;
+ * optionally request an isolated Proxmox VM, register it as an SSH Host (with key secret), enqueue
+ * Sync, and let Deploy reuse {@code DEPLOY_SERVICE}.
  */
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class AutopilotPlacementService {
     private final HostRepositoryPort hostRepository;
     private final VmProvisionerPort vmProvisioner;
     private final ResolveSecretValueUseCase resolveSecretValue;
+    private final SyncHostUseCase syncHostUseCase;
 
     @Transactional
     public Host resolveHost(UUID explicitHostId) {
@@ -40,7 +43,7 @@ public class AutopilotPlacementService {
      *
      * @param explicitHostId Advanced override; skips Autopilot policy when set
      * @param placementMode SHARED (default) or ISOLATED (Proxmox path with LOCAL fallback)
-     * @param projectId used to resolve {@code proxmox.api.token}
+     * @param projectId used to resolve {@code proxmox.api.token} / {@code proxmox.ssh.private_key}
      * @param nameHint service/project name for VM hostname
      */
     @Transactional
@@ -65,7 +68,18 @@ public class AutopilotPlacementService {
             if ((provision.mode() == VmProvisionerPort.ProvisionMode.CREATED
                             || provision.mode() == VmProvisionerPort.ProvisionMode.REUSED)
                     && provision.vm().isPresent()) {
-                Host host = registerProvisionedHost(provision.vm().get());
+                Optional<UUID> sshKeySecretId =
+                        resolveSecretValue.idForProject(projectId, VmProvisionerPort.SSH_PRIVATE_KEY_SECRET_NAME);
+                if (sshKeySecretId.isEmpty()) {
+                    Host shared = resolveSharedLocal();
+                    String reason = "ISOLATED → shared LOCAL fallback: missing secret "
+                            + VmProvisionerPort.SSH_PRIVATE_KEY_SECRET_NAME
+                            + " (link PEM used by the Proxmox cloud-init template)";
+                    return new PlacementResult(
+                            shared, PlacementMode.SHARED, reason, provision.mode());
+                }
+                Host host = registerProvisionedHost(provision.vm().get(), sshKeySecretId.get());
+                syncHostUseCase.execute(host.getId());
                 return new PlacementResult(host, PlacementMode.ISOLATED, provision.message(), provision.mode());
             }
 
@@ -77,11 +91,22 @@ public class AutopilotPlacementService {
         return new PlacementResult(resolveSharedLocal(), PlacementMode.SHARED, "SHARED placement", null);
     }
 
-    private Host registerProvisionedHost(VmProvisionerPort.VmDescriptor vm) {
+    private Host registerProvisionedHost(VmProvisionerPort.VmDescriptor vm, UUID sshPrivateKeySecretId) {
         String hostname = vm.hostname();
         Optional<Host> existing = hostRepository.findByHostnameIgnoreCase(hostname);
         if (existing.isPresent()) {
-            return existing.get();
+            Host host = existing.get();
+            host.update(
+                    host.getHostname(),
+                    vm.ip(),
+                    host.getOperatingSystem(),
+                    host.getDockerVersion(),
+                    host.isOnline(),
+                    ConnectionType.SSH,
+                    vm.sshUser(),
+                    vm.sshPort(),
+                    sshPrivateKeySecretId);
+            return hostRepository.save(host);
         }
         String ip = vm.ip() == null || vm.ip().isBlank() ? "0.0.0.0" : vm.ip();
         return hostRepository.save(Host.create(
@@ -93,7 +118,7 @@ public class AutopilotPlacementService {
                 ConnectionType.SSH,
                 vm.sshUser(),
                 vm.sshPort(),
-                null));
+                sshPrivateKeySecretId));
     }
 
     private Host resolveSharedLocal() {

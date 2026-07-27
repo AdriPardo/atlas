@@ -17,7 +17,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8** | Backups + Cron | Continuidad |
 | **v0.8.1** | Autopilot Tunnel ingress (slice 2) | PUBLIC hostname: API o copy Zero Trust sin adivinar campos |
 | **v0.8.2** | Autopilot Proxmox provisioner (slice 3) | SHARED vs ISOLATED cableado; Proxmox probe/clone opt-in |
-| **v0.8.x** | Autopilot Proxmox guest-ready | IP real + Host Sync + deploy en VM nueva |
+| **v0.8.3** | Autopilot Proxmox guest-ready (slice 3b) | IP guest-agent + Host SSH/Sync + deploy en VM nueva |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -138,6 +138,16 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Fallback LOCAL hasta clone+guest IP; ADR-0012.
 
 **Criterio done:** decisión isolated cableada; config/secret surface lista; deploy no se rompe sin Proxmox.
+
+---
+
+## v0.8.3 — Autopilot Proxmox guest-ready (slice 3b)
+
+- Clone → start → poll qemu-guest-agent (fallback `DEFAULT_GUEST_IP`).
+- Host SSH + secret `proxmox.ssh.private_key` + `SYNC_HOST`; `DEPLOY_SERVICE` en esa VM.
+- ADR-0012 actualizado.
+
+**Criterio done:** ISOLATED con Proxmox + agent + SSH key deja el servicio RUNNING en la VM nueva.
 
 ---
 

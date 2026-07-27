@@ -335,10 +335,14 @@ public class AtlasProperties {
         private String bridge = "";
         private String sshUser = "atlas";
         private int sshPort = 22;
-        /** When true, attempt template clone; default false until guest-IP path is solid. */
+        /** When true, attempt template clone + start + guest-IP wait. */
         private boolean cloneEnabled = false;
-        /** Optional static guest IP for thin CREATED Host registration. */
+        /** Optional static guest IP fallback when qemu-guest-agent does not report one. */
         private String defaultGuestIp = "";
+        /** Max seconds to wait for clone task + guest-agent IP after start. */
+        private int guestReadyTimeoutSeconds = 120;
+        /** Poll interval while waiting for guest-agent network interfaces. */
+        private int guestReadyPollIntervalMs = 3000;
         /** Allow self-signed Proxmox TLS (common on LAN). */
         private boolean insecureTls = true;
 
@@ -420,6 +424,22 @@ public class AtlasProperties {
 
         public void setDefaultGuestIp(String defaultGuestIp) {
             this.defaultGuestIp = defaultGuestIp;
+        }
+
+        public int getGuestReadyTimeoutSeconds() {
+            return guestReadyTimeoutSeconds;
+        }
+
+        public void setGuestReadyTimeoutSeconds(int guestReadyTimeoutSeconds) {
+            this.guestReadyTimeoutSeconds = guestReadyTimeoutSeconds;
+        }
+
+        public int getGuestReadyPollIntervalMs() {
+            return guestReadyPollIntervalMs;
+        }
+
+        public void setGuestReadyPollIntervalMs(int guestReadyPollIntervalMs) {
+            this.guestReadyPollIntervalMs = guestReadyPollIntervalMs;
         }
 
         public boolean isInsecureTls() {

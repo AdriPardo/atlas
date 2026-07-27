@@ -48,18 +48,36 @@ public class ResolveSecretValueUseCase {
      */
     @Transactional(readOnly = true)
     public Optional<String> forProject(UUID projectId, String name) {
-        if (projectId == null || name == null || name.isBlank()) {
+        if (projectId == null) {
             return Optional.empty();
         }
-        Optional<ProjectSecretBinding> binding = bindingRepository.findByProjectIdAndAlias(projectId, name);
-        if (binding.isPresent()) {
-            return secretRepository.findById(binding.get().getSecretId()).map(this::decrypt);
+        return resolveSecret(projectId, name).map(this::decrypt);
+    }
+
+    /**
+     * Same cascade as {@link #forProject} (binding → owned → global). When {@code projectId} is null,
+     * resolves organization/global secrets only. Used to link {@code Host.sshPrivateKeySecretId}.
+     */
+    @Transactional(readOnly = true)
+    public Optional<UUID> idForProject(UUID projectId, String name) {
+        return resolveSecret(projectId, name).map(Secret::getId);
+    }
+
+    private Optional<Secret> resolveSecret(UUID projectId, String name) {
+        if (name == null || name.isBlank()) {
+            return Optional.empty();
         }
-        Optional<Secret> owned = secretRepository.findByProjectIdAndName(projectId, name);
-        if (owned.isPresent()) {
-            return owned.map(this::decrypt);
+        if (projectId != null) {
+            Optional<ProjectSecretBinding> binding = bindingRepository.findByProjectIdAndAlias(projectId, name);
+            if (binding.isPresent()) {
+                return secretRepository.findById(binding.get().getSecretId());
+            }
+            Optional<Secret> owned = secretRepository.findByProjectIdAndName(projectId, name);
+            if (owned.isPresent()) {
+                return owned;
+            }
         }
-        return secretRepository.findGlobalByName(name).map(this::decrypt);
+        return secretRepository.findGlobalByName(name);
     }
 
     private String decrypt(Secret secret) {
