@@ -218,6 +218,35 @@ export interface ProjectMembership {
   updatedAt: string
 }
 
+export type DomainStatus = 'PENDING_DNS' | 'ACTIVE' | 'ERROR'
+
+export interface DomainRecord {
+  id: string
+  projectId: string
+  serviceId: string | null
+  hostname: string
+  status: DomainStatus
+  verificationToken: string
+  dnsTxtName: string
+  dnsTxtValue: string
+  certificateIssuer: string | null
+  certificateExpiresAt: string | null
+  certificateSans: string | null
+  verifiedAt: string | null
+  lastError: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TraefikMetadata {
+  routerName: string
+  rule: string
+  entryPoints: string
+  tls: boolean
+  certResolver: string
+  labels: Record<string, string>
+}
+
 export interface AuditEntry {
   id: string
   actorUserId: string | null

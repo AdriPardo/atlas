@@ -22,11 +22,11 @@ Estado: `MVP` (en código) · `v0.x` (roadmap) · `v1.0` · `future` · `designe
 | Metrics | Series y paneles deep-link | designed | [observability-modules.md](observability-modules.md) |
 | Alerts | Reglas producto + estado | designed | [observability-modules.md](observability-modules.md) |
 | Notifications | Email/Slack/Webhook destinos | designed | [observability-modules.md](observability-modules.md) |
-| Domains | Hostnames de servicios | designed | [networking.md](networking.md) |
-| Certificates | TLS metadata / renovación | designed | [networking.md](networking.md) |
-| DNS | Records deseados | designed | [networking.md](networking.md) |
-| Cloudflare | Provider DNS/Tunnel API | designed | [networking.md](networking.md) |
-| Traefik | Rutas / middlewares deseados | designed | [networking.md](networking.md) |
+| Domains | Hostnames de servicios | v0.7 | [networking.md](networking.md) |
+| Certificates | TLS metadata / renovación | v0.7 (metadata en Domain) | [networking.md](networking.md) |
+| DNS | Records deseados | designed (TXT challenge en Domain) | [networking.md](networking.md) |
+| Cloudflare | Provider DNS/Tunnel API | designed (stub) | [networking.md](networking.md) |
+| Traefik | Rutas / middlewares deseados | v0.7 (labels metadata) | [networking.md](networking.md) |
 | Secrets | Secretos cifrados | designed | [config-security.md](config-security.md) |
 | Variables | Env config no secreta | designed | [config-security.md](config-security.md) |
 | Users | Identidades locales/SSO | MVP | [identity.md](identity.md) |

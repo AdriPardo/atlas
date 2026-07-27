@@ -6,6 +6,7 @@ import type {
   DashboardStats,
   DeployResponse,
   Deployment,
+  DomainRecord,
   Host,
   Job,
   LoginResponse,
@@ -17,6 +18,7 @@ import type {
   ProjectMembership,
   SecretMeta,
   Service,
+  TraefikMetadata,
   User,
 } from '../types/api'
 
@@ -136,6 +138,18 @@ export const membershipsApi = {
     api.post<ProjectMembership>(`/projects/${projectId}/memberships`, body).then((r) => r.data),
   remove: (projectId: string, membershipId: string) =>
     api.delete(`/projects/${projectId}/memberships/${membershipId}`),
+}
+
+export const domainsApi = {
+  list: (projectId: string) =>
+    api.get<DomainRecord[]>(`/projects/${projectId}/domains`).then((r) => r.data),
+  create: (projectId: string, body: { hostname: string; serviceId?: string }) =>
+    api.post<DomainRecord>(`/projects/${projectId}/domains`, body).then((r) => r.data),
+  verify: (domainId: string) =>
+    api.post<DomainRecord>(`/domains/${domainId}/verify`).then((r) => r.data),
+  remove: (domainId: string) => api.delete(`/domains/${domainId}`),
+  traefik: (domainId: string) =>
+    api.get<TraefikMetadata>(`/domains/${domainId}/traefik`).then((r) => r.data),
 }
 
 export const auditApi = {

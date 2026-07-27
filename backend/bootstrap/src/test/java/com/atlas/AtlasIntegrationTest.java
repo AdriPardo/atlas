@@ -1,7 +1,9 @@
 package com.atlas;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -402,6 +404,95 @@ class AtlasIntegrationTest {
 
         mockMvc.perform(post("/api/v1/admin/backup").header("Authorization", "Bearer " + opsToken))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void domainCrudVerifyAndTraefikMetadataSmoke() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+
+        MvcResult project = mockMvc.perform(post("/api/v1/projects")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"domain-demo",
+                                  "description":"Domains smoke",
+                                  "repositoryUrl":"https://git.example/domain.git",
+                                  "branch":"main",
+                                  "composePath":"./docker-compose.yml",
+                                  "domain":"legacy.local"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String projectId = com.jayway.jsonpath.JsonPath.read(project.getResponse().getContentAsString(), "$.id");
+
+        MvcResult services = mockMvc.perform(get("/api/v1/projects/" + projectId + "/services")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        String serviceId =
+                com.jayway.jsonpath.JsonPath.read(services.getResponse().getContentAsString(), "$.content[0].id");
+
+        MvcResult created = mockMvc.perform(post("/api/v1/projects/" + projectId + "/domains")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"hostname":"app.domain-demo.local","serviceId":"%s"}
+                                """.formatted(serviceId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.hostname").value("app.domain-demo.local"))
+                .andExpect(jsonPath("$.status").value("PENDING_DNS"))
+                .andExpect(jsonPath("$.verificationToken").isNotEmpty())
+                .andExpect(jsonPath("$.dnsTxtName").value("_atlas-challenge.app.domain-demo.local"))
+                .andReturn();
+        String domainId = com.jayway.jsonpath.JsonPath.read(created.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(get("/api/v1/projects/" + projectId + "/domains")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(domainId));
+
+        mockMvc.perform(post("/api/v1/domains/" + domainId + "/verify")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.certificateIssuer").value("letsencrypt-stub"))
+                .andExpect(jsonPath("$.certificateSans").value("app.domain-demo.local"))
+                .andExpect(jsonPath("$.verifiedAt").isNotEmpty());
+
+        mockMvc.perform(get("/api/v1/domains/" + domainId + "/traefik")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rule").value("Host(`app.domain-demo.local`)"))
+                .andExpect(jsonPath("$.labels['traefik.enable']").value("true"))
+                .andExpect(jsonPath("$.certResolver").value("letsencrypt"));
+
+        mockMvc.perform(get("/api/v1/traefik/routes/" + domainId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.routerName").isNotEmpty());
+
+        mockMvc.perform(put("/api/v1/domains/" + domainId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"hostname":"www.domain-demo.local","serviceId":"%s"}
+                                """.formatted(serviceId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hostname").value("www.domain-demo.local"));
+
+        mockMvc.perform(delete("/api/v1/domains/" + domainId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/domains/" + domainId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
     }
 
 }

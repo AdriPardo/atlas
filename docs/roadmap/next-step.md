@@ -2,36 +2,35 @@
 
 ## Estado del último incremento (completado)
 
-**v0.8b — Backups DB programados** ya está en el árbol:
+**v0.7 remainder — Domains + Traefik metadata** ya está en el árbol:
 
-- Job `BACKUP_DATABASE` + handler `pg_dump` → `$ATLAS_BACKUP_DIR/atlas-*.sql.gz`.
-- Config `atlas.backup.*` (enabled, dir, keep-count, cron).
-- Scheduler diario (`DatabaseBackupScheduler`, default 02:30 UTC).
-- ADMIN: `POST /api/v1/admin/backup` (202 + job).
-- Runbook: `docs/deployment/backup-restore.md`.
+- Entidad `Domain` (project/service, estados `PENDING_DNS|ACTIVE|ERROR`) + cert metadata.
+- CRUD anidado `GET/POST /api/v1/projects/{id}/domains` y `GET/PUT/DELETE /api/v1/domains/{id}`.
+- `POST /domains/{id}/verify` (stub control-plane + TXT challenge) y labels Traefik (`GET .../traefik`, alias `/traefik/routes/{id}`).
+- DNS provider stub (Cloudflare sync pendiente); UI en project detail (`ProjectDomainsPanel`).
 
-**Previo:** v0.8a retention/purge; v0.6.1 Git webhooks.
+**Previo:** v0.8b backups DB; v0.8a retention/purge; v0.6.1 Git webhooks; ACL project memberships.
 
 ## Recomendación única (siguiente)
 
-**v0.7 remainder — Domains + Traefik metadata** — registrar dominios/certs por project y adapters básicos (cierra edge multi-tenant tras ACL).
+**v0.7 Alerts + Notification channels** — reglas producto + destinos (email/webhook/Slack) sobre el edge/ACL ya cerrado.
 
 ## Por qué es el paso más rentable ahora
 
-1. Continuidad (purge + backup) ya cubierta.
-2. Domains desbloquean el resto de v0.7 (alerts pueden esperar).
-3. Billing/AI siguen fuera de alcance.
+1. Domains/Traefik metadata cierra el resto networking de v0.7 mínimo.
+2. Alerts desbloquean observabilidad operativa sin tocar billing/AI.
+3. Teams globales siguen opcionales (ACL por project ya cubre OPERATOR).
 
 ## Alcance concreto del incremento
 
-1. Entidad Domain + API CRUD mínima por project (ADMIN/OPERATOR con ACL).
-2. Metadata certificados + adapter Traefik/Cloudflare stub o lectura de labels.
-3. UI mínima: listar/añadir dominio en project detail.
+1. Entidades AlertRule + NotificationChannel + API CRUD (ADMIN/OPERATOR).
+2. Evaluación mínima o stub de entrega (webhook) + audit.
+3. UI mínima: listar/crear alerta y canal.
 
 ## Qué no hacer
 
-- No billing/AI/marketplace, no Redis/Kafka, no restore UI completa aún.
+- No billing/AI/marketplace, no Redis/Kafka, no Cloudflare API real aún, no restore UI completa.
 
 ## Definición de éxito
 
-> Project puede registrar un dominio verificado (metadata); webhooks/RBAC/purge/backup intactos.
+> OPERATOR puede crear una alerta y un canal; deploy/webhooks/RBAC/domains/backup intactos.

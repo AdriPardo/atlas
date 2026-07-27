@@ -78,6 +78,9 @@ atlas:
     keep-count: ${ATLAS_BACKUP_KEEP_COUNT:7}
     cron: ${ATLAS_BACKUP_CRON:0 30 2 * * *}
     pg-dump-binary: ${ATLAS_BACKUP_PG_DUMP_BINARY:pg_dump}
+  networking:
+    traefik-cert-resolver: ${ATLAS_TRAEFIK_CERT_RESOLVER:letsencrypt}
+    traefik-backend-port: ${ATLAS_TRAEFIK_BACKEND_PORT:80}
 
 springdoc:
   api-docs:

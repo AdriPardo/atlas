@@ -13,6 +13,7 @@ public class AtlasProperties {
     private final Observability observability = new Observability();
     private final Retention retention = new Retention();
     private final Backup backup = new Backup();
+    private final Networking networking = new Networking();
 
     public Worker getWorker() {
         return worker;
@@ -44,6 +45,10 @@ public class AtlasProperties {
 
     public Backup getBackup() {
         return backup;
+    }
+
+    public Networking getNetworking() {
+        return networking;
     }
 
     public static class Worker {
@@ -241,6 +246,27 @@ public class AtlasProperties {
 
         public void setPgDumpBinary(String pgDumpBinary) {
             this.pgDumpBinary = pgDumpBinary;
+        }
+    }
+
+    public static class Networking {
+        private String traefikCertResolver = "letsencrypt";
+        private int traefikBackendPort = 80;
+
+        public String getTraefikCertResolver() {
+            return traefikCertResolver;
+        }
+
+        public void setTraefikCertResolver(String traefikCertResolver) {
+            this.traefikCertResolver = traefikCertResolver;
+        }
+
+        public int getTraefikBackendPort() {
+            return traefikBackendPort;
+        }
+
+        public void setTraefikBackendPort(int traefikBackendPort) {
+            this.traefikBackendPort = traefikBackendPort;
         }
     }
 }
