@@ -23,14 +23,15 @@ jobs:
     steps:
       - name: Check required secrets
         env:
-          ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST }}
-          ATLAS_DEPLOY_USER: ${{ secrets.ATLAS_DEPLOY_USER }}
-          ATLAS_DEPLOY_SSH_KEY: ${{ secrets.ATLAS_DEPLOY_SSH_KEY }}
+          # Prefer ATLAS_DEPLOY_*; DEPLOY_* accepted as aliases (see cicd-atlas-self.md)
+          ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST || secrets.DEPLOY_HOST }}
+          ATLAS_DEPLOY_USER: ${{ secrets.ATLAS_DEPLOY_USER || secrets.DEPLOY_USER }}
+          ATLAS_DEPLOY_SSH_KEY: ${{ secrets.ATLAS_DEPLOY_SSH_KEY || secrets.DEPLOY_SSH_KEY }}
         run: |
           missing=0
           for name in ATLAS_DEPLOY_HOST ATLAS_DEPLOY_USER ATLAS_DEPLOY_SSH_KEY; do
             if [ -z "${!name}" ]; then
-              echo "::error::Missing GitHub secret: $name — see docs/deployment/cicd-atlas-self.md"
+              echo "::error::Missing GitHub secret: $name (or DEPLOY_* alias) — see docs/deployment/cicd-atlas-self.md"
               missing=1
             fi
           done
@@ -38,8 +39,8 @@ jobs:
 
       - name: Prepare SSH
         env:
-          ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST }}
-          ATLAS_DEPLOY_SSH_KEY: ${{ secrets.ATLAS_DEPLOY_SSH_KEY }}
+          ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST || secrets.DEPLOY_HOST }}
+          ATLAS_DEPLOY_SSH_KEY: ${{ secrets.ATLAS_DEPLOY_SSH_KEY || secrets.DEPLOY_SSH_KEY }}
           ATLAS_DEPLOY_KNOWN_HOSTS: ${{ secrets.ATLAS_DEPLOY_KNOWN_HOSTS }}
         run: |
           # Use a dedicated known_hosts file — never overwrite ~/.ssh/known_hosts
@@ -59,8 +60,8 @@ jobs:
 
       - name: Deploy over SSH
         env:
-          ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST }}
-          ATLAS_DEPLOY_USER: ${{ secrets.ATLAS_DEPLOY_USER }}
+          ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST || secrets.DEPLOY_HOST }}
+          ATLAS_DEPLOY_USER: ${{ secrets.ATLAS_DEPLOY_USER || secrets.DEPLOY_USER }}
           ATLAS_DEPLOY_PATH: ${{ secrets.ATLAS_DEPLOY_PATH }}
         run: |
           set -euo pipefail
@@ -71,7 +72,7 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile=~/.ssh/atlas_deploy_known_hosts \
             "${ATLAS_DEPLOY_USER}@${ATLAS_DEPLOY_HOST}" \
-            "export ATLAS_APP_DIR='${REMOTE_PATH}'; if [ -x \"\${ATLAS_APP_DIR}/scripts/deploy.sh\" ]; then exec \"\${ATLAS_APP_DIR}/scripts/deploy.sh\"; fi; echo '::error::Missing scripts/deploy.sh on VM — pull master once manually'; exit 1"
+            "export ATLAS_APP_DIR='${REMOTE_PATH}'; cd \"\${ATLAS_APP_DIR}\"; if [ -x scripts/deploy.sh ]; then exec bash scripts/deploy.sh; elif [ -x scripts/deploy-vm.sh ]; then exec bash scripts/deploy-vm.sh; fi; echo '::error::Missing scripts/deploy.sh on VM — pull master once manually'; exit 1"
 
       - name: Cleanup SSH key
         if: always()

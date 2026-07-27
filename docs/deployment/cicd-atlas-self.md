@@ -10,7 +10,7 @@ Esto **no** es la feature in-app `DEPLOY_SERVICE` (pipelines de projects de clie
 push master / workflow_dispatch
   → GitHub Actions (runner self-hosted, labels: self-hosted,linux,atlas-prod)
   → SSH a la VM
-  → /opt/atlas/atlas/scripts/deploy.sh
+  → /opt/atlas/atlas/scripts/deploy.sh (alias: `scripts/deploy-vm.sh`)
        git fetch + reset --hard origin/master
        (no toca .env ni docker-compose.prod.yml)
        docker compose up -d --build
@@ -29,6 +29,18 @@ El host de producción está en LAN privada (`192.168.x`). Los runners hospedado
 | `ATLAS_DEPLOY_PATH` | no | default `/opt/atlas/atlas` |
 | `ATLAS_DEPLOY_KNOWN_HOSTS` | no | salida de `ssh-keyscan -H <host>` (recomendado) |
 
+
+Alias opcionales (mismo valor; el workflow acepta cualquiera):
+
+| Alias | Equivale a |
+|-------|------------|
+| `DEPLOY_HOST` | `ATLAS_DEPLOY_HOST` |
+| `DEPLOY_USER` | `ATLAS_DEPLOY_USER` |
+| `DEPLOY_SSH_KEY` | `ATLAS_DEPLOY_SSH_KEY` |
+| `DEPLOY_SSH_PORT` | no usado (SSH al puerto 22; runner self-hosted en LAN) |
+
+Clave pública en la VM (`~atlas/.ssh/authorized_keys`): comentario `github-actions-atlas-deploy` y/o `atlas-github-deploy`. No eliminar otras claves.
+
 Configurar:
 
 ```bash
@@ -36,6 +48,11 @@ gh secret set ATLAS_DEPLOY_HOST -R AdriPardo/atlas -b '192.168.1.35'
 gh secret set ATLAS_DEPLOY_USER -R AdriPardo/atlas -b 'atlas'
 gh secret set ATLAS_DEPLOY_SSH_KEY -R AdriPardo/atlas < ~/.ssh/atlas_gha_deploy
 ssh-keyscan -H 192.168.1.35 | gh secret set ATLAS_DEPLOY_KNOWN_HOSTS -R AdriPardo/atlas
+
+# Equivalente con alias DEPLOY_* (opcionales si ya existen ATLAS_DEPLOY_*):
+# gh secret set DEPLOY_HOST -R AdriPardo/atlas -b '192.168.1.35'
+# gh secret set DEPLOY_USER -R AdriPardo/atlas -b 'atlas'
+# gh secret set DEPLOY_SSH_KEY -R AdriPardo/atlas < ~/.ssh/atlas_gha_deploy
 ```
 
 La clave pública correspondiente debe estar en `~atlas/.ssh/authorized_keys` en la VM.

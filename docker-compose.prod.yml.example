@@ -1,0 +1,80 @@
+# Example production Compose for the Atlas VM (/opt/atlas/atlas).
+# Copy to docker-compose.prod.yml on the host (gitignored) and adjust.
+# Uses shared infra Postgres on atlas-internal (hostname: postgres).
+# Does NOT start a local Postgres — that lives under /opt/atlas/infrastructure.
+# Local/dev: use docker-compose.yml instead.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      ATLAS_WORKER_ENABLED: ${ATLAS_WORKER_ENABLED:-true}
+      ATLAS_WORKSPACE_DIR: /var/lib/atlas/workspaces
+    ports:
+      - "8080:8080"
+    # LOCAL host sync/deploy needs the Docker socket. Backend user must share the host
+    # docker group GID (default 988 on Debian/Ubuntu). SECURITY: socket access = full
+    # control of the host engine — only for trusted single-tenant installs.
+    group_add:
+      - ${DOCKER_GID:-988}
+    volumes:
+      - atlas_workspaces:/var/lib/atlas/workspaces
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=atlas-public"
+      - "traefik.http.routers.atlas.rule=Host(`atlas.atlasops.dev`)"
+      - "traefik.http.routers.atlas.entrypoints=websecure"
+      - "traefik.http.routers.atlas.tls=true"
+      - "traefik.http.routers.atlas.tls.certresolver=cloudflare"
+      - "traefik.http.routers.atlas.middlewares=authentik,securityHeaders@file,gzip@file"
+      - "traefik.http.services.atlas.loadbalancer.server.port=80"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - public
+      - internal
+
+volumes:
+  atlas_workspaces:
+
+networks:
+  public:
+    external: true
+    name: atlas-public
+  internal:
+    external: true
+    name: atlas-internal
