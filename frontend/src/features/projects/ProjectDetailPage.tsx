@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { hostsApi, projectsApi, servicesApi } from '../../shared/api/endpoints'
-import type { ServiceExposure } from '../../shared/types/api'
+import type { PlacementMode, ServiceExposure } from '../../shared/types/api'
 import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
@@ -38,6 +38,7 @@ export function ProjectDetailPage() {
   const [hostId, setHostId] = useState('')
   const [serviceId, setServiceId] = useState('')
   const [exposure, setExposure] = useState<ServiceExposure>('PUBLIC')
+  const [placementMode, setPlacementMode] = useState<PlacementMode>('SHARED')
 
   const query = useQuery({
     queryKey: ['projects', id],
@@ -67,8 +68,9 @@ export function ProjectDetailPage() {
         ? servicesApi.deploy(deployTargetId, {
             hostId: hostId || undefined,
             exposure,
+            placementMode,
           })
-        : projectsApi.deploy(id, { hostId: hostId || undefined, exposure }),
+        : projectsApi.deploy(id, { hostId: hostId || undefined, exposure, placementMode }),
     onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: ['projects', id] })
       await queryClient.invalidateQueries({ queryKey: ['deployments'] })
@@ -166,7 +168,8 @@ export function ProjectDetailPage() {
               </Alert>
             )}
             <Alert severity="info" variant="outlined">
-              Atlas picks a suitable host automatically (LOCAL / default). Private GitHub repos need{' '}
+              Atlas picks where to run (shared LOCAL by default). Isolated requests a Proxmox VM when
+              configured; otherwise falls back to shared. Private GitHub repos need{' '}
               <strong>git.token</strong> on this project (owned or linked) or as an organization secret.
             </Alert>
             <Typography variant="body2" color="text.secondary">
@@ -187,6 +190,25 @@ export function ProjectDetailPage() {
             <Typography variant="caption" color="text.secondary">
               Public creates a domain stub + Traefik metadata. Internal stays LAN / private entrypoint
               only.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Placement
+            </Typography>
+            <ToggleButtonGroup
+              exclusive
+              fullWidth
+              size="small"
+              value={placementMode}
+              onChange={(_, value: PlacementMode | null) => {
+                if (value) setPlacementMode(value)
+              }}
+            >
+              <ToggleButton value="SHARED">Shared host</ToggleButton>
+              <ToggleButton value="ISOLATED">Isolated VM</ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant="caption" color="text.secondary">
+              Shared reuses the local Docker host. Isolated asks Proxmox for a dedicated VM (falls back
+              to shared until clone + guest IP are ready).
             </Typography>
             {(servicesQuery.data?.content?.length ?? 0) > 1 && (
               <TextField

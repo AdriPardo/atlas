@@ -85,7 +85,7 @@ public class ServiceController {
     public ResponseEntity<DeployResponse> deploy(
             @PathVariable UUID id, @RequestBody(required = false) @Valid DeployServiceRequest request) {
         DeployServiceRequest body = request == null ? new DeployServiceRequest(null, null) : request;
-        var result = deployServiceUseCase.execute(id, body.hostId(), body.exposure());
+        var result = deployServiceUseCase.execute(id, body.hostId(), body.exposure(), body.placementMode());
         return ResponseEntity.accepted()
                 .body(new DeployResponse(
                         result.deployment().getId(),

@@ -14,6 +14,7 @@ public class AtlasProperties {
     private final Retention retention = new Retention();
     private final Backup backup = new Backup();
     private final Networking networking = new Networking();
+    private final Proxmox proxmox = new Proxmox();
 
     public Worker getWorker() {
         return worker;
@@ -49,6 +50,10 @@ public class AtlasProperties {
 
     public Networking getNetworking() {
         return networking;
+    }
+
+    public Proxmox getProxmox() {
+        return proxmox;
     }
 
     public static class Worker {
@@ -317,6 +322,112 @@ public class AtlasProperties {
 
         public void setCloudflareTunnelNoTlsVerify(boolean cloudflareTunnelNoTlsVerify) {
             this.cloudflareTunnelNoTlsVerify = cloudflareTunnelNoTlsVerify;
+        }
+    }
+
+    /** Autopilot ISOLATED placement — Proxmox VE API (ADR-0012). */
+    public static class Proxmox {
+        private String apiUrl = "";
+        private String node = "";
+        private String templateVmid = "";
+        private String targetNode = "";
+        private String storage = "";
+        private String bridge = "";
+        private String sshUser = "atlas";
+        private int sshPort = 22;
+        /** When true, attempt template clone; default false until guest-IP path is solid. */
+        private boolean cloneEnabled = false;
+        /** Optional static guest IP for thin CREATED Host registration. */
+        private String defaultGuestIp = "";
+        /** Allow self-signed Proxmox TLS (common on LAN). */
+        private boolean insecureTls = true;
+
+        public String getApiUrl() {
+            return apiUrl;
+        }
+
+        public void setApiUrl(String apiUrl) {
+            this.apiUrl = apiUrl;
+        }
+
+        public String getNode() {
+            return node;
+        }
+
+        public void setNode(String node) {
+            this.node = node;
+        }
+
+        public String getTemplateVmid() {
+            return templateVmid;
+        }
+
+        public void setTemplateVmid(String templateVmid) {
+            this.templateVmid = templateVmid;
+        }
+
+        public String getTargetNode() {
+            return targetNode;
+        }
+
+        public void setTargetNode(String targetNode) {
+            this.targetNode = targetNode;
+        }
+
+        public String getStorage() {
+            return storage;
+        }
+
+        public void setStorage(String storage) {
+            this.storage = storage;
+        }
+
+        public String getBridge() {
+            return bridge;
+        }
+
+        public void setBridge(String bridge) {
+            this.bridge = bridge;
+        }
+
+        public String getSshUser() {
+            return sshUser;
+        }
+
+        public void setSshUser(String sshUser) {
+            this.sshUser = sshUser;
+        }
+
+        public int getSshPort() {
+            return sshPort;
+        }
+
+        public void setSshPort(int sshPort) {
+            this.sshPort = sshPort;
+        }
+
+        public boolean isCloneEnabled() {
+            return cloneEnabled;
+        }
+
+        public void setCloneEnabled(boolean cloneEnabled) {
+            this.cloneEnabled = cloneEnabled;
+        }
+
+        public String getDefaultGuestIp() {
+            return defaultGuestIp;
+        }
+
+        public void setDefaultGuestIp(String defaultGuestIp) {
+            this.defaultGuestIp = defaultGuestIp;
+        }
+
+        public boolean isInsecureTls() {
+            return insecureTls;
+        }
+
+        public void setInsecureTls(boolean insecureTls) {
+            this.insecureTls = insecureTls;
         }
     }
 }

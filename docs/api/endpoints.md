@@ -28,7 +28,7 @@ Leyenda versión: **MVP** | **v0.2+** | **v0.4+** | **v0.5+** | **v0.6+** | **v0
 | POST | `/deployments/{id}/cancel` | v0.4 |
 | POST | `/deployments/{id}/retry` | v0.4 |
 | GET | `/deployments/{id}/logs` | v0.4 (stream/chunk) |
-| POST | `/services/{id}/deploy` | v0.4 | 202 + deployment |
+| POST | `/services/{id}/deploy` | v0.4 | 202 + deployment; body opcional `hostId`, `exposure`, `placementMode` (SHARED\|ISOLATED) |
 
 ## Runtime
 

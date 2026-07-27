@@ -86,6 +86,19 @@ atlas:
     cloudflare-zone: ${ATLAS_CF_ZONE:}
     cloudflare-tunnel-origin: ${ATLAS_CF_TUNNEL_ORIGIN:https://traefik:443}
     cloudflare-tunnel-no-tls-verify: ${ATLAS_CF_TUNNEL_NO_TLS_VERIFY:true}
+  proxmox:
+    # Autopilot ISOLATED placement (optional). Secret proxmox.api.token via Secrets UI.
+    api-url: ${ATLAS_PROXMOX_API_URL:}
+    node: ${ATLAS_PROXMOX_NODE:}
+    template-vmid: ${ATLAS_PROXMOX_TEMPLATE_VMID:}
+    target-node: ${ATLAS_PROXMOX_TARGET_NODE:}
+    storage: ${ATLAS_PROXMOX_STORAGE:}
+    bridge: ${ATLAS_PROXMOX_BRIDGE:}
+    ssh-user: ${ATLAS_PROXMOX_SSH_USER:atlas}
+    ssh-port: ${ATLAS_PROXMOX_SSH_PORT:22}
+    clone-enabled: ${ATLAS_PROXMOX_CLONE_ENABLED:false}
+    default-guest-ip: ${ATLAS_PROXMOX_DEFAULT_GUEST_IP:}
+    insecure-tls: ${ATLAS_PROXMOX_INSECURE_TLS:true}
 
 springdoc:
   api-docs:

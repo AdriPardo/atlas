@@ -16,7 +16,8 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.7.1** | Autopilot Placement (slice 1) | Connect app → Deploy; plataforma elige host + exposure |
 | **v0.8** | Backups + Cron | Continuidad |
 | **v0.8.1** | Autopilot Tunnel ingress (slice 2) | PUBLIC hostname: API o copy Zero Trust sin adivinar campos |
-| **v0.8.x** | Autopilot Proxmox provisioner | VM on-demand sobre Host/Deploy existentes |
+| **v0.8.2** | Autopilot Proxmox provisioner (slice 3) | SHARED vs ISOLATED cableado; Proxmox probe/clone opt-in |
+| **v0.8.x** | Autopilot Proxmox guest-ready | IP real + Host Sync + deploy en VM nueva |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -119,6 +120,24 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Hardening docs (runbooks).
 
 **Criterio done:** backup programado + restore de prueba documentado.
+
+---
+
+## v0.8.1 — Autopilot Tunnel ingress (slice 2)
+
+- `CloudflareTunnelPort` + copy/ensure Zero Trust Public Hostname.
+- ADR-0011.
+
+**Criterio done:** PUBLIC hostname asistido sin adivinar campos Zero Trust.
+
+---
+
+## v0.8.2 — Autopilot Proxmox provisioner (slice 3)
+
+- `VmProvisionerPort` + adapter Proxmox; `placementMode` SHARED|ISOLATED.
+- Fallback LOCAL hasta clone+guest IP; ADR-0012.
+
+**Criterio done:** decisión isolated cableada; config/secret surface lista; deploy no se rompe sin Proxmox.
 
 ---
 

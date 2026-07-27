@@ -24,6 +24,8 @@ export type ConnectionType = 'LOCAL' | 'SSH'
 
 export type ServiceExposure = 'PUBLIC' | 'INTERNAL'
 
+export type PlacementMode = 'SHARED' | 'ISOLATED'
+
 export type JobStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED'
 
 export type JobType = 'DEPLOY_SERVICE' | 'SYNC_HOST'

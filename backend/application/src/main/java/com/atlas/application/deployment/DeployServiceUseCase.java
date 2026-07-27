@@ -9,6 +9,7 @@ import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.deployment.Deployment;
+import com.atlas.domain.deployment.PlacementMode;
 import com.atlas.domain.host.Host;
 import com.atlas.domain.job.Job;
 import com.atlas.domain.job.JobType;
@@ -40,21 +41,32 @@ public class DeployServiceUseCase {
 
     @Transactional
     public DeployResult execute(UUID serviceId, UUID hostId) {
-        return execute(serviceId, hostId, null, true);
+        return execute(serviceId, hostId, null, null, true);
     }
 
     @Transactional
     public DeployResult execute(UUID serviceId, UUID hostId, ServiceExposure exposure) {
-        return execute(serviceId, hostId, exposure, true);
+        return execute(serviceId, hostId, exposure, null, true);
+    }
+
+    @Transactional
+    public DeployResult execute(
+            UUID serviceId, UUID hostId, ServiceExposure exposure, PlacementMode placementMode) {
+        return execute(serviceId, hostId, exposure, placementMode, true);
     }
 
     /** Trusted path used by git webhooks after token validation. */
     @Transactional
     public DeployResult executeTrusted(UUID serviceId, UUID hostId) {
-        return execute(serviceId, hostId, null, false);
+        return execute(serviceId, hostId, null, null, false);
     }
 
-    private DeployResult execute(UUID serviceId, UUID hostId, ServiceExposure exposure, boolean authorize) {
+    private DeployResult execute(
+            UUID serviceId,
+            UUID hostId,
+            ServiceExposure exposure,
+            PlacementMode placementMode,
+            boolean authorize) {
         ServiceUnit service = serviceRepository
                 .findById(serviceId)
                 .orElseThrow(() -> new NotFoundException("Service not found: " + serviceId));
@@ -68,7 +80,9 @@ public class DeployServiceUseCase {
         ServiceExposure resolvedExposure = exposure == null ? ServiceExposure.PUBLIC : exposure;
         service.updateExposure(resolvedExposure);
 
-        Host host = autopilotPlacementService.resolveHost(hostId);
+        AutopilotPlacementService.PlacementResult placement = autopilotPlacementService.resolveHost(
+                hostId, placementMode, project.getId(), service.getName());
+        Host host = placement.host();
         UUID resolvedHostId = host.getId();
 
         if (resolvedExposure == ServiceExposure.PUBLIC) {
@@ -90,6 +104,8 @@ public class DeployServiceUseCase {
                 + resolvedHostId
                 + "\",\"exposure\":\""
                 + resolvedExposure.name()
+                + "\",\"placementMode\":\""
+                + placement.effectiveMode().name()
                 + "\"}";
         Job job = enqueueJobUseCase.execute(
                 new EnqueueJobUseCase.EnqueueJobCommand(JobType.DEPLOY_SERVICE, payload, 3));
@@ -104,6 +120,10 @@ public class DeployServiceUseCase {
                         + resolvedHostId
                         + "\",\"exposure\":\""
                         + resolvedExposure.name()
+                        + "\",\"placementMode\":\""
+                        + placement.effectiveMode().name()
+                        + "\",\"placementReason\":\""
+                        + escapeJson(placement.reason())
                         + "\",\"jobId\":\""
                         + job.getId()
                         + "\"}");
@@ -116,15 +136,28 @@ public class DeployServiceUseCase {
      */
     @Transactional
     public DeployResult executeForProject(UUID projectId, UUID hostId) {
-        return executeForProject(projectId, hostId, null);
+        return executeForProject(projectId, hostId, null, null);
     }
 
     @Transactional
     public DeployResult executeForProject(UUID projectId, UUID hostId, ServiceExposure exposure) {
+        return executeForProject(projectId, hostId, exposure, null);
+    }
+
+    @Transactional
+    public DeployResult executeForProject(
+            UUID projectId, UUID hostId, ServiceExposure exposure, PlacementMode placementMode) {
         ServiceUnit service = serviceRepository
                 .findDefaultByProjectId(projectId)
                 .orElseThrow(() -> new NotFoundException("Default service not found for project: " + projectId));
-        return execute(service.getId(), hostId, exposure);
+        return execute(service.getId(), hostId, exposure, placementMode);
+    }
+
+    private static String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private void ensurePublicDomainStub(ServiceUnit service, Project project) {

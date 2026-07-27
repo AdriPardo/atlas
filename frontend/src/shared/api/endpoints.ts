@@ -26,6 +26,7 @@ import type {
   SecretMeta,
   Service,
   ServiceExposure,
+  PlacementMode,
   TraefikMetadata,
   TunnelIngress,
   User,
@@ -73,7 +74,7 @@ export const projectsApi = {
       environment?: string
     },
   ) => api.post<Service>(`/projects/${projectId}/services`, body).then((r) => r.data),
-  deploy: (projectId: string, body?: { hostId?: string; exposure?: ServiceExposure }) =>
+  deploy: (projectId: string, body?: { hostId?: string; exposure?: ServiceExposure; placementMode?: PlacementMode }) =>
     api.post<DeployResponse>(`/projects/${projectId}/deploy`, body ?? {}).then((r) => r.data),
 }
 
@@ -94,7 +95,7 @@ export const servicesApi = {
     },
   ) => api.put<Service>(`/services/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/services/${id}`),
-  deploy: (id: string, body?: { hostId?: string; exposure?: ServiceExposure }) =>
+  deploy: (id: string, body?: { hostId?: string; exposure?: ServiceExposure; placementMode?: PlacementMode }) =>
     api.post<DeployResponse>(`/services/${id}/deploy`, body ?? {}).then((r) => r.data),
 }
 

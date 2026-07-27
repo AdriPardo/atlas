@@ -27,6 +27,15 @@ Challenge TXT expuesto en la respuesta Domain (`dnsTxtName` / `dnsTxtValue`). Sy
 
 Challenge TXT sync opcional vía `DnsProviderPort` (stub hoy; CNAME API después).
 
+## Proxmox (Autopilot ISOLATED)
+
+`VmProvisionerPort` / `ProxmoxVmProvisionerAdapter` (ADR-0012):
+
+- Deploy body `placementMode: SHARED | ISOLATED` (default SHARED).
+- Config: `ATLAS_PROXMOX_API_URL`, `NODE`, `TEMPLATE_VMID`, …; secret `proxmox.api.token`.
+- Sin credenciales / clone off → `STUBBED` y placement cae a shared LOCAL.
+- Clone real: `ATLAS_PROXMOX_CLONE_ENABLED=true` + guest IP (`ATLAS_PROXMOX_DEFAULT_GUEST_IP` o agent en slice 3b).
+
 ## Traefik
 
 Desired route metadata generado por `TraefikMetadataPort` / `StaticTraefikMetadataAdapter`:

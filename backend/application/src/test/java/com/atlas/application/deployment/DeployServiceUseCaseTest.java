@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,6 +22,7 @@ import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.domain.access.ProjectPermission;
 import com.atlas.domain.deployment.Deployment;
 import com.atlas.domain.deployment.DeploymentStatus;
+import com.atlas.domain.deployment.PlacementMode;
 import com.atlas.domain.host.ConnectionType;
 import com.atlas.domain.host.Host;
 import com.atlas.domain.job.Job;
@@ -70,6 +72,11 @@ class DeployServiceUseCaseTest {
     @InjectMocks
     private DeployServiceUseCase useCase;
 
+    private static AutopilotPlacementService.PlacementResult placementOf(Host host) {
+        return new AutopilotPlacementService.PlacementResult(
+                host, PlacementMode.SHARED, "test", null);
+    }
+
     @Test
     void createsPendingDeploymentAndEnqueuesJob() {
         Project project = Project.create("demo", "d");
@@ -79,7 +86,9 @@ class DeployServiceUseCaseTest {
         Host host = Host.create("local", "127.0.0.1", "linux", "", false, null, null, null, null);
         when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
-        when(autopilotPlacementService.resolveHost(hostId)).thenReturn(host);
+        when(autopilotPlacementService.resolveHost(
+                        eq(hostId), nullable(PlacementMode.class), eq(project.getId()), any()))
+                .thenReturn(placementOf(host));
         when(domainRepository.existsByProjectIdAndHostnameIgnoreCase(project.getId(), "demo.atlas.local"))
                 .thenReturn(false);
         when(domainRepository.save(any(Domain.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -123,7 +132,9 @@ class DeployServiceUseCaseTest {
                 null);
         when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
-        when(autopilotPlacementService.resolveHost(null)).thenReturn(host);
+        when(autopilotPlacementService.resolveHost(
+                        nullable(UUID.class), nullable(PlacementMode.class), eq(project.getId()), any()))
+                .thenReturn(placementOf(host));
         when(domainRepository.existsByProjectIdAndHostnameIgnoreCase(eq(project.getId()), anyString()))
                 .thenReturn(false);
         when(domainRepository.save(any(Domain.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -154,7 +165,9 @@ class DeployServiceUseCaseTest {
         Host host = Host.create("local", "127.0.0.1", "linux", "", true, ConnectionType.LOCAL, null, 22, null);
         when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
-        when(autopilotPlacementService.resolveHost(null)).thenReturn(host);
+        when(autopilotPlacementService.resolveHost(
+                        nullable(UUID.class), nullable(PlacementMode.class), eq(project.getId()), any()))
+                .thenReturn(placementOf(host));
         when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
         when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
