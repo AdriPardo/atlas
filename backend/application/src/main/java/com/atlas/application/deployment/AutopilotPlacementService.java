@@ -18,9 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Autopilot host resolution (ADR-0010 / ADR-0012 / slice 3b). Prefer shared LOCAL Docker hosts;
- * optionally request an isolated Proxmox VM, register it as an SSH Host (with key secret), enqueue
- * Sync, and let Deploy reuse {@code DEPLOY_SERVICE}.
+ * Autopilot host resolution (ADR-0010 / ADR-0012 / REUSED). Prefer shared LOCAL Docker hosts;
+ * for ISOLATED, reuse an existing SSH Host by hostname, else ask Proxmox (reuse VM by name/tag or
+ * clone), register Host + Sync, and let Deploy reuse {@code DEPLOY_SERVICE}.
  */
 @Service
 @RequiredArgsConstructor
@@ -58,6 +58,18 @@ public class AutopilotPlacementService {
 
         PlacementMode mode = placementMode == null ? PlacementMode.SHARED : placementMode;
         if (mode == PlacementMode.ISOLATED) {
+            String hostname = VmProvisionerPort.sanitizeHostname(nameHint, nameHint);
+            Optional<Host> reusableHost = findReusableIsolatedHost(hostname);
+            if (reusableHost.isPresent()) {
+                Host host = reusableHost.get();
+                syncHostUseCase.execute(host.getId());
+                return new PlacementResult(
+                        host,
+                        PlacementMode.ISOLATED,
+                        "Reused existing Host " + hostname + " (no Proxmox clone)",
+                        VmProvisionerPort.ProvisionMode.REUSED);
+            }
+
             Optional<String> token = projectId == null
                     ? resolveSecretValue.byName(VmProvisionerPort.API_TOKEN_SECRET_NAME)
                     : resolveSecretValue.forProject(projectId, VmProvisionerPort.API_TOKEN_SECRET_NAME);
@@ -89,6 +101,23 @@ public class AutopilotPlacementService {
         }
 
         return new PlacementResult(resolveSharedLocal(), PlacementMode.SHARED, "SHARED placement", null);
+    }
+
+    /**
+     * Prefer an already-registered SSH Host for the Autopilot hostname (dogfood: redeploy without
+     * cloning another Proxmox VM).
+     */
+    private Optional<Host> findReusableIsolatedHost(String hostname) {
+        return hostRepository.findByHostnameIgnoreCase(hostname).filter(host -> {
+            if (host.getConnectionType() != ConnectionType.SSH) {
+                return false;
+            }
+            if (host.getSshPrivateKeySecretId() == null) {
+                return false;
+            }
+            String ip = host.getIp();
+            return ip != null && !ip.isBlank() && !"0.0.0.0".equals(ip.trim());
+        });
     }
 
     private Host registerProvisionedHost(VmProvisionerPort.VmDescriptor vm, UUID sshPrivateKeySecretId) {

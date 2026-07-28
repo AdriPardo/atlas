@@ -35,12 +35,13 @@ Token scopes: Zone DNS Edit (CNAME) + Tunnel/Cloudflare One Edit (ingress). Un s
 
 ## Proxmox (Autopilot ISOLATED)
 
-`VmProvisionerPort` / `ProxmoxVmProvisionerAdapter` (ADR-0012 slice 3b):
+`VmProvisionerPort` / `ProxmoxVmProvisionerAdapter` (ADR-0012 guest-ready + REUSED):
 
 - Deploy body `placementMode: SHARED | ISOLATED` (default SHARED).
 - Config: `ATLAS_PROXMOX_API_URL`, `NODE`, `TEMPLATE_VMID`, …; secrets `proxmox.api.token` + `proxmox.ssh.private_key`.
-- Sin credenciales / clone off / sin IP / sin SSH key → `STUBBED` (o fallback) y placement cae a shared LOCAL.
-- Clone real: `ATLAS_PROXMOX_CLONE_ENABLED=true` → start + poll guest-agent (`ATLAS_PROXMOX_DEFAULT_GUEST_IP` opcional).
+- **Reuse:** Host SSH existente por hostname `atlas-…`, o VM Proxmox por nombre/tag = hostname (`ATLAS_PROXMOX_REUSE_ENABLED=true`) → `REUSED` sin clone.
+- Sin match / sin credenciales / clone off / sin IP / sin SSH key → `STUBBED` (o fallback) y placement cae a shared LOCAL.
+- Clone real: sin match + `ATLAS_PROXMOX_CLONE_ENABLED=true` → start + poll guest-agent (`ATLAS_PROXMOX_DEFAULT_GUEST_IP` opcional); tags de clone incluyen el hostname.
 - Tras ready: Host SSH registrado + `SYNC_HOST`; `DEPLOY_SERVICE` en esa VM.
 
 ## Traefik

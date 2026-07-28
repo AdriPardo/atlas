@@ -347,6 +347,16 @@ public class AtlasProperties {
         private int sshPort = 22;
         /** When true, attempt template clone + start + guest-IP wait. */
         private boolean cloneEnabled = false;
+        /**
+         * When true (default), ISOLATED looks for an existing Proxmox VM by hostname/tag before
+         * cloning ({@code ProvisionMode.REUSED}).
+         */
+        private boolean reuseEnabled = true;
+        /**
+         * Optional Proxmox tag applied on clone (alongside hostname). Matching still uses VM name or
+         * a tag equal to the Atlas hostname.
+         */
+        private String reuseTag = "";
         /** Optional static guest IP fallback when qemu-guest-agent does not report one. */
         private String defaultGuestIp = "";
         /** Max seconds to wait for clone task + guest-agent IP after start. */
@@ -426,6 +436,22 @@ public class AtlasProperties {
 
         public void setCloneEnabled(boolean cloneEnabled) {
             this.cloneEnabled = cloneEnabled;
+        }
+
+        public boolean isReuseEnabled() {
+            return reuseEnabled;
+        }
+
+        public void setReuseEnabled(boolean reuseEnabled) {
+            this.reuseEnabled = reuseEnabled;
+        }
+
+        public String getReuseTag() {
+            return reuseTag;
+        }
+
+        public void setReuseTag(String reuseTag) {
+            this.reuseTag = reuseTag;
         }
 
         public String getDefaultGuestIp() {

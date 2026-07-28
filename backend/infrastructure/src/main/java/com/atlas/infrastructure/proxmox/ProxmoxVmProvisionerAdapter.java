@@ -4,8 +4,9 @@ import com.atlas.application.port.out.VmProvisionerPort;
 import com.atlas.infrastructure.config.AtlasProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -13,10 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Proxmox VE adapter for Autopilot ISOLATED placement (ADR-0012 / slice 3b).
+ * Proxmox VE adapter for Autopilot ISOLATED placement (ADR-0012 / REUSED).
  *
  * <p>Without URL/node/template or {@code proxmox.api.token} → {@link ProvisionMode#STUBBED}. With
- * credentials, probes {@code GET /api2/json/version}. Clone runs only when {@code
+ * credentials, probes {@code GET /api2/json/version}, then tries to <strong>reuse</strong> an
+ * existing VM by hostname or Proxmox tag before cloning. Clone runs only when no match and {@code
  * atlas.proxmox.clone-enabled=true}: clone → wait task → start → poll qemu-guest-agent for IPv4
  * (fallback {@code ATLAS_PROXMOX_DEFAULT_GUEST_IP}).
  */
@@ -79,6 +81,7 @@ public class ProxmoxVmProvisionerAdapter implements VmProvisionerPort {
         String base = trimTrailingSlash(apiUrl);
         boolean insecure = px.isInsecureTls();
         String targetNode = blankToNull(px.getTargetNode()) == null ? node : px.getTargetNode();
+        String hostname = sanitizeHostname(request.nameHint(), request.serviceName());
         try {
             String versionBody = httpGateway.get(base + "/api2/json/version", token, insecure);
             JsonNode version = objectMapper.readTree(versionBody).path("data").path("version");
@@ -86,15 +89,24 @@ public class ProxmoxVmProvisionerAdapter implements VmProvisionerPort {
                     ? "unknown"
                     : version.asText();
 
+            if (px.isReuseEnabled()) {
+                Optional<ProvisionResult> reused =
+                        tryReuseExistingVm(base, node, targetNode, hostname, token, insecure, px);
+                if (reused.isPresent()) {
+                    return reused.get();
+                }
+            }
+
             if (!px.isCloneEnabled()) {
                 return ProvisionResult.of(
                         ProvisionMode.STUBBED,
                         "Proxmox reachable (v"
                                 + versionLabel
-                                + "); clone disabled (ATLAS_PROXMOX_CLONE_ENABLED=false) — using shared LOCAL");
+                                + "); no reusable VM for "
+                                + hostname
+                                + " and clone disabled (ATLAS_PROXMOX_CLONE_ENABLED=false) — using shared LOCAL");
             }
 
-            String hostname = sanitizeHostname(request.nameHint(), request.serviceName());
             int newVmid = ThreadLocalRandom.current().nextInt(200, 899_999);
             Map<String, String> form = new LinkedHashMap<>();
             form.put("newid", String.valueOf(newVmid));
@@ -105,6 +117,12 @@ public class ProxmoxVmProvisionerAdapter implements VmProvisionerPort {
             }
             if (blankToNull(px.getTargetNode()) != null) {
                 form.put("target", px.getTargetNode());
+            }
+            String reuseTag = blankToNull(px.getReuseTag());
+            if (reuseTag != null) {
+                form.put("tags", reuseTag + ";" + hostname);
+            } else {
+                form.put("tags", hostname);
             }
 
             String cloneUrl = base + "/api2/json/nodes/" + node + "/qemu/" + templateVmid + "/clone";
@@ -143,6 +161,115 @@ public class ProxmoxVmProvisionerAdapter implements VmProvisionerPort {
             return ProvisionResult.of(
                     ProvisionMode.UNAVAILABLE, "Proxmox API error: " + e.getMessage() + " — using shared LOCAL");
         }
+    }
+
+    private Optional<ProvisionResult> tryReuseExistingVm(
+            String base,
+            String listNode,
+            String preferredNode,
+            String hostname,
+            String token,
+            boolean insecure,
+            AtlasProperties.Proxmox px)
+            throws Exception {
+        List<String> nodesToScan = new ArrayList<>();
+        nodesToScan.add(preferredNode);
+        if (!preferredNode.equals(listNode)) {
+            nodesToScan.add(listNode);
+        }
+
+        for (String scanNode : nodesToScan) {
+            String listBody = httpGateway.get(base + "/api2/json/nodes/" + scanNode + "/qemu", token, insecure);
+            JsonNode data = objectMapper.readTree(listBody).path("data");
+            if (!data.isArray()) {
+                continue;
+            }
+            for (JsonNode entry : data) {
+                if (entry.path("template").asInt(0) == 1) {
+                    continue;
+                }
+                String vmid = entry.path("vmid").asText("");
+                if (vmid.isBlank()) {
+                    continue;
+                }
+                String name = entry.path("name").asText("").trim();
+                String tags = entry.path("tags").asText("");
+                if (!matchesReuse(hostname, name, tags)) {
+                    continue;
+                }
+
+                String status = entry.path("status").asText("");
+                if (!"running".equalsIgnoreCase(status)) {
+                    String startUrl =
+                            base + "/api2/json/nodes/" + scanNode + "/qemu/" + vmid + "/status/start";
+                    String startBody = httpGateway.postForm(startUrl, token, Map.of(), insecure);
+                    waitForTaskIfPresent(base, scanNode, token, insecure, startBody, px);
+                }
+
+                String ip = waitForGuestIp(base, scanNode, vmid, token, insecure, px);
+                if (ip == null || ip.isBlank()) {
+                    return Optional.of(ProvisionResult.of(
+                            ProvisionMode.STUBBED,
+                            "Proxmox VM "
+                                    + vmid
+                                    + " matched for reuse ("
+                                    + hostname
+                                    + ") but guest IP unknown — using shared LOCAL"));
+                }
+
+                VmDescriptor vm = new VmDescriptor(
+                        vmid,
+                        hostname,
+                        ip,
+                        scanNode,
+                        blankToNull(px.getSshUser()) == null ? "atlas" : px.getSshUser(),
+                        px.getSshPort() <= 0 ? 22 : px.getSshPort());
+                return Optional.of(ProvisionResult.of(
+                        ProvisionMode.REUSED,
+                        "Reused Proxmox VM "
+                                + hostname
+                                + " (vmid="
+                                + vmid
+                                + ", ip="
+                                + ip
+                                + ", no clone)",
+                        vm));
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Reuse when Proxmox VM {@code name} equals the Atlas hostname, or when any Proxmox tag equals
+     * that hostname (so an oddly named VM can still be claimed via tag {@code atlas-myservice}).
+     */
+    static boolean matchesReuse(String hostname, String vmName, String tagsRaw) {
+        if (hostname != null && !hostname.isBlank() && hostname.equalsIgnoreCase(vmName)) {
+            return true;
+        }
+        if (hostname == null || hostname.isBlank()) {
+            return false;
+        }
+        for (String tag : parseTags(tagsRaw)) {
+            if (hostname.equalsIgnoreCase(tag)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static List<String> parseTags(String tagsRaw) {
+        List<String> out = new ArrayList<>();
+        if (tagsRaw == null || tagsRaw.isBlank()) {
+            return out;
+        }
+        for (String part : tagsRaw.split("[;\\s,]+")) {
+            String t = part.trim();
+            if (!t.isEmpty()) {
+                out.add(t);
+            }
+        }
+        return out;
     }
 
     private void waitForTaskIfPresent(
@@ -258,24 +385,7 @@ public class ProxmoxVmProvisionerAdapter implements VmProvisionerPort {
     }
 
     static String sanitizeHostname(String nameHint, String serviceName) {
-        String raw = nameHint != null && !nameHint.isBlank()
-                ? nameHint
-                : (serviceName != null && !serviceName.isBlank() ? serviceName : "atlas-vm");
-        String label = raw.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]+", "-");
-        label = label.replaceAll("(^-|-$)", "");
-        if (label.isBlank()) {
-            label = "atlas-vm";
-        }
-        if (label.length() > 63) {
-            label = label.substring(0, 63).replaceAll("-$", "");
-        }
-        if (!label.startsWith("atlas-")) {
-            label = "atlas-" + label;
-            if (label.length() > 63) {
-                label = label.substring(0, 63).replaceAll("-$", "");
-            }
-        }
-        return label;
+        return VmProvisionerPort.sanitizeHostname(nameHint, serviceName);
     }
 
     private static long timeoutMillis(AtlasProperties.Proxmox px) {

@@ -19,6 +19,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.2** | Autopilot Proxmox provisioner (slice 3) | SHARED vs ISOLATED cableado; Proxmox probe/clone opt-in |
 | **v0.8.3** | Autopilot Proxmox guest-ready (slice 3b) | IP guest-agent + Host SSH/Sync + deploy en VM nueva |
 | **v0.8.4** | Autopilot DNS CNAME (Cloudflare) | PUBLIC hostname resoluble vía CNAME API o copy |
+| **v0.8.5** | Autopilot Proxmox REUSED | ISOLATED reutiliza Host/VM por hostname/tag; clone solo si no hay match |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -160,6 +161,16 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - ADR-0013.
 
 **Criterio done:** hostname PUBLIC resuelve (o copy CNAME) sin edición manual obligatoria en Zero Trust DNS.
+
+---
+
+## v0.8.5 — Autopilot Proxmox REUSED
+
+- ISOLATED: reutiliza Host SSH existente por hostname `atlas-…`, o VM Proxmox por nombre/tag.
+- Clone solo si no hay match y `ATLAS_PROXMOX_CLONE_ENABLED=true`.
+- ADR-0012 actualizado; UI hint de placement.
+
+**Criterio done:** redeploy ISOLATED no clona otra VM cuando ya existe Host/VM reutilizable; servicio RUNNING en ese Host.
 
 ---
 

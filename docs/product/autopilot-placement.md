@@ -45,7 +45,7 @@ Connect app → Deploy(exposure?, placementMode?)
 | Decision | When | Status |
 |----------|------|--------|
 | **Reuse shared host** (`SHARED`) | Default | Auto-pick LOCAL / default host |
-| **Provision new VM** (`ISOLATED`) | Isolation / capacity | Clone + guest-agent IP + Host SSH/Sync (ADR-0012 slice 3b) |
+| **Provision new / reuse VM** (`ISOLATED`) | Isolation / capacity | Host o VM Proxmox por hostname/tag → `REUSED`; si no, clone + guest-agent (ADR-0012) |
 
 ### Exposure
 
@@ -83,5 +83,6 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 - Slice 3b — guest ready (done): IP + Sync + deploy on new Host
 - Slice 4 — DNS CNAME: [ADR-0013](../decisions/ADR-0013-autopilot-dns-cname.md) (done)
 - Continuity — restore runbook (`docs/deployment/backup-restore.md`) (done)
-- Next — Proxmox VM reuse (`REUSED`) por hostname/tag
+- Proxmox VM reuse (`REUSED`) por hostname/tag (done)
 - Later — project manifest / pluggable runtime: [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)
+- Residual — stale `RUNNING` jobs after worker crash (ops/recover path)

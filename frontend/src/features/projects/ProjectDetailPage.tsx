@@ -207,8 +207,9 @@ export function ProjectDetailPage() {
               <ToggleButton value="ISOLATED">Isolated VM</ToggleButton>
             </ToggleButtonGroup>
             <Typography variant="caption" color="text.secondary">
-              Shared reuses the local Atlas host. Isolated asks for a dedicated VM when configured
-              (falls back to shared until the guest is ready).
+              Shared reuses the local Atlas host. Isolated reuses an existing VM/Host by hostname
+              (or Proxmox tag) when present; otherwise clones when Proxmox clone is enabled (falls
+              back to shared until the guest is ready).
             </Typography>
             {(servicesQuery.data?.content?.length ?? 0) > 1 && (
               <TextField

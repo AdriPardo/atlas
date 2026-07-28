@@ -112,4 +112,4 @@ Reglas de diseño del schema:
 
 ## Relación con el siguiente paso operativo
 
-El runbook restore v0.8 está cerrado (`docs/deployment/backup-restore.md`). Este ADR sigue siendo **norte estratégico** / slice posterior (tras polish Autopilot `REUSED` / cuando toque desacoplar `composePath`); ver `docs/roadmap/next-step.md`.
+El runbook restore v0.8 está cerrado (`docs/deployment/backup-restore.md`). Reuse Proxmox (`REUSED`) también. Este ADR sigue siendo **norte estratégico** / slice posterior (tras recovery de jobs stale o cuando toque desacoplar `composePath`); ver `docs/roadmap/next-step.md`.

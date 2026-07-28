@@ -1,14 +1,16 @@
 package com.atlas.application.port.out;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Proxmox (or future) VM provisioner for Autopilot ISOLATED placement (ADR-0012 / slice 3b).
+ * Proxmox (or future) VM provisioner for Autopilot ISOLATED placement (ADR-0012 / slice 3b / REUSED).
  *
  * <p>Always safe to call: missing config/token → {@link ProvisionMode#STUBBED}. Placement falls back
  * to shared LOCAL until {@link ProvisionMode#CREATED} or {@link ProvisionMode#REUSED} returns a
- * usable {@link VmDescriptor} with a real guest IP.
+ * usable {@link VmDescriptor} with a real guest IP. Before cloning, adapters should match an
+ * existing VM by hostname or Proxmox tag and return {@link ProvisionMode#REUSED}.
  */
 public interface VmProvisionerPort {
 
@@ -24,6 +26,31 @@ public interface VmProvisionerPort {
     boolean isConfigured();
 
     ProvisionResult provision(ProvisionRequest request, Optional<String> apiToken);
+
+    /**
+     * Canonical Atlas VM hostname used for Proxmox name / Host lookup ({@code atlas-…}).
+     * Shared by placement (Host reuse) and the Proxmox adapter (VM reuse / clone name).
+     */
+    static String sanitizeHostname(String nameHint, String serviceName) {
+        String raw = nameHint != null && !nameHint.isBlank()
+                ? nameHint
+                : (serviceName != null && !serviceName.isBlank() ? serviceName : "atlas-vm");
+        String label = raw.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]+", "-");
+        label = label.replaceAll("(^-|-$)", "");
+        if (label.isBlank()) {
+            label = "atlas-vm";
+        }
+        if (label.length() > 63) {
+            label = label.substring(0, 63).replaceAll("-$", "");
+        }
+        if (!label.startsWith("atlas-")) {
+            label = "atlas-" + label;
+            if (label.length() > 63) {
+                label = label.substring(0, 63).replaceAll("-$", "");
+            }
+        }
+        return label;
+    }
 
     enum ProvisionMode {
         /** New VM cloned/started via Proxmox API. */

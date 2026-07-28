@@ -98,6 +98,8 @@ atlas:
     ssh-user: ${ATLAS_PROXMOX_SSH_USER:atlas}
     ssh-port: ${ATLAS_PROXMOX_SSH_PORT:22}
     clone-enabled: ${ATLAS_PROXMOX_CLONE_ENABLED:false}
+    reuse-enabled: ${ATLAS_PROXMOX_REUSE_ENABLED:true}
+    reuse-tag: ${ATLAS_PROXMOX_REUSE_TAG:}
     default-guest-ip: ${ATLAS_PROXMOX_DEFAULT_GUEST_IP:}
     guest-ready-timeout-seconds: ${ATLAS_PROXMOX_GUEST_READY_TIMEOUT_SECONDS:120}
     guest-ready-poll-interval-ms: ${ATLAS_PROXMOX_GUEST_READY_POLL_INTERVAL_MS:3000}

@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -41,6 +42,7 @@ class ProxmoxVmProvisionerAdapterTest {
         properties.getProxmox().setNode("pve");
         properties.getProxmox().setTemplateVmid("9000");
         properties.getProxmox().setCloneEnabled(false);
+        properties.getProxmox().setReuseEnabled(true);
         properties.getProxmox().setInsecureTls(true);
         properties.getProxmox().setGuestReadyTimeoutSeconds(5);
         properties.getProxmox().setGuestReadyPollIntervalMs(1);
@@ -68,9 +70,10 @@ class ProxmoxVmProvisionerAdapterTest {
     }
 
     @Test
-    void probesVersionWhenCloneDisabled() throws Exception {
+    void probesVersionWhenCloneDisabledAndNoReusableVm() throws Exception {
         when(httpGateway.get(contains("/api2/json/version"), eq("tok"), eq(true)))
                 .thenReturn("{\"data\":{\"version\":\"8.2.0\"}}");
+        stubEmptyVmList();
 
         VmProvisionerPort.ProvisionResult result = adapter.provision(
                 new VmProvisionerPort.ProvisionRequest(UUID.randomUUID(), "demo", "demo"),
@@ -83,11 +86,76 @@ class ProxmoxVmProvisionerAdapterTest {
     }
 
     @Test
+    void reusesRunningVmByHostnameWithoutClone() throws Exception {
+        when(httpGateway.get(contains("/api2/json/version"), eq("tok"), eq(true)))
+                .thenReturn("{\"data\":{\"version\":\"8.2.0\"}}");
+        when(httpGateway.get(argThat(url -> url != null && url.endsWith("/qemu")), eq("tok"), eq(true)))
+                .thenReturn(
+                        """
+                        {"data":[
+                          {"vmid":301,"name":"atlas-demo","status":"running","template":0,"tags":"atlas-demo"}
+                        ]}
+                        """);
+        when(httpGateway.get(contains("/agent/network-get-interfaces"), eq("tok"), eq(true)))
+                .thenReturn(
+                        """
+                        {"data":{"result":[
+                          {"name":"eth0","ip-addresses":[{"ip-address":"10.0.0.40","ip-address-type":"ipv4"}]}
+                        ]}}
+                        """);
+
+        VmProvisionerPort.ProvisionResult result = adapter.provision(
+                new VmProvisionerPort.ProvisionRequest(UUID.randomUUID(), "demo", "demo"),
+                Optional.of("tok"));
+
+        assertEquals(VmProvisionerPort.ProvisionMode.REUSED, result.mode());
+        assertTrue(result.vm().isPresent());
+        assertEquals("301", result.vm().get().vmid());
+        assertEquals("10.0.0.40", result.vm().get().ip());
+        assertEquals("atlas-demo", result.vm().get().hostname());
+        assertTrue(result.message().contains("no clone"));
+        verify(httpGateway, never()).postForm(contains("/clone"), anyString(), anyMap(), anyBoolean());
+    }
+
+    @Test
+    void reusesVmMatchedByTagAndStartsWhenStopped() throws Exception {
+        when(httpGateway.get(contains("/api2/json/version"), eq("tok"), eq(true)))
+                .thenReturn("{\"data\":{\"version\":\"8.2.0\"}}");
+        when(httpGateway.get(argThat(url -> url != null && url.endsWith("/qemu")), eq("tok"), eq(true)))
+                .thenReturn(
+                        """
+                        {"data":[
+                          {"vmid":410,"name":"legacy-box","status":"stopped","template":0,"tags":"prod;atlas-demo"}
+                        ]}
+                        """);
+        when(httpGateway.postForm(contains("/status/start"), eq("tok"), anyMap(), eq(true)))
+                .thenReturn("{\"data\":null}");
+        when(httpGateway.get(contains("/agent/network-get-interfaces"), eq("tok"), eq(true)))
+                .thenReturn(
+                        """
+                        {"data":{"result":[
+                          {"name":"eth0","ip-addresses":[{"ip-address":"10.0.0.41","ip-address-type":"ipv4"}]}
+                        ]}}
+                        """);
+
+        VmProvisionerPort.ProvisionResult result = adapter.provision(
+                new VmProvisionerPort.ProvisionRequest(UUID.randomUUID(), "demo", "demo"),
+                Optional.of("tok"));
+
+        assertEquals(VmProvisionerPort.ProvisionMode.REUSED, result.mode());
+        assertEquals("410", result.vm().orElseThrow().vmid());
+        assertEquals("10.0.0.41", result.vm().orElseThrow().ip());
+        verify(httpGateway).postForm(contains("/qemu/410/status/start"), eq("tok"), anyMap(), eq(true));
+        verify(httpGateway, never()).postForm(contains("/clone"), anyString(), anyMap(), anyBoolean());
+    }
+
+    @Test
     void clonesStartsAndResolvesGuestAgentIp() throws Exception {
         properties.getProxmox().setCloneEnabled(true);
         properties.getProxmox().setStorage("local-lvm");
         when(httpGateway.get(contains("/api2/json/version"), eq("tok"), eq(true)))
                 .thenReturn("{\"data\":{\"version\":\"8.2.0\"}}");
+        stubEmptyVmList();
         when(httpGateway.postForm(contains("/clone"), eq("tok"), anyMap(), eq(true)))
                 .thenReturn("{\"data\":\"UPID:pve:0000:qmclone\"}");
         when(httpGateway.get(contains("/tasks/"), eq("tok"), eq(true)))
@@ -124,6 +192,7 @@ class ProxmoxVmProvisionerAdapterTest {
         properties.getProxmox().setGuestReadyTimeoutSeconds(0);
         when(httpGateway.get(contains("/api2/json/version"), eq("tok"), eq(true)))
                 .thenReturn("{\"data\":{\"version\":\"8.2.0\"}}");
+        stubEmptyVmList();
         when(httpGateway.postForm(contains("/clone"), eq("tok"), anyMap(), eq(true)))
                 .thenReturn("{\"data\":null}");
         when(httpGateway.postForm(contains("/status/start"), eq("tok"), anyMap(), eq(true)))
@@ -146,6 +215,7 @@ class ProxmoxVmProvisionerAdapterTest {
         properties.getProxmox().setGuestReadyTimeoutSeconds(0);
         when(httpGateway.get(contains("/api2/json/version"), eq("tok"), eq(true)))
                 .thenReturn("{\"data\":{\"version\":\"8.2.0\"}}");
+        stubEmptyVmList();
         when(httpGateway.postForm(anyString(), eq("tok"), anyMap(), eq(true))).thenReturn("{}");
         when(httpGateway.get(contains("/agent/network-get-interfaces"), eq("tok"), eq(true)))
                 .thenThrow(new java.io.IOException("agent down"));
@@ -174,6 +244,15 @@ class ProxmoxVmProvisionerAdapterTest {
     void sanitizeHostnamePrefixesAtlas() {
         assertEquals("atlas-demo", ProxmoxVmProvisionerAdapter.sanitizeHostname("demo", null));
         assertEquals("atlas-my-svc", ProxmoxVmProvisionerAdapter.sanitizeHostname(null, "My Svc"));
+        assertEquals("atlas-demo", VmProvisionerPort.sanitizeHostname("demo", null));
+    }
+
+    @Test
+    void matchesReuseByNameOrTag() {
+        assertTrue(ProxmoxVmProvisionerAdapter.matchesReuse("atlas-demo", "atlas-demo", ""));
+        assertTrue(ProxmoxVmProvisionerAdapter.matchesReuse("atlas-demo", "other", "prod;atlas-demo"));
+        assertTrue(ProxmoxVmProvisionerAdapter.matchesReuse("atlas-demo", "legacy", "atlas-demo"));
+        assertFalse(ProxmoxVmProvisionerAdapter.matchesReuse("atlas-demo", "other", "prod"));
     }
 
     @Test
@@ -190,5 +269,10 @@ class ProxmoxVmProvisionerAdapterTest {
                         ]}}
                         """);
         assertEquals(Optional.of("192.168.1.50"), ProxmoxVmProvisionerAdapter.extractGuestIpv4(root));
+    }
+
+    private void stubEmptyVmList() throws Exception {
+        when(httpGateway.get(argThat(url -> url != null && url.endsWith("/qemu")), eq("tok"), eq(true)))
+                .thenReturn("{\"data\":[]}");
     }
 }

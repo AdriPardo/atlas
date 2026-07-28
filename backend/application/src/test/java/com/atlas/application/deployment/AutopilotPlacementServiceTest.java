@@ -171,6 +171,54 @@ class AutopilotPlacementServiceTest {
         verify(hostRepository, never()).listForPlacement();
     }
 
+    @Test
+    void isolatedReusesExistingSshHostWithoutProvisioner() {
+        UUID projectId = UUID.randomUUID();
+        UUID sshSecretId = UUID.randomUUID();
+        Host existing = Host.create(
+                "atlas-demo", "10.0.0.50", "linux", "24.0", true, ConnectionType.SSH, "atlas", 22, sshSecretId);
+        when(hostRepository.findByHostnameIgnoreCase("atlas-demo")).thenReturn(Optional.of(existing));
+        when(syncHostUseCase.execute(existing.getId())).thenReturn(Job.enqueue(JobType.SYNC_HOST, "{}", 3));
+
+        AutopilotPlacementService.PlacementResult result =
+                service.resolveHost(null, PlacementMode.ISOLATED, projectId, "demo");
+
+        assertEquals(PlacementMode.ISOLATED, result.effectiveMode());
+        assertEquals(VmProvisionerPort.ProvisionMode.REUSED, result.provisionMode());
+        assertEquals(existing.getId(), result.host().getId());
+        assertTrueReasonContains(result.reason(), "Reused existing Host");
+        verify(vmProvisioner, never()).provision(any(), any());
+        verify(syncHostUseCase).execute(existing.getId());
+        verify(hostRepository, never()).save(any());
+    }
+
+    @Test
+    void isolatedRegistersHostWhenProvisionerReusesVm() {
+        UUID projectId = UUID.randomUUID();
+        UUID sshSecretId = UUID.randomUUID();
+        when(hostRepository.findByHostnameIgnoreCase("atlas-demo")).thenReturn(Optional.empty());
+        when(resolveSecretValue.forProject(projectId, VmProvisionerPort.API_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.of("token"));
+        VmProvisionerPort.VmDescriptor vm = new VmProvisionerPort.VmDescriptor(
+                "301", "atlas-demo", "10.0.0.50", "pve", "atlas", 22);
+        when(vmProvisioner.provision(any(), eq(Optional.of("token"))))
+                .thenReturn(VmProvisionerPort.ProvisionResult.of(
+                        VmProvisionerPort.ProvisionMode.REUSED, "reused proxmox", vm));
+        when(resolveSecretValue.idForProject(projectId, VmProvisionerPort.SSH_PRIVATE_KEY_SECRET_NAME))
+                .thenReturn(Optional.of(sshSecretId));
+        when(hostRepository.save(any(Host.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(syncHostUseCase.execute(any())).thenReturn(Job.enqueue(JobType.SYNC_HOST, "{}", 3));
+
+        AutopilotPlacementService.PlacementResult result =
+                service.resolveHost(null, PlacementMode.ISOLATED, projectId, "demo");
+
+        assertEquals(PlacementMode.ISOLATED, result.effectiveMode());
+        assertEquals(VmProvisionerPort.ProvisionMode.REUSED, result.provisionMode());
+        assertEquals("atlas-demo", result.host().getHostname());
+        verify(vmProvisioner).provision(any(), eq(Optional.of("token")));
+        verify(syncHostUseCase).execute(result.host().getId());
+    }
+
     private static void assertTrueReasonContains(String reason, String needle) {
         assertNotNull(reason);
         org.junit.jupiter.api.Assertions.assertTrue(
