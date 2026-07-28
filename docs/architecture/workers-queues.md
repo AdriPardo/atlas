@@ -63,7 +63,7 @@ Mantener Postgres como source of truth del estado de `Deployment`/`PipelineRun`.
 
 - N réplicas `atlas-worker` en la red `atlas-internal`.
 - Idempotencia por `deployment_id` / `job_id`.
-- Heartbeat + reclaim de locks expirados.
+- Heartbeat + reclaim de locks expirados (`ATLAS_JOB_STALE_TIMEOUT`, v0.8.6).
 - Límites: max concurrent deploys por host y por instalación.
 
 ## Tipos de job (catálogo inicial)
@@ -82,6 +82,18 @@ Mantener Postgres como source of truth del estado de `Deployment`/`PipelineRun`.
 - Métricas: `atlas_jobs_pending`, `atlas_jobs_running`, `atlas_job_duration_seconds`, fallos por tipo.
 - Logs estructurados con `jobId`, `deploymentId`, `projectId`.
 - Dead-letter: `status=DEAD` tras N attempts + alerta.
+
+## Recovery de leases stale (worker crash)
+
+Problema: si el proceso worker muere a mitad de un job, la fila queda `RUNNING` con `locked_by` / `locked_at`. El claim solo toma `PENDING` (`SKIP LOCKED`), así que el job (y un deploy asociado) puede bloquear redeploys para siempre.
+
+Solución (v0.8.6):
+
+1. **Heartbeat** — mientras ejecuta un job, el worker refresca `locked_at` cada `ATLAS_JOB_HEARTBEAT_INTERVAL_SECONDS` (default 60s).
+2. **Reclaim** — al arranque y cada `ATLAS_JOB_STALE_RECLAIM_INTERVAL_MS`, `RecoverStaleJobsUseCase` selecciona `RUNNING` con `locked_at` más viejo que `ATLAS_JOB_STALE_TIMEOUT` (segundos, default 1800) usando `FOR UPDATE SKIP LOCKED`, los marca `FAILED` (limpia lease) y, si es `DEPLOY_SERVICE`, falla el deployment PENDING/RUNNING y pone service/project `FAILED` si seguían en `DEPLOYING`.
+3. Jobs con lease fresco (worker sano) no se tocan; el claim `PENDING` sigue igual.
+
+Ops: tras reiniciar Atlas, los jobs huérfanos pasan a `FAILED` en cuanto el timeout de lease expire (o en el reclaim de arranque si ya estaban viejos). Reencolar deploy desde la UI.
 
 ## Anti-patrones
 

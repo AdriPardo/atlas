@@ -85,4 +85,4 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 - Continuity — restore runbook (`docs/deployment/backup-restore.md`) (done)
 - Proxmox VM reuse (`REUSED`) por hostname/tag (done)
 - Later — project manifest / pluggable runtime: [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)
-- Residual — stale `RUNNING` jobs after worker crash (ops/recover path)
+- Residual — stale `RUNNING` jobs after worker crash (ops/recover path) — **done** (v0.8.6)

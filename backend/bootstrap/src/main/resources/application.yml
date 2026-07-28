@@ -52,6 +52,10 @@ atlas:
     poll-interval-ms: ${ATLAS_WORKER_POLL_INTERVAL_MS:2000}
     batch-size: ${ATLAS_WORKER_BATCH_SIZE:5}
     id: ${ATLAS_WORKER_ID:atlas-worker}
+    # Orphan RUNNING jobs (worker crash / lost lease). Heartbeat refreshes locked_at while executing.
+    stale-timeout-seconds: ${ATLAS_JOB_STALE_TIMEOUT:1800}
+    heartbeat-interval-seconds: ${ATLAS_JOB_HEARTBEAT_INTERVAL_SECONDS:60}
+    stale-reclaim-interval-ms: ${ATLAS_JOB_STALE_RECLAIM_INTERVAL_MS:30000}
   workspace:
     dir: ${ATLAS_WORKSPACE_DIR:${java.io.tmpdir}/atlas-workspaces}
   docker:

@@ -174,6 +174,16 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 
 ---
 
+## v0.8.6 — Stale RUNNING job recovery
+
+- Heartbeat de lease + reclaim de jobs `RUNNING` huérfanos tras crash del worker (`ATLAS_JOB_STALE_TIMEOUT`).
+- Cascade: deployment / service / project dejan de quedar en DEPLOYING/RUNNING eternos.
+- Claim `SKIP LOCKED` de PENDING intacto.
+
+**Criterio done:** tras matar/reiniciar el worker, un job stale se marca FAILED y un nuevo deploy puede encolarse y completar.
+
+---
+
 ## v0.9 — Commercial envelope
 
 - Billing/usage meters + entitlements UI (precio puede ser 0).

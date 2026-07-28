@@ -188,6 +188,7 @@ Ver [`.env.example`](.env.example):
 - `ATLAS_AUTHENTIK_ENABLED` / `ATLAS_AUTHENTIK_ADMIN_GROUP`
 - `ATLAS_SECRETS_MASTER_KEY`
 - `ATLAS_WORKER_ENABLED` / `ATLAS_WORKSPACE_DIR` / `ATLAS_DOCKER_HOST`
+- `ATLAS_JOB_STALE_TIMEOUT` (segundos; reclaim de jobs RUNNING huérfanos tras crash)
 - `ATLAS_ADAPTERS_REAL_ENABLED`
 - `SPRING_PROFILES_ACTIVE` (`local` \| `docker` \| `test`)
 

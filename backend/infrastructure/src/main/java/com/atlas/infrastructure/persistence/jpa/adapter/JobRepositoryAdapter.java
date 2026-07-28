@@ -102,6 +102,72 @@ public class JobRepositoryAdapter implements JobRepositoryPort {
 
     @Override
     @Transactional
+    public List<Job> findAndLockStaleRunning(Instant cutoff, int limit) {
+        Query query = entityManager.createNativeQuery(
+                """
+                WITH stale AS (
+                    SELECT id
+                    FROM jobs
+                    WHERE status = 'RUNNING'
+                      AND locked_at IS NOT NULL
+                      AND locked_at < :cutoff
+                    ORDER BY locked_at ASC
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT :limit
+                )
+                SELECT j.id, j.type, j.payload, j.status, j.attempts, j.max_attempts,
+                       j.available_at, j.locked_at, j.locked_by, j.started_at, j.finished_at,
+                       j.last_error, j.created_at, j.updated_at
+                FROM jobs j
+                INNER JOIN stale ON j.id = stale.id
+                """);
+        query.setParameter("cutoff", Timestamp.from(cutoff));
+        query.setParameter("limit", limit);
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = query.getResultList();
+        List<Job> stale = new ArrayList<>(rows.size());
+        for (Object[] row : rows) {
+            stale.add(mapRow(row));
+        }
+        return stale;
+    }
+
+    @Override
+    @Transactional
+    public boolean heartbeat(UUID jobId, String workerId) {
+        Query query = entityManager.createNativeQuery(
+                """
+                UPDATE jobs
+                SET locked_at = NOW(),
+                    updated_at = NOW()
+                WHERE id = :jobId
+                  AND status = 'RUNNING'
+                  AND locked_by = :workerId
+                """);
+        query.setParameter("jobId", jobId);
+        query.setParameter("workerId", workerId);
+        return query.executeUpdate() > 0;
+    }
+
+    @Override
+    @Transactional
+    public void updateLockedAt(UUID jobId, Instant lockedAt) {
+        Query query = entityManager.createNativeQuery(
+                """
+                UPDATE jobs
+                SET locked_at = :lockedAt,
+                    updated_at = NOW()
+                WHERE id = :jobId
+                """);
+        query.setParameter("jobId", jobId);
+        query.setParameter("lockedAt", Timestamp.from(lockedAt));
+        query.executeUpdate();
+        entityManager.clear();
+    }
+
+    @Override
+    @Transactional
     public int deleteTerminalOlderThan(Instant cutoff) {
         return repository.deleteByStatusInAndCreatedAtBefore(
                 EnumSet.of(JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED), cutoff);

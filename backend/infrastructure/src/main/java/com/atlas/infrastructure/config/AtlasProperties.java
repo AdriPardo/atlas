@@ -61,6 +61,16 @@ public class AtlasProperties {
         private long pollIntervalMs = 2000;
         private int batchSize = 5;
         private String id = "atlas-worker";
+        /**
+         * RUNNING jobs with {@code locked_at} older than this many seconds are treated as orphaned
+         * (worker crash) and failed. Keep above worst-case deploy duration; heartbeat refreshes the
+         * lease while work is in progress.
+         */
+        private long staleTimeoutSeconds = 1800;
+        /** How often the worker refreshes {@code locked_at} for the job it is executing. */
+        private long heartbeatIntervalSeconds = 60;
+        /** How often to scan for stale RUNNING leases. */
+        private long staleReclaimIntervalMs = 30000;
 
         public boolean isEnabled() {
             return enabled;
@@ -92,6 +102,30 @@ public class AtlasProperties {
 
         public void setId(String id) {
             this.id = id;
+        }
+
+        public long getStaleTimeoutSeconds() {
+            return staleTimeoutSeconds;
+        }
+
+        public void setStaleTimeoutSeconds(long staleTimeoutSeconds) {
+            this.staleTimeoutSeconds = staleTimeoutSeconds;
+        }
+
+        public long getHeartbeatIntervalSeconds() {
+            return heartbeatIntervalSeconds;
+        }
+
+        public void setHeartbeatIntervalSeconds(long heartbeatIntervalSeconds) {
+            this.heartbeatIntervalSeconds = heartbeatIntervalSeconds;
+        }
+
+        public long getStaleReclaimIntervalMs() {
+            return staleReclaimIntervalMs;
+        }
+
+        public void setStaleReclaimIntervalMs(long staleReclaimIntervalMs) {
+            this.staleReclaimIntervalMs = staleReclaimIntervalMs;
         }
     }
 

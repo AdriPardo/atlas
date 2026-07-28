@@ -2,34 +2,32 @@
 
 ## Estado del último incremento (completado)
 
-**Proxmox VM reuse (`REUSED`)** (v0.8.5):
+**Stale RUNNING job recovery** (v0.8.6):
 
-- ISOLATED: Host SSH existente por hostname canónico `atlas-…` → `REUSED` (sin Proxmox).
-- Provisioner: match QEMU por nombre o tag = hostname; start si stopped; guest IP → `REUSED` (sin clone).
-- Clone solo si no hay match y `ATLAS_PROXMOX_CLONE_ENABLED=true`; tags de clone incluyen hostname.
-- ADR-0012 + UI hint + tests (`AutopilotPlacementService`, `ProxmoxVmProvisionerAdapter`).
+- Heartbeat de lease (`locked_at`) mientras el worker ejecuta un job.
+- Reclaim al arranque + tick periódico: `RUNNING` con lease > `ATLAS_JOB_STALE_TIMEOUT` → `FAILED` (`FOR UPDATE SKIP LOCKED`).
+- Cascade en `DEPLOY_SERVICE`: deployment PENDING/RUNNING → FAILED; service/project DEPLOYING → FAILED.
+- Docs: `docs/architecture/workers-queues.md`; tests unitarios + integración.
 
-**Previo:** runbook restore; DNS CNAME (ADR-0013); guest-ready 3b; Tunnel PUBLIC.
+**Previo:** Proxmox VM reuse (`REUSED`); runbook restore; DNS CNAME (ADR-0013); guest-ready 3b; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**Jobs stale `RUNNING` tras crash del worker** — recuperar o marcar FAILED/PENDING jobs huérfanos (p. ej. Reelpath) para que redeploy no quede bloqueado tras reinicio del worker.
+**Endurecer scopes de token Cloudflare documentados en UI Secrets hint** — o primer slice de lectura de `atlas.yml` (ADR-0014 fase B) sin eliminar `composePath`.
 
 ## Por qué es el paso más rentable ahora
 
-1. Reuse ISOLATED ya evita multiplicar VMs; el dolor operativo siguiente en dogfood es jobs stuck.
-2. Slice pequeño y seguro en claim/recovery del worker (ADR-0005 / ADR-0009), sin tocar SSO.
-3. ADR-0014 (manifiesto) sigue siendo norte; no bloquea recovery de jobs.
+1. Recovery de jobs stale cierra el bloqueo operativo post-crash (Reelpath / redeploy).
+2. Cloudflare scopes reduce fricción de dogfood PUBLIC (Tunnel + DNS).
+3. ADR-0014 sigue siendo norte; no bloquea ops diarios.
 
-## Alcance concreto del incremento (stale RUNNING jobs)
+## Alcance concreto del incremento (siguiente)
 
-1. Detectar jobs `RUNNING` con lease/heartbeat caducado (o worker id muerto).
-2. Reclaim → `PENDING` o terminal `FAILED` con mensaje claro; documentar ops.
-3. Test de recovery + nota en `docs/architecture/workers-queues.md`.
+1. Documentar en UI Secrets los scopes mínimos Cloudflare (Zone DNS Edit + Tunnel/Cloudflare One Edit).
+2. Opcional: slice lectura `atlas.yml` (ADR-0014 fase B) si sobra capacidad.
 
 ## Secundario (si sobra capacidad)
 
-- Endurecer scopes de token Cloudflare documentados en UI Secrets hint.
 - Primer slice de lectura de `atlas.yml` (ADR-0014 fase B) sin eliminar `composePath`.
 
 ## Norte estratégico (no es el siguiente incremento)
@@ -42,6 +40,6 @@
 - No motor completo de manifiesto ni eliminar `composePath` antes de migrar el deploy path (ADR-0014 fases B–D).
 - No `compose down -v` ni tocar `.env` en runbooks de deploy.
 
-## Definición de éxito (stale RUNNING jobs)
+## Definición de éxito (siguiente)
 
-> Tras matar/reiniciar el worker, un job que quedó `RUNNING` se recupera (reclaim o FAILED) y un nuevo deploy puede encolarse y completar.
+> Operador ve en Secrets UI qué scopes necesita el token Cloudflare; Tunnel/DNS assist no falla por scopes mal documentados.

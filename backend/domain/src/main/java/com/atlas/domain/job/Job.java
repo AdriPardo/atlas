@@ -112,7 +112,7 @@ public class Job {
 
     public void markSucceeded() {
         Instant now = Instant.now();
-        apply(JobStatus.SUCCEEDED, attempts, availableAt, lockedAt, lockedBy, startedAt, now, null, now);
+        apply(JobStatus.SUCCEEDED, attempts, availableAt, null, null, startedAt, now, null, now);
     }
 
     public void markFailed(String error) {
@@ -121,8 +121,8 @@ public class Job {
                 JobStatus.FAILED,
                 attempts,
                 availableAt,
-                lockedAt,
-                lockedBy,
+                null,
+                null,
                 startedAt,
                 now,
                 error,
@@ -141,6 +141,18 @@ public class Job {
                 null,
                 lastError,
                 now);
+    }
+
+    /** Refreshes the lease so long-running work is not treated as stale. */
+    public void touchLock() {
+        if (status != JobStatus.RUNNING) {
+            throw new DomainException("Only RUNNING jobs can refresh a lease");
+        }
+        if (lockedBy == null || lockedBy.isBlank()) {
+            throw new DomainException("Cannot refresh lease without lockedBy");
+        }
+        Instant now = Instant.now();
+        apply(status, attempts, availableAt, now, lockedBy, startedAt, finishedAt, lastError, now);
     }
 
     private void apply(
