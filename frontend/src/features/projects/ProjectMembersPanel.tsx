@@ -17,6 +17,7 @@ import { membershipsApi, usersApi } from '../../shared/api/endpoints'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { QueryState } from '../../shared/components/QueryState'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { useAuth } from '../auth/AuthContext'
 
@@ -166,14 +167,17 @@ export function ProjectMembersPanel({ projectId }: { projectId: string }) {
                         )}
                       </TableCell>
                       <TableCell align="right">
-                        <Button
-                          size="small"
-                          color="error"
-                          disabled={!isAdmin || removeMutation.isPending}
-                          onClick={() => removeMutation.mutate(m.id)}
-                        >
-                          Remove
-                        </Button>
+                        <RowOverflowMenu
+                          aria-label={`Actions for member ${m.userId.slice(0, 8)}`}
+                          items={[
+                            {
+                              label: 'Remove',
+                              destructive: true,
+                              disabled: !isAdmin || removeMutation.isPending,
+                              onClick: () => removeMutation.mutate(m.id),
+                            },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   )

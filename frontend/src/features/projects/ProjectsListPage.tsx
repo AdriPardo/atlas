@@ -22,6 +22,7 @@ import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 
 export function ProjectsListPage() {
@@ -53,7 +54,7 @@ export function ProjectsListPage() {
     <PageShell>
       <PageHeader
         title="Projects"
-        description="Projects group deployable services (repo + compose)."
+        description="Projects group deployable services (repo + runtime path)."
         actions={
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/projects/new')}>
             New project
@@ -118,12 +119,21 @@ export function ProjectsListPage() {
                       <StatusChip label={project.status} />
                     </TableCell>
                     <TableCell align="right">
-                      <Button size="small" onClick={() => navigate(`/projects/${project.id}/edit`)}>
-                        Edit
-                      </Button>
-                      <Button size="small" color="error" onClick={() => setDeleteId(project.id)}>
-                        Delete
-                      </Button>
+                      <RowOverflowMenu
+                        aria-label={`Actions for ${project.name}`}
+                        items={[
+                          {
+                            label: 'Edit',
+                            onClick: () => navigate(`/projects/${project.id}/edit`),
+                          },
+                          {
+                            label: 'Delete',
+                            destructive: true,
+                            dividerBefore: true,
+                            onClick: () => setDeleteId(project.id),
+                          },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

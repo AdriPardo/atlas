@@ -22,6 +22,7 @@ import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 
 export function HostsListPage() {
@@ -124,12 +125,21 @@ export function HostsListPage() {
                       <StatusChip label={host.online ? 'ONLINE' : 'OFFLINE'} />
                     </TableCell>
                     <TableCell align="right">
-                      <Button size="small" onClick={() => navigate(`/hosts/${host.id}/edit`)}>
-                        Edit
-                      </Button>
-                      <Button size="small" color="error" onClick={() => setDeleteId(host.id)}>
-                        Delete
-                      </Button>
+                      <RowOverflowMenu
+                        aria-label={`Actions for ${host.hostname}`}
+                        items={[
+                          {
+                            label: 'Edit',
+                            onClick: () => navigate(`/hosts/${host.id}/edit`),
+                          },
+                          {
+                            label: 'Delete',
+                            destructive: true,
+                            dividerBefore: true,
+                            onClick: () => setDeleteId(host.id),
+                          },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

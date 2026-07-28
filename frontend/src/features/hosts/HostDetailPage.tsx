@@ -22,6 +22,7 @@ import { StatusChip } from '../../shared/components/StatusChip'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { LogViewer } from '../../shared/components/LogViewer'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import type { ContainerSnapshot } from '../../shared/types/api'
 
 export function HostDetailPage() {
@@ -79,7 +80,7 @@ export function HostDetailPage() {
         title={query.data?.hostname ?? 'Host'}
         description="Inventory, containers, and observability links."
         actions={
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
             <Button component={RouterLink} to="/hosts">
               Back
             </Button>
@@ -90,20 +91,20 @@ export function HostDetailPage() {
             >
               Sync
             </Button>
-            {grafanaConfigured && hostMetricsUrl && (
-              <Button
-                variant="outlined"
-                component="a"
-                href={hostMetricsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Grafana
-              </Button>
-            )}
             <Button variant="contained" onClick={() => navigate(`/hosts/${id}/edit`)}>
               Edit
             </Button>
+            {grafanaConfigured && hostMetricsUrl ? (
+              <RowOverflowMenu
+                aria-label="More host actions"
+                items={[
+                  {
+                    label: 'Open metrics',
+                    onClick: () => window.open(hostMetricsUrl, '_blank', 'noopener,noreferrer'),
+                  },
+                ]}
+              />
+            ) : null}
           </Stack>
         }
       />
@@ -113,7 +114,7 @@ export function HostDetailPage() {
           <Stack spacing={2.5}>
             {syncMutation.isSuccess && (
               <Alert severity="success" variant="outlined">
-                Sync job queued ({syncMutation.data.id.slice(0, 8)}). Refresh shortly for Docker/OS
+                Sync job queued ({syncMutation.data.id.slice(0, 8)}). Refresh shortly for OS / runtime
                 metadata.
               </Alert>
             )}
@@ -141,7 +142,7 @@ export function HostDetailPage() {
                 {query.data.sshPrivateKeySecretId || '-'}
               </DetailField>
               <DetailField label="Operating system">{query.data.operatingSystem}</DetailField>
-              <DetailField label="Docker version" mono>
+              <DetailField label="Runtime version" mono>
                 {query.data.dockerVersion || '-'}
               </DetailField>
               <DetailField label="Created">
@@ -170,7 +171,7 @@ export function HostDetailPage() {
                 {containers.length === 0 ? (
                   <EmptyState
                     title="No containers"
-                    description="Sync the host or deploy a service to discover Docker containers here."
+                    description="Sync the host or deploy a service to discover running workloads here."
                   />
                 ) : (
                   <DataTableFrame>
@@ -208,28 +209,38 @@ export function HostDetailPage() {
                                 </Typography>
                               </TableCell>
                               <TableCell align="right">
-                                <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                                <Stack
+                                  direction="row"
+                                  spacing={0.25}
+                                  justifyContent="flex-end"
+                                  alignItems="center"
+                                >
                                   <Button size="small" onClick={() => setSelected(c)}>
                                     Logs
                                   </Button>
-                                  {c.grafanaLogsUrl ? (
-                                    <Button
-                                      size="small"
-                                      component="a"
-                                      href={c.grafanaLogsUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      Loki
-                                    </Button>
-                                  ) : null}
-                                  <Button
-                                    size="small"
-                                    onClick={() => restartMutation.mutate(ref)}
-                                    disabled={restartMutation.isPending}
-                                  >
-                                    Restart
-                                  </Button>
+                                  <RowOverflowMenu
+                                    aria-label={`More actions for ${c.name || c.id.slice(0, 12)}`}
+                                    items={[
+                                      ...(c.grafanaLogsUrl
+                                        ? [
+                                            {
+                                              label: 'Open log explorer',
+                                              onClick: () =>
+                                                window.open(
+                                                  c.grafanaLogsUrl!,
+                                                  '_blank',
+                                                  'noopener,noreferrer',
+                                                ),
+                                            },
+                                          ]
+                                        : []),
+                                      {
+                                        label: 'Restart',
+                                        disabled: restartMutation.isPending,
+                                        onClick: () => restartMutation.mutate(ref),
+                                      },
+                                    ]}
+                                  />
                                 </Stack>
                               </TableCell>
                             </TableRow>
@@ -260,7 +271,7 @@ export function HostDetailPage() {
                 <QueryState
                   isLoading={logsQuery.isLoading}
                   isError={logsQuery.isError}
-                  errorMessage="Unable to fetch container logs (Docker runtime may be disabled)."
+                  errorMessage="Unable to fetch runtime logs (runtime may be disabled in this environment)."
                 >
                   <LogViewer logs={logsQuery.data?.logs ?? ''} maxHeight={360} />
                 </QueryState>

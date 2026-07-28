@@ -24,6 +24,7 @@ import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 
 const STATUS_FILTERS: Array<{ label: string; value: DeploymentStatus | 'ALL' }> = [
@@ -167,9 +168,16 @@ export function DeploymentsListPage() {
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Button size="small" color="error" onClick={() => setDeleteId(item.id)}>
-                        Delete
-                      </Button>
+                      <RowOverflowMenu
+                        aria-label={`Actions for deployment ${item.id.slice(0, 8)}`}
+                        items={[
+                          {
+                            label: 'Delete',
+                            destructive: true,
+                            onClick: () => setDeleteId(item.id),
+                          },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

@@ -175,9 +175,12 @@ export function ProjectFormPage() {
               {...register('branch')}
             />
             <TextField
-              label="Compose path"
+              label="Runtime path"
               error={!!errors.composePath}
-              helperText={errors.composePath?.message}
+              helperText={
+                errors.composePath?.message ??
+                'Path to the runtime definition in the repo (Compose adapter today; atlas.yml later).'
+              }
               {...register('composePath')}
             />
             <TextField

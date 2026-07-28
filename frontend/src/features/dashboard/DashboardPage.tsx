@@ -46,7 +46,7 @@ export function DashboardPage() {
   const projectCount = statsQuery.data?.projects ?? statsQuery.data?.applications ?? 0
   const stats = [
     { label: 'Projects', value: projectCount, to: '/projects', hint: 'Repos & services' },
-    { label: 'Hosts', value: statsQuery.data?.hosts ?? 0, to: '/hosts', hint: 'LOCAL / SSH' },
+    { label: 'Hosts', value: statsQuery.data?.hosts ?? 0, to: '/hosts', hint: 'Targets' },
     { label: 'Deployments', value: statsQuery.data?.deployments ?? 0, to: '/deployments', hint: 'Release runs' },
   ]
 

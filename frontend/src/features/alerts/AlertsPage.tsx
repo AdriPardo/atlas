@@ -26,6 +26,7 @@ import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 import type { AlertEventType, NotificationChannelType } from '../../shared/types/api'
 
@@ -169,9 +170,16 @@ export function AlertsPage() {
                     </TableCell>
                     <TableCell>{ch.enabled ? 'Yes' : 'No'}</TableCell>
                     <TableCell align="right">
-                      <Button size="small" color="error" onClick={() => removeChannel.mutate(ch.id)}>
-                        Delete
-                      </Button>
+                      <RowOverflowMenu
+                        aria-label={`Actions for channel ${ch.name}`}
+                        items={[
+                          {
+                            label: 'Delete',
+                            destructive: true,
+                            onClick: () => removeChannel.mutate(ch.id),
+                          },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -234,15 +242,22 @@ export function AlertsPage() {
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
-                        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                        <Stack direction="row" spacing={0.25} justifyContent="flex-end" alignItems="center">
                           {rule.status !== 'SILENCED' && (
                             <Button size="small" onClick={() => silenceRule.mutate(rule.id)}>
                               Silence
                             </Button>
                           )}
-                          <Button size="small" color="error" onClick={() => removeRule.mutate(rule.id)}>
-                            Delete
-                          </Button>
+                          <RowOverflowMenu
+                            aria-label={`More actions for ${rule.name}`}
+                            items={[
+                              {
+                                label: 'Delete',
+                                destructive: true,
+                                onClick: () => removeRule.mutate(rule.id),
+                              },
+                            ]}
+                          />
                         </Stack>
                       </TableCell>
                     </TableRow>

@@ -133,7 +133,7 @@ export function ProjectDetailPage() {
                   <DetailField label="Branch" mono>
                     {svc.branch}
                   </DetailField>
-                  <DetailField label="Compose path" mono>
+                  <DetailField label="Runtime path" mono>
                     {svc.composePath}
                   </DetailField>
                   <DetailField label="Domain">{svc.domain || '-'}</DetailField>
@@ -168,8 +168,8 @@ export function ProjectDetailPage() {
               </Alert>
             )}
             <Alert severity="info" variant="outlined">
-              Atlas picks where to run (shared LOCAL by default). Isolated requests a Proxmox VM when
-              configured; otherwise falls back to shared. Private GitHub repos need{' '}
+              Atlas picks where to run (shared local host by default). Isolated requests a dedicated VM
+              when configured; otherwise falls back to shared. Private GitHub repos need{' '}
               <strong>git.token</strong> on this project (owned or linked) or as an organization secret.
             </Alert>
             <Typography variant="body2" color="text.secondary">
@@ -188,7 +188,7 @@ export function ProjectDetailPage() {
               <ToggleButton value="INTERNAL">Internal</ToggleButton>
             </ToggleButtonGroup>
             <Typography variant="caption" color="text.secondary">
-              Public creates a domain stub + Traefik metadata. Internal stays LAN / private entrypoint
+              Public registers a domain and routing metadata. Internal stays on the private network
               only.
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -207,8 +207,8 @@ export function ProjectDetailPage() {
               <ToggleButton value="ISOLATED">Isolated VM</ToggleButton>
             </ToggleButtonGroup>
             <Typography variant="caption" color="text.secondary">
-              Shared reuses the local Docker host. Isolated asks Proxmox for a dedicated VM (falls back
-              to shared until clone + guest IP are ready).
+              Shared reuses the local Atlas host. Isolated asks for a dedicated VM when configured
+              (falls back to shared until the guest is ready).
             </Typography>
             {(servicesQuery.data?.content?.length ?? 0) > 1 && (
               <TextField

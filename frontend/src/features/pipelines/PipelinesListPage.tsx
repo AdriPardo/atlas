@@ -22,6 +22,7 @@ import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 
 export function PipelinesListPage() {
   const [name, setName] = useState('')
@@ -51,7 +52,7 @@ export function PipelinesListPage() {
     <PageShell>
       <PageHeader
         title="Pipelines"
-        description="Deploy-centric pipelines that enqueue DEPLOY_SERVICE jobs."
+        description="Deploy-centric pipelines that enqueue deploy jobs on demand."
         actions={
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/pipelines/new')}>
             New pipeline
@@ -119,9 +120,16 @@ export function PipelinesListPage() {
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Button size="small" color="error" onClick={() => setDeleteId(row.id)}>
-                        Delete
-                      </Button>
+                      <RowOverflowMenu
+                        aria-label={`Actions for ${row.name}`}
+                        items={[
+                          {
+                            label: 'Delete',
+                            destructive: true,
+                            onClick: () => setDeleteId(row.id),
+                          },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

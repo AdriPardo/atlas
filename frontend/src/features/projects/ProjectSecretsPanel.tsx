@@ -18,6 +18,7 @@ import { projectSecretsApi, secretsApi } from '../../shared/api/endpoints'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { QueryState } from '../../shared/components/QueryState'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { useAuth } from '../auth/AuthContext'
 
@@ -221,24 +222,28 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      {row.kind === 'OWNED' ? (
-                        <Button
-                          size="small"
-                          color="error"
-                          disabled={removeOwnedMutation.isPending}
-                          onClick={() => removeOwnedMutation.mutate(row.secretId)}
-                        >
-                          Delete
-                        </Button>
-                      ) : (
-                        <Button
-                          size="small"
-                          disabled={!row.bindingId || unlinkMutation.isPending}
-                          onClick={() => row.bindingId && unlinkMutation.mutate(row.bindingId)}
-                        >
-                          Unlink
-                        </Button>
-                      )}
+                      <RowOverflowMenu
+                        aria-label={`Actions for ${row.name}`}
+                        items={
+                          row.kind === 'OWNED'
+                            ? [
+                                {
+                                  label: 'Delete',
+                                  destructive: true,
+                                  disabled: removeOwnedMutation.isPending,
+                                  onClick: () => removeOwnedMutation.mutate(row.secretId),
+                                },
+                              ]
+                            : [
+                                {
+                                  label: 'Unlink',
+                                  disabled: !row.bindingId || unlinkMutation.isPending,
+                                  onClick: () =>
+                                    row.bindingId && unlinkMutation.mutate(row.bindingId),
+                                },
+                              ]
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

@@ -151,12 +151,12 @@ export function HostFormPage() {
               defaultValue="LOCAL"
               helperText={
                 connectionType === 'LOCAL'
-                  ? 'Requires Docker socket mounted on the Atlas backend (see docker-compose.prod.yml.example).'
+                  ? 'Uses the runtime socket mounted on the Atlas server.'
                   : 'Requires an SSH private key secret linked below.'
               }
               {...register('connectionType')}
             >
-              <MenuItem value="LOCAL">LOCAL (Docker on Atlas server)</MenuItem>
+              <MenuItem value="LOCAL">LOCAL (on Atlas server)</MenuItem>
               <MenuItem value="SSH">SSH</MenuItem>
             </TextField>
             {connectionType === 'SSH' && (
@@ -191,7 +191,7 @@ export function HostFormPage() {
               {...register('operatingSystem')}
             />
             <TextField
-              label="Docker version"
+              label="Runtime version"
               error={!!errors.dockerVersion}
               helperText={errors.dockerVersion?.message}
               {...register('dockerVersion')}

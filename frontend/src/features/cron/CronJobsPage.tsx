@@ -25,6 +25,7 @@ import { EmptyState } from '../../shared/components/EmptyState'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { QueryState } from '../../shared/components/QueryState'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 import type { CronTargetType } from '../../shared/types/api'
 
@@ -98,7 +99,7 @@ export function CronJobsPage() {
     <PageShell>
       <PageHeader
         title="Cron"
-        description="Schedules that enqueue SYNC_HOST or BACKUP_DATABASE jobs (Spring 6-field cron)."
+        description="Schedules that sync hosts or enqueue database backups."
         actions={
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
             New cron
@@ -150,7 +151,7 @@ export function CronJobsPage() {
                       {row.lastFiredAt ? new Date(row.lastFiredAt).toLocaleString() : '—'}
                     </TableCell>
                     <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                      <Stack direction="row" spacing={0.25} justifyContent="flex-end" alignItems="center">
                         <Button
                           size="small"
                           disabled={toggleMutation.isPending}
@@ -158,14 +159,17 @@ export function CronJobsPage() {
                         >
                           {row.enabled ? 'Disable' : 'Enable'}
                         </Button>
-                        <Button
-                          size="small"
-                          color="error"
-                          disabled={removeMutation.isPending}
-                          onClick={() => removeMutation.mutate(row.id)}
-                        >
-                          Delete
-                        </Button>
+                        <RowOverflowMenu
+                          aria-label={`More actions for ${row.name}`}
+                          items={[
+                            {
+                              label: 'Delete',
+                              destructive: true,
+                              disabled: removeMutation.isPending,
+                              onClick: () => removeMutation.mutate(row.id),
+                            },
+                          ]}
+                        />
                       </Stack>
                     </TableCell>
                   </TableRow>

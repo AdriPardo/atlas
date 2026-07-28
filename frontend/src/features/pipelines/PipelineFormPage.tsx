@@ -65,7 +65,7 @@ export function PipelineFormPage() {
     <PageShell maxWidth={640}>
       <PageHeader
         title="New pipeline"
-        description="Bind a service deploy to a host. Running the pipeline enqueues DEPLOY_SERVICE."
+        description="Bind a service deploy to a host. Running the pipeline enqueues a deploy job."
         actions={
           <Button onClick={() => navigate('/pipelines')}>Cancel</Button>
         }
