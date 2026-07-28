@@ -61,6 +61,10 @@ Autopilot ISOLATED (Proxmox): `ATLAS_PROXMOX_API_URL` / `NODE` / `TEMPLATE_VMID`
 - Volumen `atlas_backups` para dumps lógicos (`pg_dump`); ver [backup-restore.md](./backup-restore.md).
 - Credenciales host/SSH: en DB cifradas, no en imágenes (`ATLAS_SECRETS_MASTER_KEY` en prod).
 
+### Continuidad (backup / restore)
+
+Runbook operador: parar `backend` → restaurar `atlas-*.sql.gz` con `psql -v ON_ERROR_STOP=1` → arrancar (Flyway) → `/actuator/health` UP → smoke login SSO/JWT + `GET /projects`. Checklist completo en [backup-restore.md](./backup-restore.md). Misma `ATLAS_SECRETS_MASTER_KEY` que al tomar el dump.
+
 ## Hosts LOCAL y Docker socket
 
 Para sync/deploy con `connectionType=LOCAL` en la misma VM:

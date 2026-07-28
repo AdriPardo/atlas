@@ -120,7 +120,8 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Job purge + retention policies.
 - Hardening docs (runbooks).
 
-**Criterio done:** backup programado + restore de prueba documentado.
+**Criterio done:** backup programado + restore de prueba documentado.  
+**Estado:** backup job + cron + retención OK; runbook restore lógico + checklist en [backup-restore.md](../deployment/backup-restore.md).
 
 ---
 

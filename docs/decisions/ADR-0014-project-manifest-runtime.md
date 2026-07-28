@@ -112,4 +112,4 @@ Reglas de diseño del schema:
 
 ## Relación con el siguiente paso operativo
 
-El siguiente incremento **sigue** siendo el runbook restore (`docs/roadmap/next-step.md`). Este ADR es **norte estratégico** / slice posterior (post v0.8 restore / en paralelo a polish Autopilot), no el trabajo inmediato.
+El runbook restore v0.8 está cerrado (`docs/deployment/backup-restore.md`). Este ADR sigue siendo **norte estratégico** / slice posterior (tras polish Autopilot `REUSED` / cuando toque desacoplar `composePath`); ver `docs/roadmap/next-step.md`.

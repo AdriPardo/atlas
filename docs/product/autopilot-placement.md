@@ -82,5 +82,6 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 - Slice 3 — Proxmox provisioner: [ADR-0012](../decisions/ADR-0012-autopilot-proxmox-provisioner.md)
 - Slice 3b — guest ready (done): IP + Sync + deploy on new Host
 - Slice 4 — DNS CNAME: [ADR-0013](../decisions/ADR-0013-autopilot-dns-cname.md) (done)
-- Next — restore runbook (`docs/deployment/backup-restore.md`)
+- Continuity — restore runbook (`docs/deployment/backup-restore.md`) (done)
+- Next — Proxmox VM reuse (`REUSED`) por hostname/tag
 - Later — project manifest / pluggable runtime: [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)
