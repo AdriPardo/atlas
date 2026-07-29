@@ -33,6 +33,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -57,6 +58,7 @@ public class ExecuteDeployServiceJobUseCase {
     private final ComposePathResolver composePathResolver;
     private final TransactionTemplate transactionTemplate;
 
+    @Autowired
     public ExecuteDeployServiceJobUseCase(
             DeploymentRepositoryPort deploymentRepository,
             ServiceRepositoryPort serviceRepository,
