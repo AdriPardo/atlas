@@ -25,6 +25,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.8** | Cloudflare token scopes in Secrets UI | Operador ve scopes mínimos Tunnel+DNS al crear el secret |
 | **v0.8.9** | Read `atlas.yml` on deploy (ADR-0014 B) | Repo declara compose file; fallback `composePath` |
 | **v0.8.10** | Optional `composePath` (ADR-0014 C) | Create/update sin path si hay manifiesto; error claro si falta ambos |
+| **v0.8.11** | RuntimeOrchestratorPort (ADR-0014 D) | Deploy vía port genérico; Host `runtimeCapabilities`; Compose adapter |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -228,6 +229,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Sin eliminar columna ni renombrar `ContainerRuntimePort`.
 
 **Criterio done:** crear service sin `composePath` + repo con `atlas.yml` deployable; legacy solo-`composePath` sigue verde.
+
+---
+
+## v0.8.11 — RuntimeOrchestratorPort (ADR-0014 phase D)
+
+- `RuntimeOrchestratorPort.apply` / `teardown`; Compose adapter delega a `ContainerRuntimePort.composeUp` / `composeDown`.
+- `ExecuteDeployServiceJobUseCase` deja de llamar `composeUp` directo; chequea Host `supportsRuntime(COMPOSE)`.
+- Host API: `runtimeCapabilities` (derivado, hoy `["compose"]`); sin columna DB aún.
+- Sin segundo runtime; sin eliminar `compose_path`.
+
+**Criterio done:** deploy verde vía orchestrator; Host response incluye capabilities; inspect/logs/restart intactos.
 
 ---
 

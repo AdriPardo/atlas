@@ -40,6 +40,9 @@ public interface ApiMapper {
     @Mapping(target = "applicationId", source = "serviceId")
     DeploymentResponse toDeploymentResponse(Deployment deployment);
 
+    @Mapping(
+            target = "runtimeCapabilities",
+            expression = "java(new java.util.ArrayList<>(host.runtimeCapabilityTags()))")
     HostResponse toHostResponse(Host host);
 
     JobResponse toJobResponse(Job job);

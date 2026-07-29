@@ -103,6 +103,8 @@ export interface Host {
   sshUser: string | null
   sshPort: number
   sshPrivateKeySecretId: string | null
+  /** ADR-0014 phase D: e.g. ["compose"] */
+  runtimeCapabilities?: string[]
   createdAt: string
   updatedAt: string
 }

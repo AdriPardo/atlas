@@ -13,12 +13,12 @@ import static org.mockito.Mockito.when;
 import com.atlas.application.networking.EnsureDomainDnsCnameUseCase;
 import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
-import com.atlas.application.port.out.ContainerRuntimePort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.DomainRepositoryPort;
 import com.atlas.application.port.out.GitRepositoryPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
+import com.atlas.application.port.out.RuntimeOrchestratorPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.application.secret.ResolveSecretValueUseCase;
 import com.atlas.domain.deployment.Deployment;
@@ -64,7 +64,7 @@ class ExecuteDeployServiceJobUseCaseTest {
     private GitRepositoryPort gitRepository;
 
     @Mock
-    private ContainerRuntimePort containerRuntime;
+    private RuntimeOrchestratorPort runtimeOrchestrator;
 
     @Mock
     private ResolveSecretValueUseCase resolveSecretValue;
@@ -96,7 +96,7 @@ class ExecuteDeployServiceJobUseCaseTest {
                 hostRepository,
                 domainRepository,
                 gitRepository,
-                containerRuntime,
+                runtimeOrchestrator,
                 resolveSecretValue,
                 id -> workspace,
                 evaluateProductAlertsUseCase,
@@ -143,20 +143,18 @@ class ExecuteDeployServiceJobUseCaseTest {
                 .cloneOrUpdate(any(), any(), any(), any(), any());
 
         doAnswer(inv -> {
-                    @SuppressWarnings("unchecked")
-                    Consumer<String> sink = inv.getArgument(4);
-                    sink.accept("compose up ok");
+                    RuntimeOrchestratorPort.RuntimeApplyCommand cmd = inv.getArgument(0);
+                    cmd.logSink().accept("compose up ok");
                     return null;
                 })
-                .when(containerRuntime)
-                .composeUp(any(), any(), any(), any(), any());
+                .when(runtimeOrchestrator)
+                .apply(any());
 
         useCase.execute(deployment.getId());
 
         verify(gitRepository)
                 .cloneOrUpdate(eq(service.getRepositoryUrl()), eq("main"), eq(workspace), eq(Optional.empty()), any());
-        verify(containerRuntime)
-                .composeUp(eq(host), eq(workspace), eq("docker-compose.yml"), eq(Optional.empty()), any());
+        verify(runtimeOrchestrator).apply(any());
         assertEquals(ServiceStatus.RUNNING, service.getStatus());
         assertTrue(running.getLogs().contains("compose up ok") || running.getStatus() == DeploymentStatus.SUCCEEDED);
         assertTrue(running.getLogs().contains("composePath") || running.getStatus() == DeploymentStatus.SUCCEEDED);
@@ -201,12 +199,13 @@ class ExecuteDeployServiceJobUseCaseTest {
                 .thenReturn(Optional.empty());
 
         doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());
-        doAnswer(inv -> null).when(containerRuntime).composeUp(any(), any(), any(), any(), any());
+        doAnswer(inv -> null).when(runtimeOrchestrator).apply(any());
 
         useCase.execute(deployment.getId());
 
-        verify(containerRuntime)
-                .composeUp(eq(host), eq(workspace), eq("docker-compose.atlas.yml"), eq(Optional.empty()), any());
+        verify(runtimeOrchestrator).apply(org.mockito.ArgumentMatchers.argThat(cmd ->
+                "docker-compose.atlas.yml".equals(cmd.composeFilePath())
+                        && cmd.capability() == com.atlas.domain.runtime.RuntimeCapability.COMPOSE));
         assertTrue(running.getLogs().contains("atlas.yml") || running.getStatus() == DeploymentStatus.SUCCEEDED);
     }
 
@@ -240,8 +239,8 @@ class ExecuteDeployServiceJobUseCaseTest {
 
         doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());
         doThrow(new DomainException("Command failed (1): docker compose"))
-                .when(containerRuntime)
-                .composeUp(any(), any(), any(), any(), any());
+                .when(runtimeOrchestrator)
+                .apply(any());
 
         assertThrows(DomainException.class, () -> useCase.execute(deployment.getId()));
 

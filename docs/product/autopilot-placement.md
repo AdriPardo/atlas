@@ -7,7 +7,7 @@ The operator **connects an application** (repo + how-to-run). Atlas decides:
 1. **Where** to run it (reuse a shared host vs provision a new VM).
 2. **Whether** it is **world-accessible** (`PUBLIC`) or **internal-only** (`INTERNAL`).
 
-**North star:** a project manifest (`atlas.yml`) is the source of truth for *how to run*; the runtime (Docker Compose today) is a pluggable adapter — see [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md). Autopilot owns placement, exposure, secrets, and edge (Traefik / Tunnel / DNS); the manifest owns services, build, health, and runtime kind. **Phases B–C:** deploy reads `runtime.composeFile` from `atlas.yml` when present; otherwise **repo + optional `composePath`** (synthesized in memory).
+**North star:** a project manifest (`atlas.yml`) is the source of truth for *how to run*; the runtime (Docker Compose today) is a pluggable adapter — see [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md). Autopilot owns placement, exposure, secrets, and edge (Traefik / Tunnel / DNS); the manifest owns services, build, health, and runtime kind. **Phases B–D:** deploy reads `runtime.composeFile` from `atlas.yml` when present; otherwise **repo + optional `composePath`** (synthesized in memory); stack apply goes through `RuntimeOrchestratorPort` (Compose adapter); Host advertises `runtimeCapabilities` (`compose`).
 
 The user configures as little as possible. Hosts, SSH, Sync, and Deploy remain the **execution substrate** — not the primary mental model.
 
@@ -62,7 +62,7 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 |----------------|----------------------|
 | **Host** | Placement target (LOCAL socket or SSH). Still created/synced; usually auto-selected, auto-seeded, or provisioned. |
 | **Deployment** | Immutable record of “this service on this host”. |
-| **Job `DEPLOY_SERVICE`** | Async worker path (clone + compose). Unchanged contract; payload still carries `deploymentId` / `hostId`. |
+| **Job `DEPLOY_SERVICE`** | Async worker path (clone + runtime apply). Unchanged contract; payload still carries `deploymentId` / `hostId`. |
 | **Domain + Traefik metadata** | PUBLIC edge descriptor; INTERNAL skips public domain. |
 | **VmProvisionerPort** | ISOLATED path → Proxmox clone / reuse (ADR-0012). |
 | **Pipelines / webhooks** | May still pin a `hostId`; Autopilot deploy omits it. |

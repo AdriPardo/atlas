@@ -1,9 +1,13 @@
 package com.atlas.domain.host;
 
+import com.atlas.domain.runtime.RuntimeCapability;
 import com.atlas.domain.shared.DomainException;
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.Getter;
 
 @Getter
@@ -169,6 +173,27 @@ public class Host {
         if (this.connectionType == ConnectionType.SSH && this.sshUser == null) {
             throw new DomainException("sshUser is required for SSH hosts");
         }
+    }
+
+    /**
+     * Runtime capacity tags (ADR-0014 phase D). Today every Atlas host advertises
+     * {@code compose}; later sync/provision may add {@code podman}/{@code k8s}/….
+     */
+    public Set<RuntimeCapability> runtimeCapabilities() {
+        Set<RuntimeCapability> caps = new LinkedHashSet<>();
+        caps.add(RuntimeCapability.COMPOSE);
+        return Set.copyOf(caps);
+    }
+
+    public boolean supportsRuntime(RuntimeCapability capability) {
+        return capability != null && runtimeCapabilities().contains(capability);
+    }
+
+    /** Wire-format tags for API / placement filters ({@code compose}, …). */
+    public Set<String> runtimeCapabilityTags() {
+        return runtimeCapabilities().stream()
+                .map(RuntimeCapability::tag)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private static String requireText(String value, String field) {

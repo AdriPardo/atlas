@@ -1,8 +1,8 @@
 # ADR-0014 — Project manifest como fuente de verdad del runtime
 
-- **Estado:** Accepted (fases B–C: lectura de manifiesto + `composePath` opcional en API/UI; fase D pendiente)
+- **Estado:** Accepted (fases B–D: lectura manifiesto + `composePath` opcional + `RuntimeOrchestratorPort` / Host capability tags; segundo runtime pendiente)
 - **Fecha:** 2026-07-27
-- **Actualizado:** 2026-07-29 — phase C: `composePath` opcional; sintetiza manifiesto mínimo si solo hay path
+- **Actualizado:** 2026-07-29 — phase D: deploy usa `RuntimeOrchestratorPort.apply`; Host expone `runtimeCapabilities` (`compose`)
 
 ## Contexto
 
@@ -11,11 +11,11 @@ Hoy el path de deploy acopla la intención del usuario a tecnologías concretas:
 | Capa | Acoplamiento actual |
 |------|---------------------|
 | Modelo `Service` / `Project` | Campo obligatorio `composePath` (p. ej. `docker-compose.atlas.yml`) |
-| Job `DEPLOY_SERVICE` | `GitRepositoryPort.cloneOrUpdate` → `ContainerRuntimePort.composeUp(...)` |
-| `ContainerRuntimePort` | API nombrada `composeUp` / `composeDown`; adapter real ejecuta `docker compose` (LOCAL socket o SSH) |
-| Host | `dockerVersion`, sync orientado a Docker |
+| Job `DEPLOY_SERVICE` | `GitRepositoryPort.cloneOrUpdate` → `RuntimeOrchestratorPort.apply(...)` (Compose adapter → `composeUp`) |
+| `ContainerRuntimePort` | Inspect/logs/restart + delegate Compose; stack apply vía `RuntimeOrchestratorPort` |
+| Host | `dockerVersion` + `runtimeCapabilities` (`compose` hoy); sync orientado a Docker |
 | Edge Autopilot | Traefik labels + Cloudflare Tunnel + DNS CNAME (correcto como *platform* edge, no como “cómo arrancar la app”) |
-| Producto / UI | “New Project = repo + compose path”; Autopilot placement asume compose en el host |
+| Producto / UI | “New Project = repo + compose path opcional”; Autopilot placement asume compose en el host |
 
 Eso funciona para v0.4–v0.8, pero ancla Atlas a Docker Compose. La visión de producto: **el operador describe qué debe correr**; Atlas (Autopilot) decide *dónde* y *cómo se expone*; el *runtime* es un adapter sustituible (Compose hoy; Podman / Kubernetes / systemd mañana) sin cambiar el mental model del usuario.
 
@@ -39,7 +39,7 @@ Hexagonal ya anticipa adapters ([ADR-0001](ADR-0001-hexagonal-architecture.md));
    - **Fase A (ahora):** documentar contrato; deploys siguen con `composePath` + `composeUp`.
    - **Fase B:** si existe `atlas.yml`, el job lo parsea; si `runtime.kind: compose` (o omitido) y hay `runtime.composeFile` / legacy path, el adapter Compose sigue siendo el ejecutor.
    - **Fase C:** UI/API dejan de exigir `composePath`; campo DB pasa a opcional / derivado (`manifestPath` + snapshot). Repos solo-compose sin manifiesto: Atlas sintetiza un manifiesto mínimo (`kind: compose`, `composeFile: <composePath>`).
-   - **Fase D:** renombrar/ampliar el port; Host deja de asumir Docker como única capacidad (tags `runtime=compose|podman|k8s|…`).
+   - **Fase D:** port genérico `RuntimeOrchestratorPort` (`apply` / `teardown`); Host expone tags `runtimeCapabilities` (`compose` hoy). Compose adapter default; Podman/K8s = adapters futuros.
 
 5. **No reescribir** Hosts / Deployments / Jobs ni Traefik/Tunnel en este ADR. Autopilot sigue siendo capa de política sobre el control plane existente.
 
@@ -99,18 +99,18 @@ Reglas de diseño del schema:
 - (+) Usuario y repo dejan de “hablar Docker”; Compose es un detalle de adapter.
 - (+) Alineado con hexagonal: un port, N runtimes.
 - (+) Migración barata: `composePath` → `runtime.composeFile` sin big-bang.
-- (−) Hasta Fase D el código sigue acoplado a `composeUp` / nombre Compose en el port.
+- (−) Compose adapter sigue siendo el único ejecutor; tags Host aún no persisten en DB ni filtran placement.
 - (−) Riesgo de duplicar verdad (manifiesto vs compose file): mitigar con “composeFile only” como modo válido en v1alpha1.
-- (−) K8s/systemd no se diseñan en detalle aquí; solo se reserva `runtime.kind`.
+- (−) K8s/systemd no se diseñan en detalle aquí; solo se reserva `runtime.kind` / `RuntimeCapability`.
 
 ## Qué no hacer aún
 
 - No implementar motor completo de manifiesto (services/build/health mapping) en el hot path.
-- No eliminar columna `compose_path` de DB en este incremento (fase D+).
+- No eliminar columna `compose_path` de DB en este incremento.
 - No forzar a todos los customer repos a adoptar `atlas.yml` (legacy `composePath` sigue válido).
 - No meter billing/AI ni rewrite de Hosts/Deployments.
-- No ampliar `ContainerRuntimePort` a `apply`/`teardown` genéricos hasta que haya segundo runtime.
+- No segundo adapter runtime (Podman/K8s) hasta que haya demanda; `RuntimeCapability` ya reserva tags.
 
 ## Relación con el siguiente paso operativo
 
-Fases B–C hechas: deploy lee manifiesto; API/UI no exigen `composePath` si el repo trae `runtime.composeFile`; sin manifiesto se sintetiza desde path. Siguiente: fase D (port genérico / Host runtime tags). Ver `docs/roadmap/next-step.md`.
+Fases B–D hechas: deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host anuncia `compose`. Siguiente producto: Pipeline sin host pin (Autopilot por webhook). Ver `docs/roadmap/next-step.md`.

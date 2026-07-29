@@ -5,13 +5,13 @@ import com.atlas.application.networking.EnsureDomainDnsCnameUseCase;
 import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
 import com.atlas.application.port.out.CloudflareTunnelPort;
-import com.atlas.application.port.out.ContainerRuntimePort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.DnsProviderPort;
 import com.atlas.application.port.out.DomainRepositoryPort;
 import com.atlas.application.port.out.GitRepositoryPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
+import com.atlas.application.port.out.RuntimeOrchestratorPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.application.secret.ResolveSecretValueUseCase;
 import com.atlas.domain.deployment.Deployment;
@@ -21,6 +21,7 @@ import com.atlas.domain.networking.Domain;
 import com.atlas.domain.observability.AlertEventType;
 import com.atlas.domain.project.Project;
 import com.atlas.domain.project.ProjectStatus;
+import com.atlas.domain.runtime.RuntimeCapability;
 import com.atlas.domain.service.ServiceExposure;
 import com.atlas.domain.service.ServiceStatus;
 import com.atlas.domain.service.ServiceUnit;
@@ -47,7 +48,7 @@ public class ExecuteDeployServiceJobUseCase {
     private final HostRepositoryPort hostRepository;
     private final DomainRepositoryPort domainRepository;
     private final GitRepositoryPort gitRepository;
-    private final ContainerRuntimePort containerRuntime;
+    private final RuntimeOrchestratorPort runtimeOrchestrator;
     private final ResolveSecretValueUseCase resolveSecretValue;
     private final WorkspacePathResolver workspacePathResolver;
     private final EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
@@ -63,7 +64,7 @@ public class ExecuteDeployServiceJobUseCase {
             HostRepositoryPort hostRepository,
             DomainRepositoryPort domainRepository,
             GitRepositoryPort gitRepository,
-            ContainerRuntimePort containerRuntime,
+            RuntimeOrchestratorPort runtimeOrchestrator,
             ResolveSecretValueUseCase resolveSecretValue,
             WorkspacePathResolver workspacePathResolver,
             EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
@@ -77,7 +78,7 @@ public class ExecuteDeployServiceJobUseCase {
                 hostRepository,
                 domainRepository,
                 gitRepository,
-                containerRuntime,
+                runtimeOrchestrator,
                 resolveSecretValue,
                 workspacePathResolver,
                 evaluateProductAlertsUseCase,
@@ -94,7 +95,7 @@ public class ExecuteDeployServiceJobUseCase {
             HostRepositoryPort hostRepository,
             DomainRepositoryPort domainRepository,
             GitRepositoryPort gitRepository,
-            ContainerRuntimePort containerRuntime,
+            RuntimeOrchestratorPort runtimeOrchestrator,
             ResolveSecretValueUseCase resolveSecretValue,
             WorkspacePathResolver workspacePathResolver,
             EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
@@ -108,7 +109,7 @@ public class ExecuteDeployServiceJobUseCase {
         this.hostRepository = hostRepository;
         this.domainRepository = domainRepository;
         this.gitRepository = gitRepository;
-        this.containerRuntime = containerRuntime;
+        this.runtimeOrchestrator = runtimeOrchestrator;
         this.resolveSecretValue = resolveSecretValue;
         this.workspacePathResolver = workspacePathResolver;
         this.evaluateProductAlertsUseCase = evaluateProductAlertsUseCase;
@@ -164,9 +165,20 @@ public class ExecuteDeployServiceJobUseCase {
                     composePathResolver.resolve(workspace, loaded.service().getComposePath());
             logSink.accept("Using " + compose.describe());
 
-            Optional<String> sshKey = resolveSshKey(loaded.host());
-            containerRuntime.composeUp(
-                    loaded.host(), workspace, compose.composeFilePath(), sshKey, logSink);
+            Host host = loaded.host();
+            if (!host.supportsRuntime(RuntimeCapability.COMPOSE)) {
+                throw new DomainException(
+                        "Host " + host.getHostname() + " does not advertise runtime capability compose");
+            }
+
+            Optional<String> sshKey = resolveSshKey(host);
+            runtimeOrchestrator.apply(new RuntimeOrchestratorPort.RuntimeApplyCommand(
+                    host,
+                    workspace,
+                    RuntimeCapability.COMPOSE,
+                    compose.composeFilePath(),
+                    sshKey,
+                    logSink));
 
             transactionTemplate.executeWithoutResult(status -> {
                 Deployment succeeded = deploymentRepository

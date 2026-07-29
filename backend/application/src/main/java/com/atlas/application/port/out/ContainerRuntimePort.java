@@ -8,7 +8,11 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * Runs docker compose and inspects containers against a host (LOCAL process or remote SSH).
+ * Low-level Docker/container ops against a host (LOCAL process or remote SSH).
+ *
+ * <p>Stack apply/teardown for deploys goes through {@link RuntimeOrchestratorPort}
+ * (ADR-0014 phase D). This port remains for inspect / logs / restart and as the
+ * Compose adapter's delegate.
  */
 public interface ContainerRuntimePort {
 
