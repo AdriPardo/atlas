@@ -54,7 +54,7 @@ export function ProjectsListPage() {
     <PageShell>
       <PageHeader
         title="Projects"
-        description="Projects group deployable services (repo + runtime path)."
+        description="Projects group deployable services (repo + optional runtime path / atlas.yml)."
         actions={
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/projects/new')}>
             New project

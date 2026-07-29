@@ -1,8 +1,8 @@
 # ADR-0014 — Project manifest como fuente de verdad del runtime
 
-- **Estado:** Accepted (fase B parcial: lectura de `runtime.composeFile` en deploy; fases C–D pendientes)
+- **Estado:** Accepted (fases B–C: lectura de manifiesto + `composePath` opcional en API/UI; fase D pendiente)
 - **Fecha:** 2026-07-27
-- **Actualizado:** 2026-07-29 — phase B thin slice en `ExecuteDeployServiceJobUseCase`
+- **Actualizado:** 2026-07-29 — phase C: `composePath` opcional; sintetiza manifiesto mínimo si solo hay path
 
 ## Contexto
 
@@ -99,18 +99,18 @@ Reglas de diseño del schema:
 - (+) Usuario y repo dejan de “hablar Docker”; Compose es un detalle de adapter.
 - (+) Alineado con hexagonal: un port, N runtimes.
 - (+) Migración barata: `composePath` → `runtime.composeFile` sin big-bang.
-- (−) Hasta Fase B el código sigue acoplado a `composeUp` / `composePath`.
+- (−) Hasta Fase D el código sigue acoplado a `composeUp` / nombre Compose en el port.
 - (−) Riesgo de duplicar verdad (manifiesto vs compose file): mitigar con “composeFile only” como modo válido en v1alpha1.
 - (−) K8s/systemd no se diseñan en detalle aquí; solo se reserva `runtime.kind`.
 
 ## Qué no hacer aún
 
 - No implementar motor completo de manifiesto (services/build/health mapping) en el hot path.
-- No eliminar `composePath` de API/DB en este incremento (fase C).
-- No forzar a todos los customer repos a adoptar `atlas.yml` antes de Fase C.
+- No eliminar columna `compose_path` de DB en este incremento (fase D+).
+- No forzar a todos los customer repos a adoptar `atlas.yml` (legacy `composePath` sigue válido).
 - No meter billing/AI ni rewrite de Hosts/Deployments.
 - No ampliar `ContainerRuntimePort` a `apply`/`teardown` genéricos hasta que haya segundo runtime.
 
 ## Relación con el siguiente paso operativo
 
-Fase B thin slice: deploy lee `atlas.yml` / `atlas.project.yml` y usa `runtime.composeFile` con fallback a `composePath`. Siguiente: fase C (composePath opcional en API/UI). Ver `docs/roadmap/next-step.md`.
+Fases B–C hechas: deploy lee manifiesto; API/UI no exigen `composePath` si el repo trae `runtime.composeFile`; sin manifiesto se sintetiza desde path. Siguiente: fase D (port genérico / Host runtime tags). Ver `docs/roadmap/next-step.md`.

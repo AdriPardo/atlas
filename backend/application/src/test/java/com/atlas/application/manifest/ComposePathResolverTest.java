@@ -51,6 +51,24 @@ class ComposePathResolverTest {
     }
 
     @Test
+    void usesManifestWhenComposePathBlank() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  kind: compose
+                  composeFile: from-manifest.yml
+                """);
+
+        ComposePathResolver.Resolution resolution = resolver.resolve(workspace, null);
+
+        assertEquals("from-manifest.yml", resolution.composeFilePath());
+        assertEquals(ComposePathResolver.Source.MANIFEST, resolution.source());
+    }
+
+    @Test
     void fallsBackWhenManifestOmitsComposeFile() throws Exception {
         Files.writeString(
                 workspace.resolve("atlas.yml"),
@@ -67,6 +85,31 @@ class ComposePathResolverTest {
         assertEquals("legacy-compose.yml", resolution.composeFilePath());
         assertEquals(ComposePathResolver.Source.COMPOSE_PATH, resolution.source());
         assertEquals(Optional.of("atlas.yml"), resolution.manifestFileName());
+    }
+
+    @Test
+    void rejectsWhenNeitherManifestComposeFileNorComposePath() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  kind: compose
+                """);
+
+        DomainException ex =
+                assertThrows(DomainException.class, () -> resolver.resolve(workspace, "  "));
+        assertTrue(ex.getMessage().contains("Cannot resolve compose file"));
+        assertTrue(ex.getMessage().contains("without runtime.composeFile"));
+    }
+
+    @Test
+    void rejectsWhenNoManifestAndBlankComposePath() {
+        DomainException ex =
+                assertThrows(DomainException.class, () -> resolver.resolve(workspace, null));
+        assertTrue(ex.getMessage().contains("Cannot resolve compose file"));
+        assertTrue(ex.getMessage().contains("atlas.yml"));
     }
 
     @Test

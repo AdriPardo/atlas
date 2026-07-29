@@ -174,12 +174,18 @@ public class ServiceUnit {
         this.name = requireText(name, "name");
         this.repositoryUrl = requireText(repositoryUrl, "repositoryUrl");
         this.branch = requireText(branch, "branch");
-        this.composePath = requireText(composePath, "composePath");
+        // Optional when repo atlas.yml supplies runtime.composeFile (ADR-0014 phase C).
+        this.composePath = composePath == null ? "" : composePath.trim();
         this.domain = domain == null ? "" : domain.trim();
         this.environment = requireText(environment, "environment");
         this.exposure = Objects.requireNonNull(exposure, "exposure is required");
         this.status = Objects.requireNonNull(status, "status is required");
         this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt is required");
+    }
+
+    /** True when a legacy Compose path is stored (may still be overridden by atlas.yml at deploy). */
+    public boolean hasComposePath() {
+        return composePath != null && !composePath.isBlank();
     }
 
     private static String requireText(String value, String field) {

@@ -135,7 +135,9 @@ export function ProjectDetailPage() {
                     {svc.branch}
                   </DetailField>
                   <DetailField label="Runtime path" mono>
-                    {svc.composePath}
+                    {svc.composePath?.trim()
+                      ? svc.composePath
+                      : 'from atlas.yml (runtime.composeFile)'}
                   </DetailField>
                   <DetailField label="Domain">{svc.domain || '-'}</DetailField>
                 </Stack>

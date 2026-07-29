@@ -23,7 +23,7 @@ public class ServiceJpaMapper {
                 entity.getName(),
                 entity.getRepositoryUrl(),
                 entity.getBranch(),
-                entity.getComposePath(),
+                entity.getComposePath() == null ? "" : entity.getComposePath(),
                 entity.getDomain(),
                 entity.getEnvironment(),
                 exposure,
@@ -42,7 +42,8 @@ public class ServiceJpaMapper {
         entity.setName(domain.getName());
         entity.setRepositoryUrl(domain.getRepositoryUrl());
         entity.setBranch(domain.getBranch());
-        entity.setComposePath(domain.getComposePath());
+        String composePath = domain.getComposePath();
+        entity.setComposePath(composePath == null || composePath.isBlank() ? null : composePath);
         entity.setDomain(domain.getDomain());
         entity.setEnvironment(domain.getEnvironment());
         entity.setExposure(domain.getExposure() == null ? ServiceExposure.PUBLIC.name() : domain.getExposure().name());

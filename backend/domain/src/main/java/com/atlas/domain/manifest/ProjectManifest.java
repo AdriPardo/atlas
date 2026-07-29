@@ -17,6 +17,8 @@ public final class ProjectManifest {
     private final String composeFile;
     private final String sourceFileName;
 
+    public static final String SYNTHESIZED_SOURCE = "(synthesized)";
+
     public ProjectManifest(
             String apiVersion, String kind, String runtimeKind, String composeFile, String sourceFileName) {
         this.apiVersion = requireText(apiVersion, "apiVersion");
@@ -24,6 +26,19 @@ public final class ProjectManifest {
         this.runtimeKind = blankToNull(runtimeKind);
         this.composeFile = blankToNull(composeFile);
         this.sourceFileName = requireText(sourceFileName, "sourceFileName");
+    }
+
+    /**
+     * In-memory minimal manifest for compose-only repos without {@code atlas.yml}
+     * (ADR-0014 phase C).
+     */
+    public static ProjectManifest synthesizeFromComposePath(String composePath) {
+        String path = requireText(composePath, "composePath");
+        return new ProjectManifest(API_VERSION_V1_ALPHA1, KIND_PROJECT, "compose", path, SYNTHESIZED_SOURCE);
+    }
+
+    public boolean isSynthesized() {
+        return SYNTHESIZED_SOURCE.equals(sourceFileName);
     }
 
     public String getApiVersion() {
@@ -46,7 +61,7 @@ public final class ProjectManifest {
         return sourceFileName;
     }
 
-    /** Compose / podman-compose (or omitted kind) are the only runtimes supported in phase B. */
+    /** Compose / podman-compose (or omitted kind) are the only runtimes supported in phase B/C. */
     public boolean isComposeCompatible() {
         if (runtimeKind == null) {
             return true;

@@ -2,46 +2,45 @@
 
 ## Estado del último incremento (completado)
 
-**Lectura de `atlas.yml` en deploy (ADR-0014 fase B / v0.8.9):**
+**`composePath` opcional (ADR-0014 fase C / v0.8.10):**
 
-- Tras clone: si existe `atlas.yml` (o alias `atlas.project.yml`) válido → `runtime.composeFile` alimenta `composeUp`.
-- Sin manifiesto (o sin `composeFile`) → fallback a `Service.composePath` (sin eliminar columna/API).
-- `runtime.kind` omitido / `compose` / `podman-compose` OK; otros kinds → error claro.
-- Tests: loader, resolver, deploy job.
+- Create/update Project+Service: `composePath` ya no `@NotBlank`; DB `services.compose_path` nullable (Flyway V18).
+- Deploy: `atlas.yml` `runtime.composeFile` gana; sin manifiesto → sintetiza manifiesto mínimo en memoria desde `composePath`; sin ambos → error claro.
+- UI New/Edit Project: Runtime path opcional + hint `atlas.yml`.
 
-**Previo:** Cloudflare token scopes in Secrets UI (v0.8.8); Auto-deploy on git push; stale RUNNING recovery; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
+**Previo:** lectura `atlas.yml` en deploy (fase B / v0.8.9); Cloudflare scopes; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**Fase C ligera (ADR-0014):** UI/API dejan de *exigir* `composePath` cuando el repo trae `atlas.yml` con `runtime.composeFile`; campo DB pasa a opcional / derivado. Repos solo-compose sin manifiesto: Atlas sintetiza manifiesto mínimo en memoria.
+**Fase D ligera (ADR-0014):** renombrar/ampliar mental model del port (`composeUp` → orquestación genérica) *sin* segundo runtime aún; o Host tags `runtime=compose` como prep. Alternativa producto: Host opcional en Pipeline (Autopilot en cada webhook).
 
 ## Por qué es el paso más rentable ahora
 
-1. Fase B ya lee el manifiesto en el hot path; falta alinear contrato de producto (create project no fuerza path Compose si hay manifest).
-2. Desbloquea “repo declara cómo correr” de punta a punta sin rewrite de orchestrator.
-3. Aún no toca Hosts / Traefik / Tunnel.
+1. Fase C ya alinea contrato API/UI con manifiesto; falta desacoplar el port nombrado Compose.
+2. Autopilot placement + edge ya maduros; no bloquean.
+3. Segundo runtime (Podman/K8s) aún no; prep del port reduce deuda.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. `composePath` opcional en create/update Service cuando hay manifiesto (o default sintetizado).
-2. UI New Project: path Compose opcional si documentamos `atlas.yml`.
-3. Tests + docs; **aún no** renombrar `ContainerRuntimePort` ni eliminar columna.
+1. Documentar / esbozar `RuntimeOrchestratorPort` (apply/teardown) sobre adapter Compose actual.
+2. O: Pipeline sin `hostId` pin → Autopilot placement por run.
+3. Tests + docs; **aún no** eliminar columna `compose_path`.
 
 ## Secundario (si sobra capacidad)
 
-- Host opcional en Pipeline (Autopilot en cada run webhook) en lugar de `hostId` pinneado.
 - UX Domains: mensaje explícito si Ensure falla por 403 (scopes insuficientes).
+- OpenAPI / deprecations `/applications`.
 
 ## Norte estratégico (no es el siguiente incremento)
 
-**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases C–D (desacoplar / eliminar `composePath`, port genérico). Compose sigue adapter default.
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fase D (port genérico, Host capacity tags). Compose sigue adapter default.
 
 ## Qué no hacer
 
 - No billing/AI/marketplace, no Redis/Kafka obligatorio.
-- No motor completo de manifiesto ni eliminar `composePath` de DB antes de migrar callers (fase C–D).
+- No eliminar `composePath` de DB antes de migrar callers restantes.
 - No `compose down -v` ni tocar `.env` en runbooks de deploy.
 
 ## Definición de éxito (siguiente)
 
-> Crear/actualizar service sin `composePath` obligatorio cuando el repo declara `runtime.composeFile`; deploys legacy con solo `composePath` siguen verdes.
+> Deploy sigue verde con `composePath` opcional + `atlas.yml`; siguiente slice mueve el port hacia orquestación genérica *o* Autopilot por webhook sin host pin.

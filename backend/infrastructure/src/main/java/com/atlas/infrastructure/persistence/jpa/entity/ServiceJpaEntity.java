@@ -26,7 +26,7 @@ public class ServiceJpaEntity {
     @Column(nullable = false, length = 200)
     private String branch;
 
-    @Column(name = "compose_path", nullable = false, length = 500)
+    @Column(name = "compose_path", length = 500)
     private String composePath;
 
     @Column(nullable = false, length = 255)

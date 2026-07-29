@@ -24,6 +24,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.7** | Auto-deploy on git push | One-click pipeline + filtro push/branch + GitHub webhook opcional |
 | **v0.8.8** | Cloudflare token scopes in Secrets UI | Operador ve scopes mínimos Tunnel+DNS al crear el secret |
 | **v0.8.9** | Read `atlas.yml` on deploy (ADR-0014 B) | Repo declara compose file; fallback `composePath` |
+| **v0.8.10** | Optional `composePath` (ADR-0014 C) | Create/update sin path si hay manifiesto; error claro si falta ambos |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -216,6 +217,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Schema de ejemplo y ADR alineados; sin rewrite del orchestrator.
 
 **Criterio done:** deploy con `atlas.yml` usa ese compose file; repo sin manifiesto se comporta igual que antes.
+
+---
+
+## v0.8.10 — Optional composePath (ADR-0014 phase C)
+
+- Create/update Project + Service: `composePath` opcional (`@Size` only); columna `services.compose_path` nullable (V18).
+- Deploy: manifiesto `runtime.composeFile` → path; sin manifiesto → sintetiza manifiesto mínimo desde `composePath`; sin ambos → `DomainException` clara.
+- UI: Runtime path opcional + hint `atlas.yml`; detalle muestra “from atlas.yml” si vacío.
+- Sin eliminar columna ni renombrar `ContainerRuntimePort`.
+
+**Criterio done:** crear service sin `composePath` + repo con `atlas.yml` deployable; legacy solo-`composePath` sigue verde.
 
 ---
 

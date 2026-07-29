@@ -25,7 +25,7 @@ const schema = z.object({
   description: z.string().max(1000).optional(),
   repositoryUrl: z.string().min(1).max(500),
   branch: z.string().min(1).max(200),
-  composePath: z.string().min(1).max(500),
+  composePath: z.string().max(500).optional(),
   domain: z.string().max(255).optional(),
   status: z.enum(['REGISTERED', 'READY', 'DEPLOYING', 'RUNNING', 'STOPPED', 'FAILED']),
 })
@@ -64,7 +64,7 @@ export function ProjectFormPage() {
       description: '',
       repositoryUrl: '',
       branch: 'main',
-      composePath: './docker-compose.yml',
+      composePath: '',
       domain: '',
       status: 'REGISTERED',
     },
@@ -77,7 +77,7 @@ export function ProjectFormPage() {
         description: detailQuery.data.description,
         repositoryUrl: defaultService.repositoryUrl,
         branch: defaultService.branch,
-        composePath: defaultService.composePath,
+        composePath: defaultService.composePath ?? '',
         domain: defaultService.domain,
         status: detailQuery.data.status,
       })
@@ -86,8 +86,16 @@ export function ProjectFormPage() {
 
   const mutation = useMutation({
     mutationFn: async (values: FormValues) => {
+      const composePath = values.composePath?.trim() ? values.composePath.trim() : undefined
       if (!isEdit) {
-        return projectsApi.create(values)
+        return projectsApi.create({
+          name: values.name,
+          description: values.description,
+          repositoryUrl: values.repositoryUrl,
+          branch: values.branch,
+          composePath,
+          domain: values.domain,
+        })
       }
       const project = await projectsApi.update(id!, {
         name: values.name,
@@ -99,7 +107,7 @@ export function ProjectFormPage() {
           name: defaultService.name,
           repositoryUrl: values.repositoryUrl,
           branch: values.branch,
-          composePath: values.composePath,
+          composePath: composePath ?? '',
           domain: values.domain,
           environment: defaultService.environment,
           status: values.status,
@@ -175,11 +183,11 @@ export function ProjectFormPage() {
               {...register('branch')}
             />
             <TextField
-              label="Runtime path"
+              label="Runtime path (optional)"
               error={!!errors.composePath}
               helperText={
                 errors.composePath?.message ??
-                'Path to the runtime definition in the repo (Compose adapter today; atlas.yml later).'
+                'Optional Compose file path. Leave empty if the repo has atlas.yml with runtime.composeFile.'
               }
               {...register('composePath')}
             />

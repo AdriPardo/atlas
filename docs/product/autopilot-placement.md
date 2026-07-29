@@ -7,7 +7,7 @@ The operator **connects an application** (repo + how-to-run). Atlas decides:
 1. **Where** to run it (reuse a shared host vs provision a new VM).
 2. **Whether** it is **world-accessible** (`PUBLIC`) or **internal-only** (`INTERNAL`).
 
-**North star:** a project manifest (`atlas.yml`) is the source of truth for *how to run*; the runtime (Docker Compose today) is a pluggable adapter — see [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md). Autopilot owns placement, exposure, secrets, and edge (Traefik / Tunnel / DNS); the manifest owns services, build, health, and runtime kind. **Phase B:** deploy reads `runtime.composeFile` from `atlas.yml` when present; otherwise **repo + `composePath`**.
+**North star:** a project manifest (`atlas.yml`) is the source of truth for *how to run*; the runtime (Docker Compose today) is a pluggable adapter — see [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md). Autopilot owns placement, exposure, secrets, and edge (Traefik / Tunnel / DNS); the manifest owns services, build, health, and runtime kind. **Phases B–C:** deploy reads `runtime.composeFile` from `atlas.yml` when present; otherwise **repo + optional `composePath`** (synthesized in memory).
 
 The user configures as little as possible. Hosts, SSH, Sync, and Deploy remain the **execution substrate** — not the primary mental model.
 

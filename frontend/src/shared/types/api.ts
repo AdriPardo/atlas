@@ -69,7 +69,7 @@ export interface Service {
   name: string
   repositoryUrl: string
   branch: string
-  composePath: string
+  composePath?: string | null
   domain: string
   environment: string
   exposure?: ServiceExposure

@@ -55,7 +55,7 @@ export const projectsApi = {
     description?: string
     repositoryUrl: string
     branch: string
-    composePath: string
+    composePath?: string
     domain?: string
   }) => api.post<Project>('/projects', body).then((r) => r.data),
   update: (id: string, body: { name: string; description?: string; status: string }) =>
@@ -71,7 +71,7 @@ export const projectsApi = {
       name?: string
       repositoryUrl: string
       branch: string
-      composePath: string
+      composePath?: string
       domain?: string
       environment?: string
     },
@@ -90,7 +90,7 @@ export const servicesApi = {
       name: string
       repositoryUrl: string
       branch: string
-      composePath: string
+      composePath?: string
       domain?: string
       environment?: string
       status: string
