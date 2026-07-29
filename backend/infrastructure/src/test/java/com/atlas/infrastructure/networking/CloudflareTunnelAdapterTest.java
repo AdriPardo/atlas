@@ -11,6 +11,7 @@ import com.atlas.application.port.out.CloudflareTunnelPort;
 import com.atlas.domain.networking.Domain;
 import com.atlas.infrastructure.config.AtlasProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,6 +115,20 @@ class CloudflareTunnelAdapterTest {
                 adapter.ensurePublicHostname(domain, Optional.of("tok"));
 
         assertEquals(CloudflareTunnelPort.EnsureMode.ALREADY_PRESENT, result.mode());
+    }
+
+    @Test
+    void ensureMapsForbiddenToInsufficientScopes() throws Exception {
+        Domain domain = Domain.create(UUID.randomUUID(), "app.atlasops.dev", null);
+        when(httpGateway.get(anyString(), eq("tok")))
+                .thenThrow(new IOException("Cloudflare GET 403: {\"success\":false}"));
+
+        CloudflareTunnelPort.EnsureResult result =
+                adapter.ensurePublicHostname(domain, Optional.of("tok"));
+
+        assertEquals(CloudflareTunnelPort.EnsureMode.FAILED, result.mode());
+        assertTrue(result.message().contains("token scopes insufficient"));
+        assertTrue(result.message().contains("cloudflare.api.token"));
     }
 
     @Test

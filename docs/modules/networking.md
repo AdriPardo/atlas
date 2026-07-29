@@ -33,6 +33,8 @@ CNAME Autopilot (ADR-0013) vía `DnsProviderPort` / `CloudflareDnsAdapter`:
 
 Token scopes: Zone DNS Edit (CNAME) + Tunnel/Cloudflare One Edit (ingress). Un solo secret `cloudflare.api.token` puede cubrir ambos.
 
+Si Ensure recibe **HTTP 403** de Cloudflare, `mode=FAILED` y el mensaje incluye `token scopes insufficient` (+ hint Org/Project secrets). La UI Domains enlaza a `/secrets`.
+
 ## Proxmox (Autopilot ISOLATED)
 
 `VmProvisionerPort` / `ProxmoxVmProvisionerAdapter` (ADR-0012 guest-ready + REUSED):

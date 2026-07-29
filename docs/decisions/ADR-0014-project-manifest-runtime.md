@@ -119,4 +119,4 @@ Reglas de diseño del schema:
 
 ## Relación con el siguiente paso operativo
 
-Fases B–D + pipeline sin host pin (v0.8.12) + capabilities persistidos / filtro placement (v0.8.14): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host anuncia `compose` en DB; webhook/auto-deploy usan Autopilot por run. Siguiente: UX Domains 403 scopes u OpenAPI. Ver `docs/roadmap/next-step.md`.
+Fases B–D + pipeline sin host pin (v0.8.12) + capabilities persistidos / filtro placement (v0.8.14) + UX Domains 403 scopes (v0.8.15): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host anuncia `compose` en DB; webhook/auto-deploy usan Autopilot por run; Ensure 403 → mensaje scopes. Siguiente: OpenAPI / deprecations u sync capabilities. Ver `docs/roadmap/next-step.md`.

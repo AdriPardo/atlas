@@ -122,10 +122,9 @@ public class CloudflareTunnelAdapter implements CloudflareTunnelPort {
                     "Registered public hostname on Cloudflare Tunnel",
                     ingress);
         } catch (Exception ex) {
-            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
             return new EnsureResult(
                     EnsureMode.FAILED,
-                    "Cloudflare Tunnel API failed: " + message + " — use copy ingress as fallback",
+                    CloudflareApiErrorMessages.failedEnsureMessage("Cloudflare Tunnel API", ex),
                     ingress);
         }
     }

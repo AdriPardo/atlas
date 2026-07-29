@@ -102,10 +102,9 @@ public class CloudflareDnsAdapter implements DnsProviderPort {
                     "Created CNAME " + hostname + " → " + target + " (proxied)",
                     spec);
         } catch (Exception ex) {
-            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
             return new CnameEnsureResult(
                     CnameEnsureMode.FAILED,
-                    "Cloudflare DNS API failed: " + message + " — use copy CNAME as fallback",
+                    CloudflareApiErrorMessages.failedEnsureMessage("Cloudflare DNS API", ex),
                     spec);
         }
     }

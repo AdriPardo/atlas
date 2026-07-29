@@ -29,6 +29,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.12** | Pipeline hostId optional + Autopilot webhook | Webhook/run sin pin; placement SHARED por run |
 | **v0.8.13** | `runtime.migrateCommand` hook | App declara migrator; Atlas ejecuta post-compose |
 | **v0.8.14** | Host capabilities DB + placement filter | SHARED solo hosts con `compose`; tags en DB |
+| **v0.8.15** | UX Domains 403 scopes | Ensure Tunnel/DNS: 403 → mensaje scopes + link Secrets |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -276,6 +277,16 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Sin segundo runtime; sin write API de capabilities aún (sync futuro).
 
 **Criterio done:** host sin `compose` no gana SHARED; host con `compose` sigue elegible; deploy compose verde.
+
+---
+
+## v0.8.15 — UX Domains 403 scopes
+
+- Cloudflare Tunnel/DNS Ensure: HTTP **403** → `FAILED` con mensaje `token scopes insufficient` (+ scopes mínimos + hint Org/Project secrets).
+- UI Domains: alerta warning + link a `/secrets` cuando el mensaje indica scopes; Publish no se presenta como éxito si Ensure falló.
+- Otros status Cloudflare siguen mensaje opaco + copy fallback. Sin segundo runtime.
+
+**Criterio done:** Ensure con token sin permisos → UI/API dice scopes; token correcto → Tunnel/DNS Apply/Already present verdes.
 
 ---
 

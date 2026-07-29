@@ -13,6 +13,7 @@ import com.atlas.application.port.out.DnsProviderPort;
 import com.atlas.domain.networking.Domain;
 import com.atlas.infrastructure.config.AtlasProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -139,5 +140,19 @@ class CloudflareDnsAdapterTest {
 
         assertEquals(DnsProviderPort.CnameEnsureMode.UPDATED, result.mode());
         verify(httpGateway).patch(contains("/dns_records/rec-1"), eq("tok"), anyString());
+    }
+
+    @Test
+    void ensureMapsForbiddenToInsufficientScopes() throws Exception {
+        Domain domain = Domain.create(UUID.randomUUID(), "reelpath.atlasops.dev", null);
+        when(httpGateway.get(contains("/dns_records"), eq("tok")))
+                .thenThrow(new IOException("Cloudflare GET 403: Authentication error"));
+
+        DnsProviderPort.CnameEnsureResult result =
+                adapter.ensureCname(domain, "tunnel-abc.cfargotunnel.com", Optional.of("tok"));
+
+        assertEquals(DnsProviderPort.CnameEnsureMode.FAILED, result.mode());
+        assertTrue(result.message().contains("token scopes insufficient"));
+        assertTrue(result.message().contains("cloudflare.api.token"));
     }
 }

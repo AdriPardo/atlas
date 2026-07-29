@@ -37,6 +37,7 @@ Without zone/tunnel/token, Atlas still returns the exact paste values (mode `MAN
 - Tunnel Public Hostname: Account → Cloudflare Tunnel / Cloudflare One → Edit.
 - DNS CNAME: Zone → DNS → Edit (on `ATLAS_CF_ZONE`).
 - One token with both scopes is fine; same secret name `cloudflare.api.token`.
+- **HTTP 403** on Ensure → API/UI message `token scopes insufficient` (not a raw Cloudflare dump). Fix scopes under Org secrets / Project secrets, then retry. Copy blocks still work as fallback.
 
 ## Manual step (Zero Trust) — only if Ensure is MANUAL/FAILED
 

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
+  Link,
   MenuItem,
   Stack,
   Table,
@@ -13,6 +14,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useState } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import { domainsApi } from '../../shared/api/endpoints'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
@@ -20,11 +22,35 @@ import { QueryState } from '../../shared/components/QueryState'
 import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 import type { DnsCname, Service, TunnelIngress } from '../../shared/types/api'
+import {
+  cloudflareScopesFailureHint,
+  isCloudflareScopesFailure,
+} from './cloudflareScopesFailure'
 
 type PreviewState = {
   title: string
   body: string
   hint?: string
+  severity?: 'info' | 'warning' | 'error'
+  scopesFailure?: boolean
+}
+
+function previewFromEnsure(
+  productTitle: string,
+  mode: string | null | undefined,
+  message: string | null | undefined,
+  copyBlock: string,
+  hint?: string,
+): PreviewState {
+  const scopesFailure = isCloudflareScopesFailure(mode, message)
+  const failed = mode === 'FAILED'
+  return {
+    title: formatModeTitle(mode, productTitle),
+    body: [message, '', copyBlock].filter(Boolean).join('\n'),
+    hint: scopesFailure ? cloudflareScopesFailureHint() : hint,
+    severity: scopesFailure ? 'warning' : failed ? 'error' : 'info',
+    scopesFailure,
+  }
 }
 
 function formatModeTitle(mode: string | null | undefined, productTitle: string) {
@@ -109,11 +135,15 @@ export function ProjectDomainsPanel({
   const ensurePublicAccessOnly = useMutation({
     mutationFn: (domainId: string) => domainsApi.ensureTunnel(domainId),
     onSuccess: (data: TunnelIngress) => {
-      setPreview({
-        title: formatModeTitle(data.mode, 'Public access'),
-        body: [data.message, '', data.copyBlock].filter(Boolean).join('\n'),
-        hint: data.zeroTrustHint,
-      })
+      setPreview(
+        previewFromEnsure(
+          'Public access',
+          data.mode,
+          data.message,
+          data.copyBlock,
+          data.zeroTrustHint ?? undefined,
+        ),
+      )
     },
   })
 
@@ -131,11 +161,15 @@ export function ProjectDomainsPanel({
   const ensureDnsOnly = useMutation({
     mutationFn: (domainId: string) => domainsApi.ensureDnsCname(domainId),
     onSuccess: async (data: DnsCname) => {
-      setPreview({
-        title: formatModeTitle(data.mode, 'DNS'),
-        body: [data.message, '', data.copyBlock].filter(Boolean).join('\n'),
-        hint: 'Proxied CNAME → public access target',
-      })
+      setPreview(
+        previewFromEnsure(
+          'DNS',
+          data.mode,
+          data.message,
+          data.copyBlock,
+          'Proxied CNAME → public access target',
+        ),
+      )
       await invalidateDomains()
     },
   })
@@ -149,8 +183,16 @@ export function ProjectDomainsPanel({
       return { tunnel, dns }
     },
     onSuccess: async ({ tunnel, dns }) => {
+      const scopesFailure =
+        isCloudflareScopesFailure(tunnel.mode, tunnel.message) ||
+        isCloudflareScopesFailure(dns.mode, dns.message)
+      const failed = tunnel.mode === 'FAILED' || dns.mode === 'FAILED'
       setPreview({
-        title: 'Published',
+        title: scopesFailure
+          ? 'Publish blocked · token scopes'
+          : failed
+            ? 'Publish incomplete'
+            : 'Published',
         body: [
           tunnel.message,
           dns.message,
@@ -163,7 +205,11 @@ export function ProjectDomainsPanel({
         ]
           .filter((line) => line !== undefined)
           .join('\n'),
-        hint: tunnel.zeroTrustHint,
+        hint: scopesFailure
+          ? cloudflareScopesFailureHint()
+          : (tunnel.zeroTrustHint ?? undefined),
+        severity: scopesFailure ? 'warning' : failed ? 'error' : 'info',
+        scopesFailure,
       })
       await invalidateDomains()
     },
@@ -336,7 +382,11 @@ export function ProjectDomainsPanel({
         )}
       </QueryState>
       {preview && (
-        <Alert severity="info" variant="outlined" onClose={() => setPreview(null)}>
+        <Alert
+          severity={preview.severity ?? 'info'}
+          variant="outlined"
+          onClose={() => setPreview(null)}
+        >
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
             <Typography variant="subtitle2" sx={{ flex: 1 }}>
               {preview.title}
@@ -348,6 +398,15 @@ export function ProjectDomainsPanel({
           {preview.hint && (
             <Typography variant="caption" display="block" sx={{ mb: 0.5, opacity: 0.85 }}>
               {preview.hint}
+            </Typography>
+          )}
+          {preview.scopesFailure && (
+            <Typography variant="body2" sx={{ mb: 0.5 }}>
+              Open{' '}
+              <Link component={RouterLink} to="/secrets">
+                Org secrets
+              </Link>{' '}
+              (or Project secrets) to fix scopes on the Cloudflare token, then retry.
             </Typography>
           )}
           <Typography

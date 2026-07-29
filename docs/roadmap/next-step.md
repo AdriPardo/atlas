@@ -2,38 +2,39 @@
 
 ## Estado del último incremento (completado)
 
-**Host `runtimeCapabilities` persistidos + filtro placement SHARED (v0.8.14):**
+**UX Domains 403 scopes (v0.8.15):**
 
-- Flyway V20: columna `hosts.runtime_capabilities` JSONB (default `["compose"]`).
-- Domain `Host` guarda tags; create default `compose`; `replaceRuntimeCapabilities` para sync futuro.
-- `AutopilotPlacementService` SHARED filtra hosts con `supportsRuntime(COMPOSE)`; si ninguno → seed `atlas-local`.
-- API response sin cambio de contrato (tags desde DB). Tests placement + domain.
+- `CloudflareApiErrorMessages`: 403 Tunnel/DNS → mensaje `token scopes insufficient` (+ scopes + Org/Project secrets hint).
+- Adapters Ensure `FAILED` con frase estable; tests unitarios.
+- UI Domains: warning + link `/secrets` si scopes; Publish incompleto si Ensure falló.
+- Docs networking + public-customer-hostname.
 
-**Previo:** Pipeline `hostId` opcional + Autopilot webhook (v0.8.12); `migrateCommand` (v0.8.13); `RuntimeOrchestratorPort` (fase D); `composePath` opcional (fase C); lectura `atlas.yml` (fase B); Cloudflare scopes; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
+**Previo:** Host `runtimeCapabilities` DB + filtro placement (v0.8.14); Pipeline `hostId` opcional (v0.8.12); `migrateCommand` (v0.8.13); RuntimeOrchestratorPort; composePath opcional; atlas.yml; Cloudflare scopes UI; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**UX Domains 403 scopes** (mensaje explícito si Ensure falla por token insuficiente), o OpenAPI / deprecations `/applications`. Alternativa: sync Host que detecte capabilities reales (Docker/Podman).
+**OpenAPI / deprecations `/applications`**, o sync Host que detecte capabilities reales (Docker/Podman). Alternativa: billing/usage meters (v0.9).
 
 ## Por qué es el paso más rentable ahora
 
-1. Placement ya filtra por capability; operador aún tropieza con Cloudflare 403 opaco.
-2. OpenAPI/deprecations cierran deuda API antes de v0.9.
-3. Segundo runtime (Podman/K8s) aún no; adapters adicionales esperan demanda.
+1. Operador ya entiende 403 scopes; deuda API (OpenAPI + sunset `/applications`) bloquea v0.9 polish.
+2. Sync capabilities habilita segundo runtime cuando haya demanda Podman/K8s.
+3. Billing meters cierran envelope comercial.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Domains Ensure: mapear 403 Cloudflare → mensaje “token scopes insuficientes” (+ link a scopes UI).
-2. Tests + docs; sin segundo runtime.
+1. Publicar OpenAPI (o regenerar) + marcar/retirar alias `/applications` según sunset.
+2. O: Host sync enriquece `runtime_capabilities` desde inspección runtime.
+3. Tests + docs; sin segundo runtime obligatorio.
 
 ## Secundario (si sobra capacidad)
 
-- OpenAPI / deprecations `/applications`.
-- Sync Host: enriquecer `runtime_capabilities` desde inspección runtime.
+- Sync Host capabilities desde Docker/Podman probe.
+- Performance pass / usage meters (v0.9).
 
 ## Norte estratégico (no es el siguiente incremento)
 
-**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + pipeline sin pin + capabilities DB hechas; siguiente motor = adapters adicionales. Compose sigue adapter default.
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + pipeline sin pin + capabilities DB + UX scopes hechas; siguiente motor = adapters adicionales. Compose sigue adapter default.
 
 ## Qué no hacer
 
@@ -43,4 +44,4 @@
 
 ## Definición de éxito (siguiente)
 
-> Ensure Domain falla por scopes → UI/API dice scopes faltantes; create Tunnel/DNS sigue verde con token correcto.
+> OpenAPI usable por clientes externos y/o `/applications` deprecado con path claro; o Host sync escribe capabilities reales sin romper placement compose.
