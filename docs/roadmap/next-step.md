@@ -2,39 +2,38 @@
 
 ## Estado del último incremento (completado)
 
-**Pipeline `hostId` opcional + Autopilot en webhook/run (v0.8.12):**
+**Host `runtimeCapabilities` persistidos + filtro placement SHARED (v0.8.14):**
 
-- `Pipeline.hostId` nullable (Flyway V19); create/update/enable-auto-deploy sin pin obligatorio.
-- `enable-auto-deploy` guarda pipeline sin host por defecto (Reelpath-safe: SHARED vía Autopilot en cada push).
-- `RunPipeline` / webhook pasan `hostId` null → `DeployServiceUseCase` → `AutopilotPlacementService.resolveHost` (SHARED; ISOLATED si el deploy lo pide).
-- UI Pipeline: host en Advanced opcional; detalle/lista muestran “Autopilot”.
+- Flyway V20: columna `hosts.runtime_capabilities` JSONB (default `["compose"]`).
+- Domain `Host` guarda tags; create default `compose`; `replaceRuntimeCapabilities` para sync futuro.
+- `AutopilotPlacementService` SHARED filtra hosts con `supportsRuntime(COMPOSE)`; si ninguno → seed `atlas-local`.
+- API response sin cambio de contrato (tags desde DB). Tests placement + domain.
 
-**Previo:** `RuntimeOrchestratorPort` + Host `runtimeCapabilities` (fase D); `composePath` opcional (fase C); lectura `atlas.yml` (fase B); Cloudflare scopes; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
+**Previo:** Pipeline `hostId` opcional + Autopilot webhook (v0.8.12); `migrateCommand` (v0.8.13); `RuntimeOrchestratorPort` (fase D); `composePath` opcional (fase C); lectura `atlas.yml` (fase B); Cloudflare scopes; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**Persistir Host `runtimeCapabilities` en DB + filtro en placement**, o UX Domains 403 scopes (mensaje explícito si Ensure falla por token insuficiente). Alternativa: OpenAPI / deprecations `/applications`.
+**UX Domains 403 scopes** (mensaje explícito si Ensure falla por token insuficiente), o OpenAPI / deprecations `/applications`. Alternativa: sync Host que detecte capabilities reales (Docker/Podman).
 
 ## Por qué es el paso más rentable ahora
 
-1. Webhook ya no pinnea host; placement puede filtrar por capability cuando tags existan en DB.
-2. Domains 403 es dolor operador real y acotado.
-3. Segundo runtime (Podman/K8s) aún no; adapters adicionales esperan tags.
+1. Placement ya filtra por capability; operador aún tropieza con Cloudflare 403 opaco.
+2. OpenAPI/deprecations cierran deuda API antes de v0.9.
+3. Segundo runtime (Podman/K8s) aún no; adapters adicionales esperan demanda.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Columna / sync `runtime_capabilities` en Host (hoy derivado en dominio).
-2. Placement SHARED filtra hosts que anuncien `compose` (o capability pedida).
-3. Tests + docs; sin segundo runtime aún.
+1. Domains Ensure: mapear 403 Cloudflare → mensaje “token scopes insuficientes” (+ link a scopes UI).
+2. Tests + docs; sin segundo runtime.
 
 ## Secundario (si sobra capacidad)
 
-- UX Domains: mensaje explícito si Ensure falla por 403 (scopes insuficientes).
 - OpenAPI / deprecations `/applications`.
+- Sync Host: enriquecer `runtime_capabilities` desde inspección runtime.
 
 ## Norte estratégico (no es el siguiente incremento)
 
-**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + pipeline sin pin hechas; siguiente motor = adapters adicionales / tags persistidos. Compose sigue adapter default.
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + pipeline sin pin + capabilities DB hechas; siguiente motor = adapters adicionales. Compose sigue adapter default.
 
 ## Qué no hacer
 
@@ -44,4 +43,4 @@
 
 ## Definición de éxito (siguiente)
 
-> Placement elige solo hosts con capability compatible; Host API/DB alineados; deploy compose sigue verde.
+> Ensure Domain falla por scopes → UI/API dice scopes faltantes; create Tunnel/DNS sigue verde con token correcto.

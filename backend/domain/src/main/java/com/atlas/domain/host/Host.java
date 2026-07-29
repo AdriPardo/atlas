@@ -3,6 +3,7 @@ package com.atlas.domain.host;
 import com.atlas.domain.runtime.RuntimeCapability;
 import com.atlas.domain.shared.DomainException;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -23,6 +24,8 @@ public class Host {
     private String sshUser;
     private int sshPort;
     private UUID sshPrivateKeySecretId;
+    @Getter(lombok.AccessLevel.NONE)
+    private Set<RuntimeCapability> runtimeCapabilities;
     private final Instant createdAt;
     private Instant updatedAt;
 
@@ -37,10 +40,12 @@ public class Host {
             String sshUser,
             int sshPort,
             UUID sshPrivateKeySecretId,
+            Set<RuntimeCapability> runtimeCapabilities,
             Instant createdAt,
             Instant updatedAt) {
         this.id = Objects.requireNonNull(id, "id is required");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+        this.runtimeCapabilities = normalizeCapabilities(runtimeCapabilities);
         apply(
                 hostname,
                 ip,
@@ -64,6 +69,30 @@ public class Host {
             String sshUser,
             Integer sshPort,
             UUID sshPrivateKeySecretId) {
+        return create(
+                hostname,
+                ip,
+                operatingSystem,
+                dockerVersion,
+                online,
+                connectionType,
+                sshUser,
+                sshPort,
+                sshPrivateKeySecretId,
+                Set.of(RuntimeCapability.COMPOSE));
+    }
+
+    public static Host create(
+            String hostname,
+            String ip,
+            String operatingSystem,
+            String dockerVersion,
+            boolean online,
+            ConnectionType connectionType,
+            String sshUser,
+            Integer sshPort,
+            UUID sshPrivateKeySecretId,
+            Set<RuntimeCapability> runtimeCapabilities) {
         Instant now = Instant.now();
         return new Host(
                 UUID.randomUUID(),
@@ -76,6 +105,7 @@ public class Host {
                 sshUser,
                 sshPort == null ? 22 : sshPort,
                 sshPrivateKeySecretId,
+                runtimeCapabilities,
                 now,
                 now);
     }
@@ -93,6 +123,36 @@ public class Host {
             UUID sshPrivateKeySecretId,
             Instant createdAt,
             Instant updatedAt) {
+        return rehydrate(
+                id,
+                hostname,
+                ip,
+                operatingSystem,
+                dockerVersion,
+                online,
+                connectionType,
+                sshUser,
+                sshPort,
+                sshPrivateKeySecretId,
+                Set.of(RuntimeCapability.COMPOSE),
+                createdAt,
+                updatedAt);
+    }
+
+    public static Host rehydrate(
+            UUID id,
+            String hostname,
+            String ip,
+            String operatingSystem,
+            String dockerVersion,
+            boolean online,
+            ConnectionType connectionType,
+            String sshUser,
+            int sshPort,
+            UUID sshPrivateKeySecretId,
+            Set<RuntimeCapability> runtimeCapabilities,
+            Instant createdAt,
+            Instant updatedAt) {
         return new Host(
                 id,
                 hostname,
@@ -104,6 +164,7 @@ public class Host {
                 sshUser,
                 sshPort,
                 sshPrivateKeySecretId,
+                runtimeCapabilities,
                 createdAt,
                 updatedAt);
     }
@@ -145,6 +206,12 @@ public class Host {
                 Instant.now());
     }
 
+    /** Replace advertised runtime tags (sync / provision may expand beyond compose). */
+    public void replaceRuntimeCapabilities(Collection<RuntimeCapability> capabilities) {
+        this.runtimeCapabilities = normalizeCapabilities(capabilities);
+        this.updatedAt = Instant.now();
+    }
+
     private void apply(
             String hostname,
             String ip,
@@ -176,24 +243,37 @@ public class Host {
     }
 
     /**
-     * Runtime capacity tags (ADR-0014 phase D). Today every Atlas host advertises
-     * {@code compose}; later sync/provision may add {@code podman}/{@code k8s}/….
+     * Runtime capacity tags (ADR-0014). Persisted on Host; create defaults to {@code compose}.
      */
     public Set<RuntimeCapability> runtimeCapabilities() {
-        Set<RuntimeCapability> caps = new LinkedHashSet<>();
-        caps.add(RuntimeCapability.COMPOSE);
-        return Set.copyOf(caps);
+        return Set.copyOf(runtimeCapabilities);
     }
 
     public boolean supportsRuntime(RuntimeCapability capability) {
-        return capability != null && runtimeCapabilities().contains(capability);
+        return capability != null && runtimeCapabilities.contains(capability);
     }
 
     /** Wire-format tags for API / placement filters ({@code compose}, …). */
     public Set<String> runtimeCapabilityTags() {
-        return runtimeCapabilities().stream()
+        return runtimeCapabilities.stream()
                 .map(RuntimeCapability::tag)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static Set<RuntimeCapability> normalizeCapabilities(Collection<RuntimeCapability> capabilities) {
+        if (capabilities == null || capabilities.isEmpty()) {
+            return Set.of(RuntimeCapability.COMPOSE);
+        }
+        Set<RuntimeCapability> normalized = new LinkedHashSet<>();
+        for (RuntimeCapability capability : capabilities) {
+            if (capability != null) {
+                normalized.add(capability);
+            }
+        }
+        if (normalized.isEmpty()) {
+            return Set.of(RuntimeCapability.COMPOSE);
+        }
+        return Set.copyOf(normalized);
     }
 
     private static String requireText(String value, String field) {

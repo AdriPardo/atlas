@@ -28,6 +28,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.11** | RuntimeOrchestratorPort (ADR-0014 D) | Deploy vía port genérico; Host `runtimeCapabilities`; Compose adapter |
 | **v0.8.12** | Pipeline hostId optional + Autopilot webhook | Webhook/run sin pin; placement SHARED por run |
 | **v0.8.13** | `runtime.migrateCommand` hook | App declara migrator; Atlas ejecuta post-compose |
+| **v0.8.14** | Host capabilities DB + placement filter | SHARED solo hosts con `compose`; tags en DB |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -264,6 +265,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Sin wipe de DB; sin convertir customer apps a Flyway de Atlas.
 
 **Criterio done:** manifiesto con `migrateCommand` → aparece en logs de deploy; sin campo → sin hook; tests verdes.
+
+---
+
+## v0.8.14 — Host runtimeCapabilities persisted + placement filter
+
+- Flyway V20: `hosts.runtime_capabilities` JSONB default `["compose"]`.
+- Domain/API: tags leídos desde DB (create sigue anunciando `compose`).
+- `AutopilotPlacementService` SHARED: solo candidatos con `supportsRuntime(COMPOSE)`; vacío → seed `atlas-local`.
+- Sin segundo runtime; sin write API de capabilities aún (sync futuro).
+
+**Criterio done:** host sin `compose` no gana SHARED; host con `compose` sigue elegible; deploy compose verde.
 
 ---
 

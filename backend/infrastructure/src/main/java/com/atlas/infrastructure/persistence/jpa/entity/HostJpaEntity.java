@@ -45,6 +45,10 @@ public class HostJpaEntity {
     @Column(name = "ssh_private_key_secret_id")
     private UUID sshPrivateKeySecretId;
 
+    /** JSON array of capability tags; column type is jsonb in PostgreSQL. */
+    @Column(name = "runtime_capabilities", nullable = false, columnDefinition = "jsonb")
+    private String runtimeCapabilities = "[\"compose\"]";
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -129,6 +133,14 @@ public class HostJpaEntity {
 
     public void setSshPrivateKeySecretId(UUID sshPrivateKeySecretId) {
         this.sshPrivateKeySecretId = sshPrivateKeySecretId;
+    }
+
+    public String getRuntimeCapabilities() {
+        return runtimeCapabilities;
+    }
+
+    public void setRuntimeCapabilities(String runtimeCapabilities) {
+        this.runtimeCapabilities = runtimeCapabilities;
     }
 
     public Instant getCreatedAt() {

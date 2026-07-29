@@ -1,6 +1,6 @@
 # ADR-0014 — Project manifest como fuente de verdad del runtime
 
-- **Estado:** Accepted (fases B–D + migrate hook opcional: lectura manifiesto + `composePath` opcional + `RuntimeOrchestratorPort` / Host capability tags; segundo runtime pendiente)
+- **Estado:** Accepted (fases B–D + migrate hook + capabilities DB/placement filter; segundo runtime pendiente)
 - **Fecha:** 2026-07-27
 - **Actualizado:** 2026-07-29 — `runtime.migrateCommand` opcional (Atlas no posee ORM; app declara el comando)
 
@@ -13,7 +13,7 @@ Hoy el path de deploy acopla la intención del usuario a tecnologías concretas:
 | Modelo `Service` / `Project` | Campo obligatorio `composePath` (p. ej. `docker-compose.atlas.yml`) |
 | Job `DEPLOY_SERVICE` | `GitRepositoryPort.cloneOrUpdate` → `RuntimeOrchestratorPort.apply(...)` (Compose adapter → `composeUp`) |
 | `ContainerRuntimePort` | Inspect/logs/restart + delegate Compose; stack apply vía `RuntimeOrchestratorPort` |
-| Host | `dockerVersion` + `runtimeCapabilities` (`compose` hoy); sync orientado a Docker |
+| Host | `dockerVersion` + `runtimeCapabilities` persistidos (`compose` default); sync orientado a Docker |
 | Edge Autopilot | Traefik labels + Cloudflare Tunnel + DNS CNAME (correcto como *platform* edge, no como “cómo arrancar la app”) |
 | Producto / UI | “New Project = repo + compose path opcional”; Autopilot placement asume compose en el host |
 
@@ -119,4 +119,4 @@ Reglas de diseño del schema:
 
 ## Relación con el siguiente paso operativo
 
-Fases B–D + pipeline sin host pin (v0.8.12): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host anuncia `compose`; webhook/auto-deploy usan Autopilot por run. Siguiente: tags capability persistidos / filtros placement. Ver `docs/roadmap/next-step.md`.
+Fases B–D + pipeline sin host pin (v0.8.12) + capabilities persistidos / filtro placement (v0.8.14): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host anuncia `compose` en DB; webhook/auto-deploy usan Autopilot por run. Siguiente: UX Domains 403 scopes u OpenAPI. Ver `docs/roadmap/next-step.md`.

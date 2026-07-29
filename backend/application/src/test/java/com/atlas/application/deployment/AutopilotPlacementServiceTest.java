@@ -2,6 +2,7 @@ package com.atlas.application.deployment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -17,8 +18,10 @@ import com.atlas.domain.host.ConnectionType;
 import com.atlas.domain.host.Host;
 import com.atlas.domain.job.Job;
 import com.atlas.domain.job.JobType;
+import com.atlas.domain.runtime.RuntimeCapability;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +59,53 @@ class AutopilotPlacementServiceTest {
         assertEquals(localOnline.getId(), chosen.getId());
         verify(hostRepository, never()).save(any());
         verify(vmProvisioner, never()).provision(any(), any());
+    }
+
+    @Test
+    void sharedSkipsHostsWithoutComposeCapability() {
+        Host k8sOnly = Host.create(
+                "k8s-only",
+                "10.0.0.8",
+                "linux",
+                "",
+                true,
+                ConnectionType.LOCAL,
+                null,
+                22,
+                null,
+                Set.of(RuntimeCapability.K8S));
+        Host composeHost = Host.create("compose-box", "127.0.0.1", "linux", "", false, ConnectionType.SSH, "root", 22, null);
+        when(hostRepository.listForPlacement()).thenReturn(List.of(k8sOnly, composeHost));
+
+        Host chosen = service.resolveHost(null);
+
+        assertEquals(composeHost.getId(), chosen.getId());
+        verify(hostRepository, never()).save(any());
+    }
+
+    @Test
+    void sharedSeedsDefaultWhenNoComposeCapableHost() {
+        Host k8sOnly = Host.create(
+                "k8s-only",
+                "10.0.0.8",
+                "linux",
+                "",
+                true,
+                ConnectionType.LOCAL,
+                null,
+                22,
+                null,
+                Set.of(RuntimeCapability.K8S));
+        when(hostRepository.listForPlacement()).thenReturn(List.of(k8sOnly));
+        when(hostRepository.findByHostnameIgnoreCase(AutopilotPlacementService.DEFAULT_LOCAL_HOSTNAME))
+                .thenReturn(Optional.empty());
+        when(hostRepository.save(any(Host.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Host chosen = service.resolveHost(null);
+
+        assertEquals(AutopilotPlacementService.DEFAULT_LOCAL_HOSTNAME, chosen.getHostname());
+        assertTrue(chosen.supportsRuntime(RuntimeCapability.COMPOSE));
+        verify(hostRepository).save(any(Host.class));
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.atlas.application.secret.ResolveSecretValueUseCase;
 import com.atlas.domain.deployment.PlacementMode;
 import com.atlas.domain.host.ConnectionType;
 import com.atlas.domain.host.Host;
+import com.atlas.domain.runtime.RuntimeCapability;
 import com.atlas.domain.shared.NotFoundException;
 import java.util.Comparator;
 import java.util.List;
@@ -151,7 +152,17 @@ public class AutopilotPlacementService {
     }
 
     private Host resolveSharedLocal() {
-        List<Host> hosts = hostRepository.listForPlacement();
+        return resolveSharedLocal(RuntimeCapability.COMPOSE);
+    }
+
+    /**
+     * SHARED placement: score only hosts that advertise the required runtime capability
+     * (compose today; future runtimes pass their tag).
+     */
+    private Host resolveSharedLocal(RuntimeCapability required) {
+        List<Host> hosts = hostRepository.listForPlacement().stream()
+                .filter(host -> host.supportsRuntime(required))
+                .toList();
         if (hosts.isEmpty()) {
             return ensureDefaultLocalHost();
         }

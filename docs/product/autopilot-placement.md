@@ -7,7 +7,7 @@ The operator **connects an application** (repo + how-to-run). Atlas decides:
 1. **Where** to run it (reuse a shared host vs provision a new VM).
 2. **Whether** it is **world-accessible** (`PUBLIC`) or **internal-only** (`INTERNAL`).
 
-**North star:** a project manifest (`atlas.yml`) is the source of truth for *how to run*; the runtime (Docker Compose today) is a pluggable adapter — see [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md). Autopilot owns placement, exposure, secrets, and edge (Traefik / Tunnel / DNS); the manifest owns services, build, health, and runtime kind. **Phases B–D:** deploy reads `runtime.composeFile` from `atlas.yml` when present; otherwise **repo + optional `composePath`** (synthesized in memory); stack apply goes through `RuntimeOrchestratorPort` (Compose adapter); Host advertises `runtimeCapabilities` (`compose`).
+**North star:** a project manifest (`atlas.yml`) is the source of truth for *how to run*; the runtime (Docker Compose today) is a pluggable adapter — see [ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md). Autopilot owns placement, exposure, secrets, and edge (Traefik / Tunnel / DNS); the manifest owns services, build, health, and runtime kind. **Phases B–D + v0.8.14:** deploy reads `runtime.composeFile` from `atlas.yml` when present; otherwise **repo + optional `composePath`** (synthesized in memory); stack apply goes through `RuntimeOrchestratorPort` (Compose adapter); Host persists `runtimeCapabilities` (`compose` default); SHARED placement filters by capability.
 
 The user configures as little as possible. Hosts, SSH, Sync, and Deploy remain the **execution substrate** — not the primary mental model.
 
@@ -28,7 +28,7 @@ Optional (collapsed “Advanced”): override target host. Day-to-day operators 
 Connect app → Deploy(exposure?, placementMode?)
         │
         ├─ Placement (ADR-0012)
-        │     SHARED (default) → LOCAL / atlas-local / online heuristic
+        │     SHARED (default) → hosts with compose capability; LOCAL / atlas-local / online heuristic
         │     ISOLATED → VmProvisionerPort (Proxmox)
         │           CREATED/REUSED + IP → register Host SSH → use it
         │           else → fall back to SHARED LOCAL
