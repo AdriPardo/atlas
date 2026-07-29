@@ -2873,6 +2873,71 @@
         }
       }
     },
+    "/api/v1/billing/usage" : {
+      "get" : {
+        "tags" : [ "Billing" ],
+        "summary" : "List usage meter records (ADMIN)",
+        "operationId" : "usage",
+        "parameters" : [ {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 50
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseUsageRecordResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/billing/entitlements" : {
+      "get" : {
+        "tags" : [ "Billing" ],
+        "summary" : "Current plan entitlements and live gauges (ADMIN)",
+        "operationId" : "entitlements",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlanEntitlementsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/audit" : {
       "get" : {
         "tags" : [ "audit-controller" ],
@@ -4678,6 +4743,124 @@
           "deployments" : {
             "type" : "integer",
             "format" : "int64"
+          }
+        }
+      },
+      "PageResponseUsageRecordResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/UsageRecordResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "UsageRecordResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "meter" : {
+            "type" : "string"
+          },
+          "quantity" : {
+            "type" : "number"
+          },
+          "periodStart" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "periodEnd" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "dimensions" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "LiveGaugeResponse" : {
+        "type" : "object",
+        "properties" : {
+          "meter" : {
+            "type" : "string"
+          },
+          "quantity" : {
+            "type" : "number"
+          }
+        }
+      },
+      "PlanEntitlementResponse" : {
+        "type" : "object",
+        "properties" : {
+          "planCode" : {
+            "type" : "string"
+          },
+          "meter" : {
+            "type" : "string"
+          },
+          "limitQuantity" : {
+            "type" : "number"
+          },
+          "unit" : {
+            "type" : "string"
+          },
+          "priceCents" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "soft" : {
+            "type" : "boolean"
+          },
+          "unlimited" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "PlanEntitlementsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "planCode" : {
+            "type" : "string"
+          },
+          "entitlements" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PlanEntitlementResponse"
+            }
+          },
+          "gauges" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LiveGaugeResponse"
+            }
           }
         }
       },

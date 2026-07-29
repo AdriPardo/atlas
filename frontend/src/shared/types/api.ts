@@ -318,6 +318,37 @@ export interface AuditEntry {
   createdAt: string
 }
 
+export interface UsageRecord {
+  id: string
+  meter: string
+  quantity: number
+  periodStart: string
+  periodEnd: string
+  dimensions: string
+  createdAt: string
+}
+
+export interface PlanEntitlement {
+  planCode: string
+  meter: string
+  limitQuantity: number
+  unit: string
+  priceCents: number
+  soft: boolean
+  unlimited: boolean
+}
+
+export interface LiveGauge {
+  meter: string
+  quantity: number
+}
+
+export interface PlanEntitlements {
+  planCode: string
+  entitlements: PlanEntitlement[]
+  gauges: LiveGauge[]
+}
+
 export type NotificationChannelType = 'WEBHOOK' | 'EMAIL'
 export type AlertEventType = 'DEPLOY_FAILED' | 'JOB_FAILED'
 export type AlertRuleStatus = 'OK' | 'PENDING' | 'FIRING' | 'SILENCED'

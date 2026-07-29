@@ -3,11 +3,13 @@ package com.atlas.application.deployment;
 import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.audit.RecordAuditUseCase;
 import com.atlas.application.job.EnqueueJobUseCase;
+import com.atlas.application.port.out.BillingMeterPort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.DomainRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.domain.access.ProjectPermission;
+import com.atlas.domain.billing.UsageMeters;
 import com.atlas.domain.deployment.Deployment;
 import com.atlas.domain.deployment.PlacementMode;
 import com.atlas.domain.host.Host;
@@ -20,7 +22,9 @@ import com.atlas.domain.service.ServiceExposure;
 import com.atlas.domain.service.ServiceStatus;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.domain.shared.NotFoundException;
+import java.math.BigDecimal;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,6 +42,7 @@ public class DeployServiceUseCase {
     private final EnqueueJobUseCase enqueueJobUseCase;
     private final ProjectAuthorizationService authorizationService;
     private final RecordAuditUseCase recordAuditUseCase;
+    private final BillingMeterPort billingMeter;
 
     @Transactional
     public DeployResult execute(UUID serviceId, UUID hostId) {
@@ -127,6 +132,17 @@ public class DeployServiceUseCase {
                         + "\",\"jobId\":\""
                         + job.getId()
                         + "\"}");
+
+        billingMeter.record(
+                UsageMeters.DEPLOY_COUNT,
+                BigDecimal.ONE,
+                Map.of(
+                        "serviceId",
+                        serviceId.toString(),
+                        "deploymentId",
+                        deployment.getId().toString(),
+                        "hostId",
+                        resolvedHostId.toString()));
 
         return new DeployResult(deployment, job);
     }

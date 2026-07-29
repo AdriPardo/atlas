@@ -38,7 +38,7 @@ Estado: `MVP` (en código) · `v0.x` (roadmap) · `v1.0` · `future` · `designe
 | Plugins | Extensiones adapter | future | [platform.md](platform.md) |
 | Marketplace | Catálogo de templates/plugins | future | [platform.md](platform.md) |
 | Settings | Config instalación | designed | [platform.md](platform.md) |
-| Billing | Usage metering (aunque precio=0) | designed | [platform.md](platform.md) |
+| Billing | Usage metering (aunque precio=0) | v0.9 (meters + UI; sin Stripe) | [platform.md](platform.md) |
 | AI Assistant | Ayuda operativa contextual | future | [platform.md](platform.md) |
 
 ## Evolución de nombres MVP → plataforma

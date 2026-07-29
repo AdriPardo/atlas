@@ -16,6 +16,7 @@ import { PipelinesListPage } from '../features/pipelines/PipelinesListPage'
 import { PipelineDetailPage } from '../features/pipelines/PipelineDetailPage'
 import { PipelineFormPage } from '../features/pipelines/PipelineFormPage'
 import { AuditListPage } from '../features/audit/AuditListPage'
+import { BillingPage } from '../features/billing/BillingPage'
 import { AlertsPage } from '../features/alerts/AlertsPage'
 import { CronJobsPage } from '../features/cron/CronJobsPage'
 import { SecretsListPage } from '../features/secrets/SecretsListPage'
@@ -58,6 +59,7 @@ export function AppRouter({ mode, onToggleMode }: AppRouterProps) {
             <Route path="pipelines/new" element={<PipelineFormPage />} />
             <Route path="pipelines/:id" element={<PipelineDetailPage />} />
             <Route path="audit" element={<AuditListPage />} />
+            <Route path="billing" element={<BillingPage />} />
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="cron" element={<CronJobsPage />} />
             <Route path="secrets" element={<SecretsListPage />} />

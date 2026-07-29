@@ -10,13 +10,13 @@ Almacenamiento: fila Organization.settings JSON + claves tipadas en UI. Secretos
 
 Aunque el producto sea self-hosted sin pasarela de pago, el módulo existe para:
 
-- Medir usage: deploys, minutos de job, GB backup, # projects.
-- Exponer reportes y límites soft (`plan` local: `community` | `enterprise` flag).
+- Medir usage: deploys (`deploy.count`), gauges live de projects/hosts/deployments.
+- Exponer reportes (`GET /billing/usage`, export CSV UI) y límites soft (`plan` local: `community`).
 - Preparar licenciamiento comercial futuro sin reescribir dominio.
 
-Entidades: `UsageRecord`, `PlanEntitlement`, `InvoiceStub` (opcional, generada localmente).
+Entidades: `UsageRecord`, `PlanEntitlement`. `InvoiceStub` diferido.
 
-**No** integrar Stripe en v1.0 salvo demanda explícita; diseñar interfaces `BillingMeterPort`.
+**No** integrar Stripe en v1.0 salvo demanda explícita. Puerto: `BillingMeterPort` (adapter in-process).
 
 ## Plugins
 

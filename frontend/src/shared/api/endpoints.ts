@@ -21,6 +21,7 @@ import type {
   PageResponse,
   Pipeline,
   PipelineRun,
+  PlanEntitlements,
   Project,
   ProjectMembership,
   ProjectSecretEntry,
@@ -31,6 +32,7 @@ import type {
   TraefikMetadata,
   TunnelIngress,
   DnsCname,
+  UsageRecord,
   User,
 } from '../types/api'
 
@@ -185,6 +187,12 @@ export const domainsApi = {
 export const auditApi = {
   list: (params?: Record<string, string | number | undefined>) =>
     api.get<PageResponse<AuditEntry>>('/audit', { params }).then((r) => r.data),
+}
+
+export const billingApi = {
+  usage: (params?: Record<string, string | number | undefined>) =>
+    api.get<PageResponse<UsageRecord>>('/billing/usage', { params }).then((r) => r.data),
+  entitlements: () => api.get<PlanEntitlements>('/billing/entitlements').then((r) => r.data),
 }
 
 export const notificationChannelsApi = {

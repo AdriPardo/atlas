@@ -69,6 +69,9 @@ class DeployServiceUseCaseTest {
     @Mock
     private RecordAuditUseCase recordAuditUseCase;
 
+    @Mock
+    private com.atlas.application.port.out.BillingMeterPort billingMeter;
+
     @InjectMocks
     private DeployServiceUseCase useCase;
 

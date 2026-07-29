@@ -314,14 +314,24 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 
 ---
 
+## v0.8.18 — PUBLIC minify + TLS guarantees (ADR-0016)
+
+- Manifiesto: `build.minify` / `exposure.requireTls` (default true).
+- Deploy asegura `NODE_ENV=production` en `.env` del workspace (sin pisar otras keys).
+- Política TLS PUBLIC: log edge Tunnel/Traefik `websecure`; encrypt = TLS in transit (no payload crypto).
+
+**Criterio done:** repo sin campos usa defaults seguros; opt-out explícito documentado; Reelpath/SSO intactos.
+
+---
+
 ## v0.9 — Commercial envelope
 
-- Billing/usage meters + entitlements UI (precio puede ser 0).
-- Feature flags / plan local.
+- **Hecho (slice meters):** usage_records + `BillingMeterPort`; `GET /billing/usage` + `/entitlements`; UI `/billing` + CSV; plan `community` precio 0; meter `deploy.count` en enqueue.
+- Feature flags / plan local (pendiente endurecer).
 - OpenAPI published; deprecations `/applications` removed if sunset elapsed.
-- Performance pass (5k projects synthetic test).
+- Performance pass (5k projects synthetic) — **siguiente recomendado**.
 
-**Criterio done:** informe de usage exportable; carga objetivo validada.
+**Criterio done:** informe de usage exportable ✅; carga objetivo validada (pendiente).
 
 ---
 

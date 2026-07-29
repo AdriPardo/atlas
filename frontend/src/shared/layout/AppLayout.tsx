@@ -22,6 +22,7 @@ import DnsOutlinedIcon from '@mui/icons-material/DnsOutlined'
 import RocketLaunchOutlinedIcon from '@mui/icons-material/RocketLaunchOutlined'
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined'
 import PolicyOutlinedIcon from '@mui/icons-material/PolicyOutlined'
+import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined'
@@ -43,6 +44,7 @@ const navGroups = [
       { to: '/deployments', label: 'Deployments', icon: <RocketLaunchOutlinedIcon fontSize="small" /> },
       { to: '/pipelines', label: 'Pipelines', icon: <AccountTreeOutlinedIcon fontSize="small" /> },
       { to: '/audit', label: 'Audit', icon: <PolicyOutlinedIcon fontSize="small" /> },
+      { to: '/billing', label: 'Billing', icon: <ReceiptLongOutlinedIcon fontSize="small" /> },
       { to: '/alerts', label: 'Alerts', icon: <NotificationsOutlinedIcon fontSize="small" /> },
       { to: '/cron', label: 'Cron', icon: <ScheduleOutlinedIcon fontSize="small" /> },
       { to: '/secrets', label: 'Org secrets', icon: <VpnKeyOutlinedIcon fontSize="small" /> },
@@ -65,6 +67,7 @@ function pageTitle(pathname: string): string {
   if (pathname.startsWith('/deployments')) return 'Deployments'
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
   if (pathname.startsWith('/audit')) return 'Audit'
+  if (pathname.startsWith('/billing')) return 'Billing'
   if (pathname.startsWith('/alerts')) return 'Alerts'
   if (pathname.startsWith('/cron')) return 'Cron'
   if (pathname.startsWith('/secrets')) return 'Org secrets'
@@ -89,6 +92,7 @@ function pageSubtitle(pathname: string): string {
   if (pathname.match(/^\/pipelines\/[^/]+$/)) return 'Detail'
   if (pathname.startsWith('/pipelines')) return 'Deploy automation'
   if (pathname.startsWith('/audit')) return 'Security trail'
+  if (pathname.startsWith('/billing')) return 'Usage & entitlements'
   if (pathname.startsWith('/alerts')) return 'Rules & channels'
   if (pathname.startsWith('/cron')) return 'Scheduled jobs'
   if (pathname.startsWith('/secrets')) return 'Organization credentials'

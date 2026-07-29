@@ -40,7 +40,7 @@ features/
   settings/
   teams/             # v0.7+
   audit/
-  billing/           # read-only usage v1.0
+  billing/           # usage + entitlements v0.9
   assistant/         # AI — late
 shared/
   api/               # client, endpoints, error mapping
