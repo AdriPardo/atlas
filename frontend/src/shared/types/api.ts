@@ -212,6 +212,17 @@ export interface Pipeline {
   updatedAt: string
 }
 
+export interface AutoDeployResult {
+  pipeline: Pipeline
+  created: boolean
+  webhookUrl: string
+  trackedBranch: string
+  githubWebhookRegistered: boolean
+  githubWebhookMessage: string
+  githubHookId: string | null
+  setupInstructions: string
+}
+
 export interface PipelineRun {
   id: string
   pipelineId: string

@@ -20,6 +20,8 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.3** | Autopilot Proxmox guest-ready (slice 3b) | IP guest-agent + Host SSH/Sync + deploy en VM nueva |
 | **v0.8.4** | Autopilot DNS CNAME (Cloudflare) | PUBLIC hostname resoluble vía CNAME API o copy |
 | **v0.8.5** | Autopilot Proxmox REUSED | ISOLATED reutiliza Host/VM por hostname/tag; clone solo si no hay match |
+| **v0.8.6** | Stale RUNNING job recovery | Redeploy tras crash del worker |
+| **v0.8.7** | Auto-deploy on git push | One-click pipeline + filtro push/branch + GitHub webhook opcional |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -181,6 +183,16 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Claim `SKIP LOCKED` de PENDING intacto.
 
 **Criterio done:** tras matar/reiniciar el worker, un job stale se marca FAILED y un nuevo deploy puede encolarse y completar.
+
+---
+
+## v0.8.7 — Auto-deploy on git push
+
+- `POST /pipelines/enable-auto-deploy`: asegura Pipeline por service (host vía Autopilot) y registra webhook GitHub si hay `git.token` + `publicBaseUrl`.
+- Webhook git: solo eventos `push` a la branch del service (ignora ping/PR/otras ramas/tags/deleted).
+- UI: panel “Auto-deploy on push” en Project detail + instrucciones claras en Pipeline detail.
+
+**Criterio done:** push a la branch del service redeployea sin crear pipeline/webhook a mano; otros eventos no encolan deploy.
 
 ---
 

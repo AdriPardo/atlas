@@ -17,6 +17,7 @@ import type {
   NotificationChannel,
   NotificationChannelType,
   ObservabilitySettings,
+  AutoDeployResult,
   PageResponse,
   Pipeline,
   PipelineRun,
@@ -132,6 +133,8 @@ export const pipelinesApi = {
   get: (id: string) => api.get<Pipeline>(`/pipelines/${id}`).then((r) => r.data),
   create: (body: { projectId: string; name: string; serviceId: string; hostId: string }) =>
     api.post<Pipeline>('/pipelines', body).then((r) => r.data),
+  enableAutoDeploy: (body: { serviceId: string; hostId?: string; publicBaseUrl?: string }) =>
+    api.post<AutoDeployResult>('/pipelines/enable-auto-deploy', body).then((r) => r.data),
   update: (id: string, body: { name: string; serviceId: string; hostId: string }) =>
     api.put<Pipeline>(`/pipelines/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/pipelines/${id}`),

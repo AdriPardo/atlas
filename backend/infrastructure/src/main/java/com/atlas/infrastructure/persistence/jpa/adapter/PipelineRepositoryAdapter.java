@@ -41,6 +41,13 @@ public class PipelineRepositoryAdapter implements PipelineRepositoryPort {
     }
 
     @Override
+    public List<Pipeline> findByServiceId(UUID serviceId) {
+        return repository.findByServiceIdOrderByCreatedAtAsc(serviceId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public boolean existsByProjectIdAndName(UUID projectId, String name) {
         return repository.existsByProjectIdAndNameIgnoreCase(projectId, name);
     }

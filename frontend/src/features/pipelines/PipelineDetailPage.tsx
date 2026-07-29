@@ -149,8 +149,12 @@ export function PipelineDetailPage() {
               </DetailField>
             </DetailPanel>
 
-            <DetailPanel title="Git webhook">
-              <DetailField label="URL">
+            <DetailPanel title="Git webhook (auto-deploy)">
+              <Alert severity="info" variant="outlined" sx={{ mb: 1 }}>
+                GitHub → Settings → Webhooks → Add webhook. Events: <strong>Just the push event</strong>.
+                Atlas ignores ping/PR and only deploys pushes that match the service branch.
+              </Alert>
+              <DetailField label="Payload URL">
                 <Stack direction="row" spacing={1} alignItems="center">
                   <TextField
                     size="small"
@@ -165,9 +169,28 @@ export function PipelineDetailPage() {
                   </Tooltip>
                 </Stack>
               </DetailField>
-              <DetailField label="Secret tip">
-                Set the GitHub/Gitea webhook secret to this pipeline token. Signature headers are
-                verified when present; path token alone is enough for curl.
+              <DetailField label="Secret">
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <TextField
+                    size="small"
+                    fullWidth
+                    value={query.data.webhookToken}
+                    InputProps={{ readOnly: true, className: 'atlas-mono' }}
+                  />
+                  <Tooltip title="Copy secret">
+                    <IconButton
+                      onClick={() => void navigator.clipboard.writeText(query.data.webhookToken)}
+                      aria-label="Copy webhook secret"
+                    >
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </DetailField>
+              <DetailField label="Content type">application/json</DetailField>
+              <DetailField label="Tip">
+                Prefer <strong>Enable auto-deploy</strong> on the Project page — it creates this
+                pipeline and registers the GitHub webhook when <code>git.token</code> is present.
               </DetailField>
               <DetailField label="Actions">
                 <Button

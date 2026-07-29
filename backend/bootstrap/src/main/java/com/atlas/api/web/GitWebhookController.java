@@ -24,14 +24,21 @@ public class GitWebhookController {
      * Public git webhook. Auth is the path token (and optional HMAC if provider sends a signature).
      * Configure GitHub/Gitea webhook secret to the same value as the Atlas pipeline webhook token.
      * Soft rate limit: ~30 requests / 60s per token (in-memory, single node).
+     *
+     * <p>Only {@code push} events that target the service's configured branch enqueue a deploy.
+     * {@code ping} and other events return 204 No Content.
      */
     @PostMapping("/{token}")
     public ResponseEntity<PipelineRunResponse> receive(
             @PathVariable String token,
             @RequestBody(required = false) byte[] body,
             @RequestHeader(value = "X-Hub-Signature-256", required = false) String githubSignature,
-            @RequestHeader(value = "X-Gitea-Signature", required = false) String giteaSignature) {
-        var run = handleGitWebhookUseCase.execute(token, body, githubSignature, giteaSignature);
-        return ResponseEntity.accepted().body(apiMapper.toPipelineRunResponse(run));
+            @RequestHeader(value = "X-Gitea-Signature", required = false) String giteaSignature,
+            @RequestHeader(value = "X-GitHub-Event", required = false) String githubEvent,
+            @RequestHeader(value = "X-Gitea-Event", required = false) String giteaEvent) {
+        return handleGitWebhookUseCase
+                .execute(token, body, githubSignature, giteaSignature, githubEvent, giteaEvent)
+                .map(run -> ResponseEntity.accepted().body(apiMapper.toPipelineRunResponse(run)))
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }

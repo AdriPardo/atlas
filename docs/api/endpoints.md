@@ -92,7 +92,8 @@ Leyenda versión: **MVP** | **v0.2+** | **v0.4+** | **v0.5+** | **v0.6+** | **v0
 
 | Método | Path | Versión |
 |--------|------|---------|
-| POST | `/webhooks/git/{token}` | v0.6 |
+| POST | `/webhooks/git/{token}` | v0.6 (filtro push+branch v0.8.7) |
+| POST | `/pipelines/enable-auto-deploy` | v0.8.7 |
 | GET | `/jobs` | v0.4 |
 | GET | `/jobs/{id}` | v0.4 |
 

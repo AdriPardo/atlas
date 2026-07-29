@@ -3,12 +3,15 @@ package com.atlas.api.web;
 import com.atlas.api.dto.common.PageResponse;
 import com.atlas.api.dto.common.PageResponses;
 import com.atlas.api.dto.request.CreatePipelineRequest;
+import com.atlas.api.dto.request.EnableAutoDeployRequest;
 import com.atlas.api.dto.request.UpdatePipelineRequest;
+import com.atlas.api.dto.response.AutoDeployResponse;
 import com.atlas.api.dto.response.PipelineResponse;
 import com.atlas.api.dto.response.PipelineRunResponse;
 import com.atlas.api.mapper.ApiMapper;
 import com.atlas.application.pipeline.CreatePipelineUseCase;
 import com.atlas.application.pipeline.DeletePipelineUseCase;
+import com.atlas.application.pipeline.EnableAutoDeployUseCase;
 import com.atlas.application.pipeline.GetPipelineUseCase;
 import com.atlas.application.pipeline.ListPipelineRunsUseCase;
 import com.atlas.application.pipeline.ListPipelinesUseCase;
@@ -37,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PipelineController {
 
     private final CreatePipelineUseCase createPipelineUseCase;
+    private final EnableAutoDeployUseCase enableAutoDeployUseCase;
     private final GetPipelineUseCase getPipelineUseCase;
     private final ListPipelinesUseCase listPipelinesUseCase;
     private final UpdatePipelineUseCase updatePipelineUseCase;
@@ -52,6 +56,31 @@ public class PipelineController {
                 request.projectId(), request.name(), request.serviceId(), request.hostId()));
         return ResponseEntity.created(URI.create("/api/v1/pipelines/" + pipeline.getId()))
                 .body(apiMapper.toPipelineResponse(pipeline));
+    }
+
+    /**
+     * One-click auto-deploy: ensure a default pipeline for the service and optionally register a
+     * GitHub push webhook when {@code git.token} + absolute {@code publicBaseUrl} are available.
+     */
+    @PostMapping("/enable-auto-deploy")
+    public ResponseEntity<AutoDeployResponse> enableAutoDeploy(
+            @Valid @RequestBody EnableAutoDeployRequest request) {
+        var result = enableAutoDeployUseCase.execute(new EnableAutoDeployUseCase.EnableAutoDeployCommand(
+                request.serviceId(), request.hostId(), request.publicBaseUrl()));
+        AutoDeployResponse body = new AutoDeployResponse(
+                apiMapper.toPipelineResponse(result.pipeline()),
+                result.created(),
+                result.webhookUrl(),
+                result.trackedBranch(),
+                result.githubWebhookRegistered(),
+                result.githubWebhookMessage(),
+                result.githubHookId(),
+                result.setupInstructions());
+        if (result.created()) {
+            return ResponseEntity.created(URI.create("/api/v1/pipelines/" + result.pipeline().getId()))
+                    .body(body);
+        }
+        return ResponseEntity.ok(body);
     }
 
     @GetMapping("/{id}")

@@ -57,11 +57,18 @@ Host offline event → Alert FIRING → Notification Slack
   → Operator abre Host → investigate → Sync
 ```
 
-## 8. Webhook Git (v0.6+)
+## 8. Webhook Git (v0.6+ / auto-deploy v0.8.7)
 
 ```text
-Push a branch → Webhook Atlas → PipelineRun → Deployment
+Project → Enable auto-deploy
+  → Pipeline (default) + webhook token
+  → (opcional) GitHub API registra push webhook si hay git.token
+  → Push a service.branch → POST /webhooks/git/{token}
+  → filtro: solo push (ignora ping/PR/otras ramas)
+  → PipelineRun → DEPLOY_SERVICE
 ```
+
+Sin one-click: crear Pipeline manualmente y pegar URL/secret en GitHub (Settings → Webhooks).
 
 ## Permisos en flujos
 

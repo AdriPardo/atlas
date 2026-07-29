@@ -276,6 +276,19 @@ class AtlasIntegrationTest {
 
         mockMvc.perform(post("/api/v1/webhooks/git/" + webhookToken)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-GitHub-Event", "ping")
+                        .content("{\"zen\":\"keep it simple\"}"))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/v1/webhooks/git/" + webhookToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-GitHub-Event", "push")
+                        .content("{\"ref\":\"refs/heads/other\"}"))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/v1/webhooks/git/" + webhookToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-GitHub-Event", "push")
                         .content("{\"ref\":\"refs/heads/main\"}"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.triggeredBy").value("webhook"))
@@ -286,6 +299,25 @@ class AtlasIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isNotFound());
+
+        MvcResult autoDeploy = mockMvc.perform(post("/api/v1/pipelines/enable-auto-deploy")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "serviceId":"%s",
+                                  "publicBaseUrl":"https://atlas.example"
+                                }
+                                """.formatted(serviceId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.created").value(false))
+                .andExpect(jsonPath("$.pipeline.id").value(pipelineId))
+                .andExpect(jsonPath("$.trackedBranch").value("main"))
+                .andExpect(jsonPath("$.webhookUrl").value(org.hamcrest.Matchers.containsString("/api/v1/webhooks/git/")))
+                .andReturn();
+        org.junit.jupiter.api.Assertions.assertFalse(
+                (Boolean) com.jayway.jsonpath.JsonPath.read(
+                        autoDeploy.getResponse().getContentAsString(), "$.githubWebhookRegistered"));
 
         MvcResult rotated = mockMvc.perform(post("/api/v1/pipelines/" + pipelineId + "/webhook-token/rotate")
                         .header("Authorization", "Bearer " + token))

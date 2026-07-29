@@ -2,14 +2,14 @@
 
 ## Estado del último incremento (completado)
 
-**Stale RUNNING job recovery** (v0.8.6):
+**Auto-deploy on git push** (v0.8.7):
 
-- Heartbeat de lease (`locked_at`) mientras el worker ejecuta un job.
-- Reclaim al arranque + tick periódico: `RUNNING` con lease > `ATLAS_JOB_STALE_TIMEOUT` → `FAILED` (`FOR UPDATE SKIP LOCKED`).
-- Cascade en `DEPLOY_SERVICE`: deployment PENDING/RUNNING → FAILED; service/project DEPLOYING → FAILED.
-- Docs: `docs/architecture/workers-queues.md`; tests unitarios + integración.
+- One-click `POST /api/v1/pipelines/enable-auto-deploy` + panel en Project detail.
+- Registro opcional de webhook GitHub vía API cuando existe `git.token`.
+- Filtro webhook: solo `push` a la branch del service (ignora ping/PR/otras ramas).
+- Docs + tests.
 
-**Previo:** Proxmox VM reuse (`REUSED`); runbook restore; DNS CNAME (ADR-0013); guest-ready 3b; Tunnel PUBLIC.
+**Previo:** Stale RUNNING job recovery (v0.8.6); Proxmox VM reuse; DNS CNAME; guest-ready; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
@@ -17,7 +17,7 @@
 
 ## Por qué es el paso más rentable ahora
 
-1. Recovery de jobs stale cierra el bloqueo operativo post-crash (Reelpath / redeploy).
+1. Auto-deploy cierra la fricción “push → redeploy” (Reelpath / dogfood).
 2. Cloudflare scopes reduce fricción de dogfood PUBLIC (Tunnel + DNS).
 3. ADR-0014 sigue siendo norte; no bloquea ops diarios.
 
@@ -29,6 +29,7 @@
 ## Secundario (si sobra capacidad)
 
 - Primer slice de lectura de `atlas.yml` (ADR-0014 fase B) sin eliminar `composePath`.
+- Host opcional en Pipeline (Autopilot en cada run webhook) en lugar de `hostId` pinneado.
 
 ## Norte estratégico (no es el siguiente incremento)
 
