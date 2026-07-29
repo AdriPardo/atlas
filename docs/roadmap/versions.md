@@ -27,6 +27,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.10** | Optional `composePath` (ADR-0014 C) | Create/update sin path si hay manifiesto; error claro si falta ambos |
 | **v0.8.11** | RuntimeOrchestratorPort (ADR-0014 D) | Deploy vía port genérico; Host `runtimeCapabilities`; Compose adapter |
 | **v0.8.12** | Pipeline hostId optional + Autopilot webhook | Webhook/run sin pin; placement SHARED por run |
+| **v0.8.13** | `runtime.migrateCommand` hook | App declara migrator; Atlas ejecuta post-compose |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -252,6 +253,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - UI: form Pipeline host en Advanced; list/detail muestran Autopilot si null.
 
 **Criterio done:** webhook/auto-deploy sin host pin → placement por run; pin legacy sigue verde.
+
+---
+
+## v0.8.13 — App migrateCommand (ORM-agnostic)
+
+- `runtime.migrateCommand` opcional en `atlas.yml`; deploy lo corre **después** de compose up vía `HostCommandPort`.
+- Atlas **no** impone Prisma/Flyway; solo inyección env + comando declarado. Docs: [app-migrations.md](../deployment/app-migrations.md).
+- Si el contenedor ya migra al start (p. ej. Reelpath), omitir el campo para evitar doble migrate.
+- Sin wipe de DB; sin convertir customer apps a Flyway de Atlas.
+
+**Criterio done:** manifiesto con `migrateCommand` → aparece en logs de deploy; sin campo → sin hook; tests verdes.
 
 ---
 

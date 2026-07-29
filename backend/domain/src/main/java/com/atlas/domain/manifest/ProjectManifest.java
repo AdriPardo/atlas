@@ -15,16 +15,23 @@ public final class ProjectManifest {
     private final String kind;
     private final String runtimeKind;
     private final String composeFile;
+    private final String migrateCommand;
     private final String sourceFileName;
 
     public static final String SYNTHESIZED_SOURCE = "(synthesized)";
 
     public ProjectManifest(
-            String apiVersion, String kind, String runtimeKind, String composeFile, String sourceFileName) {
+            String apiVersion,
+            String kind,
+            String runtimeKind,
+            String composeFile,
+            String migrateCommand,
+            String sourceFileName) {
         this.apiVersion = requireText(apiVersion, "apiVersion");
         this.kind = requireText(kind, "kind");
         this.runtimeKind = blankToNull(runtimeKind);
         this.composeFile = blankToNull(composeFile);
+        this.migrateCommand = blankToNull(migrateCommand);
         this.sourceFileName = requireText(sourceFileName, "sourceFileName");
     }
 
@@ -34,7 +41,7 @@ public final class ProjectManifest {
      */
     public static ProjectManifest synthesizeFromComposePath(String composePath) {
         String path = requireText(composePath, "composePath");
-        return new ProjectManifest(API_VERSION_V1_ALPHA1, KIND_PROJECT, "compose", path, SYNTHESIZED_SOURCE);
+        return new ProjectManifest(API_VERSION_V1_ALPHA1, KIND_PROJECT, "compose", path, null, SYNTHESIZED_SOURCE);
     }
 
     public boolean isSynthesized() {
@@ -55,6 +62,14 @@ public final class ProjectManifest {
 
     public Optional<String> getComposeFile() {
         return Optional.ofNullable(composeFile);
+    }
+
+    /**
+     * Optional shell command run by the deploy job after stack apply.
+     * App owns the migrator; Atlas only invokes the declared string.
+     */
+    public Optional<String> getMigrateCommand() {
+        return Optional.ofNullable(migrateCommand);
     }
 
     public String getSourceFileName() {

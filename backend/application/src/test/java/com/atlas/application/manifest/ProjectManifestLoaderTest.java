@@ -42,8 +42,26 @@ class ProjectManifestLoaderTest {
         assertEquals("Project", manifest.getKind());
         assertEquals(Optional.of("compose"), manifest.getRuntimeKind());
         assertEquals(Optional.of("docker-compose.atlas.yml"), manifest.getComposeFile());
+        assertEquals(Optional.empty(), manifest.getMigrateCommand());
         assertEquals("atlas.yml", manifest.getSourceFileName());
         assertTrue(manifest.isComposeCompatible());
+    }
+
+    @Test
+    void loadsMigrateCommandWhenPresent() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  kind: compose
+                  composeFile: docker-compose.atlas.yml
+                  migrateCommand: npm run db:migrate:deploy
+                """);
+
+        ProjectManifest manifest = loader.load(workspace).orElseThrow();
+        assertEquals(Optional.of("npm run db:migrate:deploy"), manifest.getMigrateCommand());
     }
 
     @Test

@@ -8,6 +8,7 @@ import java.util.Optional;
 /**
  * Resolves the Compose file for deploy: {@code atlas.yml} {@code runtime.composeFile} when present,
  * else legacy {@code Service.composePath} via an in-memory synthesized manifest (ADR-0014 phase C).
+ * Also surfaces optional {@code runtime.migrateCommand}.
  */
 public final class ComposePathResolver {
 
@@ -16,7 +17,21 @@ public final class ComposePathResolver {
         COMPOSE_PATH
     }
 
-    public record Resolution(String composeFilePath, Source source, Optional<String> manifestFileName) {
+    public record Resolution(
+            String composeFilePath,
+            Source source,
+            Optional<String> manifestFileName,
+            Optional<String> migrateCommand) {
+
+        public Resolution {
+            if (manifestFileName == null) {
+                manifestFileName = Optional.empty();
+            }
+            if (migrateCommand == null) {
+                migrateCommand = Optional.empty();
+            }
+        }
+
         public String describe() {
             if (source == Source.MANIFEST) {
                 return "compose file from " + manifestFileName.orElse("atlas.yml") + ": " + composeFilePath;
@@ -53,14 +68,21 @@ public final class ComposePathResolver {
                                 + " (supports compose / podman-compose only)");
             }
 
+            Optional<String> migrate = manifest.getMigrateCommand();
             Optional<String> fromManifest = manifest.getComposeFile();
             if (fromManifest.isPresent()) {
                 return new Resolution(
-                        fromManifest.get(), Source.MANIFEST, Optional.of(manifest.getSourceFileName()));
+                        fromManifest.get(),
+                        Source.MANIFEST,
+                        Optional.of(manifest.getSourceFileName()),
+                        migrate);
             }
             if (fallback != null) {
                 return new Resolution(
-                        fallback, Source.COMPOSE_PATH, Optional.of(manifest.getSourceFileName()));
+                        fallback,
+                        Source.COMPOSE_PATH,
+                        Optional.of(manifest.getSourceFileName()),
+                        migrate);
             }
             throw new DomainException(
                     MISSING_COMPOSE_MSG
@@ -74,6 +96,7 @@ public final class ComposePathResolver {
             return new Resolution(
                     synthesized.getComposeFile().orElseThrow(),
                     Source.COMPOSE_PATH,
+                    Optional.empty(),
                     Optional.empty());
         }
 

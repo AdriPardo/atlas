@@ -66,15 +66,17 @@ public final class ProjectManifestLoader {
 
             String runtimeKind = null;
             String composeFile = null;
+            String migrateCommand = null;
             Object runtimeNode = root.get("runtime");
             if (runtimeNode instanceof Map<?, ?> runtime) {
                 runtimeKind = stringField(runtime, "kind");
                 composeFile = stringField(runtime, "composeFile");
+                migrateCommand = stringField(runtime, "migrateCommand");
             } else if (runtimeNode != null) {
                 throw new DomainException("Invalid " + fileName + ": runtime must be a mapping");
             }
 
-            return new ProjectManifest(apiVersion, kind, runtimeKind, composeFile, fileName);
+            return new ProjectManifest(apiVersion, kind, runtimeKind, composeFile, migrateCommand, fileName);
         } catch (DomainException | IllegalArgumentException ex) {
             throw ex instanceof DomainException domain
                     ? domain

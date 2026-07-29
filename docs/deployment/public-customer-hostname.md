@@ -67,6 +67,7 @@ Reelpath (`docker-compose.atlas.yml`) enables `AUTH_REQUIRED` but historically o
 
 - Seed creates owner from `DEFAULT_ADMIN_EMAIL` / `DEFAULT_ADMIN_PASSWORD` with `SEED_DEMO=false`.
 - Compose should run `seed:ci` after migrate (idempotent upsert).
+- **Migrate ownership:** API entrypoint already runs Prisma (`migrate:deploy:ci`). Until that moves out of the container start, **omit** `runtime.migrateCommand` in `atlas.yml` (Atlas hook would double-run). See [app-migrations.md](./app-migrations.md).
 - Recovery if DB has orgs/plans but empty `User`:
 
 ```bash

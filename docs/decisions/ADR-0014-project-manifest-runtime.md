@@ -1,8 +1,8 @@
 # ADR-0014 — Project manifest como fuente de verdad del runtime
 
-- **Estado:** Accepted (fases B–D: lectura manifiesto + `composePath` opcional + `RuntimeOrchestratorPort` / Host capability tags; segundo runtime pendiente)
+- **Estado:** Accepted (fases B–D + migrate hook opcional: lectura manifiesto + `composePath` opcional + `RuntimeOrchestratorPort` / Host capability tags; segundo runtime pendiente)
 - **Fecha:** 2026-07-27
-- **Actualizado:** 2026-07-29 — phase D: deploy usa `RuntimeOrchestratorPort.apply`; Host expone `runtimeCapabilities` (`compose`)
+- **Actualizado:** 2026-07-29 — `runtime.migrateCommand` opcional (Atlas no posee ORM; app declara el comando)
 
 ## Contexto
 
@@ -31,7 +31,8 @@ Hexagonal ya anticipa adapters ([ADR-0001](ADR-0001-hexagonal-architecture.md));
    |---------------------------|--------------------------------------|
    | Runtime *kind* + hint de archivo legado | Placement (SHARED / ISOLATED, Host, Proxmox) — [ADR-0010](ADR-0010-autopilot-placement.md), [ADR-0012](ADR-0012-autopilot-proxmox-provisioner.md) |
    | Services: build, image, command, ports internos, health | Exposure `PUBLIC` \| `INTERNAL` |
-   | Env *keys* / bindings declarados (no valores secretos) | Secrets cifrados + resolución `git.token`, etc. |
+   | Env *keys* / bindings declarados (no valores secretos) | Secrets cifrados + resolución `git.token`, etc.; inyección `DATABASE_URL` / `.env` |
+   | **Migrator de app** (`runtime.migrateCommand` o migrate en entrypoint) — Prisma / Flyway / etc. | Solo invoca el comando declarado; **no** elige ORM |
    | Dependencias entre services del stack | Domain stub, Traefik metadata, Tunnel ingress ([ADR-0011](ADR-0011-autopilot-tunnel-ingress.md)), DNS CNAME ([ADR-0013](ADR-0013-autopilot-dns-cname.md)) |
    | Recursos tipados opcionales (cpu/mem) como *deseos* | Capacidad del host, scheduling, audit, jobs |
 
@@ -58,6 +59,8 @@ runtime:
   kind: compose         # compose | podman-compose | kubernetes | systemd | custom (futuro)
   # Solo para kind compose / podman-compose — puente de migración:
   composeFile: docker-compose.atlas.yml
+  # Opcional. Shell en workspace tras compose up. App posee el migrator (ver app-migrations.md):
+  # migrateCommand: npm run db:migrate:deploy
 
 services:
   api:
@@ -93,6 +96,7 @@ Reglas de diseño del schema:
 - `services.*` es la proyección *deseada*; el adapter Compose puede mapear 1:1 a un compose existente **sin** exigir duplicar el compose en YAML si solo se declara `runtime.composeFile`.
 - Valores secretos **nunca** en el manifiesto; solo refs.
 - Campos Traefik/Tunnel/DNS **no** viven aquí como labels crudas; Autopilot las deriva de `expose` + Domain + exposure.
+- **`runtime.migrateCommand` (opcional):** string de shell. Tras `RuntimeOrchestratorPort.apply`, si está presente, Atlas lo ejecuta en el workspace (LOCAL/`sh -c` o SSH). Atlas **no** interpreta Prisma/Flyway. Si la app ya migra en el entrypoint del contenedor, **omitir** el campo (evitar doble migrate). Detalle: [app-migrations.md](../deployment/app-migrations.md).
 
 ## Consecuencias
 
@@ -110,6 +114,8 @@ Reglas de diseño del schema:
 - No forzar a todos los customer repos a adoptar `atlas.yml` (legacy `composePath` sigue válido).
 - No meter billing/AI ni rewrite de Hosts/Deployments.
 - No segundo adapter runtime (Podman/K8s) hasta que haya demanda; `RuntimeCapability` ya reserva tags.
+- **No** exigir un migrator concreto (Prisma/Flyway/…) ni convertir apps customer a Flyway de Atlas.
+- No hacer `compose down -v` ni wipe de DB de apps en hooks de migrate.
 
 ## Relación con el siguiente paso operativo
 

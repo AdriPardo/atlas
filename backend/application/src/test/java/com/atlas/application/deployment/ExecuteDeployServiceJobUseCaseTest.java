@@ -16,6 +16,7 @@ import com.atlas.application.observability.EvaluateProductAlertsUseCase;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.DomainRepositoryPort;
 import com.atlas.application.port.out.GitRepositoryPort;
+import com.atlas.application.port.out.HostCommandPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.RuntimeOrchestratorPort;
@@ -67,6 +68,9 @@ class ExecuteDeployServiceJobUseCaseTest {
     private RuntimeOrchestratorPort runtimeOrchestrator;
 
     @Mock
+    private HostCommandPort hostCommand;
+
+    @Mock
     private ResolveSecretValueUseCase resolveSecretValue;
 
     @Mock
@@ -97,6 +101,7 @@ class ExecuteDeployServiceJobUseCaseTest {
                 domainRepository,
                 gitRepository,
                 runtimeOrchestrator,
+                hostCommand,
                 resolveSecretValue,
                 id -> workspace,
                 evaluateProductAlertsUseCase,
@@ -207,6 +212,108 @@ class ExecuteDeployServiceJobUseCaseTest {
                 "docker-compose.atlas.yml".equals(cmd.composeFilePath())
                         && cmd.capability() == com.atlas.domain.runtime.RuntimeCapability.COMPOSE));
         assertTrue(running.getLogs().contains("atlas.yml") || running.getStatus() == DeploymentStatus.SUCCEEDED);
+    }
+
+    @Test
+    void runsMigrateCommandAfterComposeWhenDeclaredInAtlasYml() throws Exception {
+        java.nio.file.Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  kind: compose
+                  composeFile: docker-compose.atlas.yml
+                  migrateCommand: npm run db:migrate:deploy
+                """);
+
+        Project project = Project.create("demo", "d");
+        ServiceUnit service = ServiceUnit.createDefault(
+                project.getId(), "https://example.com/demo.git", "main", null, "");
+        Host host = Host.create("local", "127.0.0.1", "linux", "26", true, ConnectionType.LOCAL, null, 22, null);
+        Deployment deployment = Deployment.create(service.getId(), host.getId());
+        Deployment running = Deployment.rehydrate(
+                deployment.getId(),
+                deployment.getServiceId(),
+                deployment.getHostId(),
+                DeploymentStatus.PENDING,
+                null,
+                null,
+                "",
+                deployment.getCreatedAt(),
+                deployment.getUpdatedAt());
+
+        when(deploymentRepository.findById(deployment.getId())).thenReturn(Optional.of(running));
+        when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(hostRepository.findById(host.getId())).thenReturn(Optional.of(host));
+        when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(resolveSecretValue.forProject(project.getId(), ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.empty());
+
+        doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());
+        doAnswer(inv -> null).when(runtimeOrchestrator).apply(any());
+        doAnswer(inv -> {
+                    HostCommandPort.HostCommand cmd = inv.getArgument(0);
+                    cmd.logSink().accept("migrate ok");
+                    return null;
+                })
+                .when(hostCommand)
+                .run(any());
+
+        useCase.execute(deployment.getId());
+
+        verify(runtimeOrchestrator).apply(any());
+        verify(hostCommand).run(org.mockito.ArgumentMatchers.argThat(cmd ->
+                "npm run db:migrate:deploy".equals(cmd.shellCommand())));
+        assertTrue(running.getLogs().contains("migrateCommand") || running.getStatus() == DeploymentStatus.SUCCEEDED);
+    }
+
+    @Test
+    void skipsHostCommandWhenMigrateCommandAbsent() throws Exception {
+        java.nio.file.Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  composeFile: docker-compose.atlas.yml
+                """);
+
+        Project project = Project.create("demo", "d");
+        ServiceUnit service = ServiceUnit.createDefault(
+                project.getId(), "https://example.com/demo.git", "main", null, "");
+        Host host = Host.create("local", "127.0.0.1", "linux", "26", true, ConnectionType.LOCAL, null, 22, null);
+        Deployment deployment = Deployment.create(service.getId(), host.getId());
+        Deployment running = Deployment.rehydrate(
+                deployment.getId(),
+                deployment.getServiceId(),
+                deployment.getHostId(),
+                DeploymentStatus.PENDING,
+                null,
+                null,
+                "",
+                deployment.getCreatedAt(),
+                deployment.getUpdatedAt());
+
+        when(deploymentRepository.findById(deployment.getId())).thenReturn(Optional.of(running));
+        when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(hostRepository.findById(host.getId())).thenReturn(Optional.of(host));
+        when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(resolveSecretValue.forProject(project.getId(), ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.empty());
+
+        doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());
+        doAnswer(inv -> null).when(runtimeOrchestrator).apply(any());
+
+        useCase.execute(deployment.getId());
+
+        verify(hostCommand, org.mockito.Mockito.never()).run(any());
     }
 
     @Test

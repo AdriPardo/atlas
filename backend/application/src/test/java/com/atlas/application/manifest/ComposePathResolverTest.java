@@ -26,6 +26,7 @@ class ComposePathResolverTest {
         assertEquals("docker-compose.yml", resolution.composeFilePath());
         assertEquals(ComposePathResolver.Source.COMPOSE_PATH, resolution.source());
         assertEquals(Optional.empty(), resolution.manifestFileName());
+        assertEquals(Optional.empty(), resolution.migrateCommand());
         assertTrue(resolution.describe().contains("composePath"));
     }
 
@@ -47,7 +48,25 @@ class ComposePathResolverTest {
         assertEquals("docker-compose.atlas.yml", resolution.composeFilePath());
         assertEquals(ComposePathResolver.Source.MANIFEST, resolution.source());
         assertEquals(Optional.of("atlas.yml"), resolution.manifestFileName());
+        assertEquals(Optional.empty(), resolution.migrateCommand());
         assertTrue(resolution.describe().contains("atlas.yml"));
+    }
+
+    @Test
+    void surfacesMigrateCommandFromManifest() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  composeFile: docker-compose.atlas.yml
+                  migrateCommand: npm run db:migrate:deploy
+                """);
+
+        ComposePathResolver.Resolution resolution = resolver.resolve(workspace, null);
+
+        assertEquals(Optional.of("npm run db:migrate:deploy"), resolution.migrateCommand());
     }
 
     @Test

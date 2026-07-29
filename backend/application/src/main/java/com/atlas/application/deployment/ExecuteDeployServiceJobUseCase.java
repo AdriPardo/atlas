@@ -9,6 +9,7 @@ import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.DnsProviderPort;
 import com.atlas.application.port.out.DomainRepositoryPort;
 import com.atlas.application.port.out.GitRepositoryPort;
+import com.atlas.application.port.out.HostCommandPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
 import com.atlas.application.port.out.RuntimeOrchestratorPort;
@@ -50,6 +51,7 @@ public class ExecuteDeployServiceJobUseCase {
     private final DomainRepositoryPort domainRepository;
     private final GitRepositoryPort gitRepository;
     private final RuntimeOrchestratorPort runtimeOrchestrator;
+    private final HostCommandPort hostCommand;
     private final ResolveSecretValueUseCase resolveSecretValue;
     private final WorkspacePathResolver workspacePathResolver;
     private final EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
@@ -67,6 +69,7 @@ public class ExecuteDeployServiceJobUseCase {
             DomainRepositoryPort domainRepository,
             GitRepositoryPort gitRepository,
             RuntimeOrchestratorPort runtimeOrchestrator,
+            HostCommandPort hostCommand,
             ResolveSecretValueUseCase resolveSecretValue,
             WorkspacePathResolver workspacePathResolver,
             EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
@@ -81,6 +84,7 @@ public class ExecuteDeployServiceJobUseCase {
                 domainRepository,
                 gitRepository,
                 runtimeOrchestrator,
+                hostCommand,
                 resolveSecretValue,
                 workspacePathResolver,
                 evaluateProductAlertsUseCase,
@@ -98,6 +102,7 @@ public class ExecuteDeployServiceJobUseCase {
             DomainRepositoryPort domainRepository,
             GitRepositoryPort gitRepository,
             RuntimeOrchestratorPort runtimeOrchestrator,
+            HostCommandPort hostCommand,
             ResolveSecretValueUseCase resolveSecretValue,
             WorkspacePathResolver workspacePathResolver,
             EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
@@ -112,6 +117,7 @@ public class ExecuteDeployServiceJobUseCase {
         this.domainRepository = domainRepository;
         this.gitRepository = gitRepository;
         this.runtimeOrchestrator = runtimeOrchestrator;
+        this.hostCommand = hostCommand;
         this.resolveSecretValue = resolveSecretValue;
         this.workspacePathResolver = workspacePathResolver;
         this.evaluateProductAlertsUseCase = evaluateProductAlertsUseCase;
@@ -181,6 +187,16 @@ public class ExecuteDeployServiceJobUseCase {
                     compose.composeFilePath(),
                     sshKey,
                     logSink));
+
+            // Optional app-owned migrate hook (ADR-0014). Atlas does not interpret Prisma/Flyway/etc.
+            // Prefer omit when the container entrypoint already migrates (avoid double-migrate).
+            if (compose.migrateCommand().isPresent()) {
+                String migrate = compose.migrateCommand().orElseThrow();
+                logSink.accept("Running runtime.migrateCommand from "
+                        + compose.manifestFileName().orElse("atlas.yml"));
+                hostCommand.run(new HostCommandPort.HostCommand(host, workspace, migrate, sshKey, logSink));
+                logSink.accept("migrateCommand finished");
+            }
 
             transactionTemplate.executeWithoutResult(status -> {
                 Deployment succeeded = deploymentRepository

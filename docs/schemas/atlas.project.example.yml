@@ -1,6 +1,7 @@
 # Atlas project manifest — sketch (ADR-0014)
 # Canonical filename in repo: atlas.yml  (alias: atlas.project.yml)
-# Status: phase C — deploy reads runtime.composeFile; Service.composePath optional / synthesized fallback.
+# Status: phase C+ — deploy reads runtime.composeFile + optional runtime.migrateCommand;
+#   Service.composePath optional / synthesized fallback.
 
 apiVersion: atlas/v1alpha1
 kind: Project
@@ -13,6 +14,10 @@ runtime:
   kind: compose
   # Migration bridge: existing docker-compose.atlas.yml / composePath
   composeFile: docker-compose.atlas.yml
+  # Optional. Atlas runs this shell command after compose up (cwd = clone workspace).
+  # App owns the migrator (Prisma / Flyway / etc.). Omit if the container already migrates on start.
+  # See docs/deployment/app-migrations.md
+  migrateCommand: npm run db:migrate:deploy
 
 services:
   api:
