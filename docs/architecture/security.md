@@ -60,6 +60,7 @@ Resolución por nombre en deploy: binding alias → project-owned → org/global
 - CSRF off (stateless JWT) — OK detrás del mismo sitio / Bearer.
 - Rate limit en Traefik para `/auth/login`.
 - Audit log append-only para acciones privilegiadas.
+- Edge: excluir solo `/api/v1/webhooks/` de Authentik (GitHub no sigue 302); ver [webhooks-edge.md](../deployment/webhooks-edge.md).
 
 ## Cumplimiento ligero
 

@@ -62,11 +62,18 @@ Cuando un `Service` declara `domain`:
 - Traefik healthcheck → frontend `/` o backend `/actuator/health`.
 - No exponer Swagger en producción pública (restringir por perfil / IP allowlist).
 
+## Excepción: Git webhooks
+
+`POST /api/v1/webhooks/**` **no** pasa por ForwardAuth Authentik (GitHub no sigue 302).
+Router Traefik `atlas-webhooks` + opcional `skip_path_regex` en Proxy Provider Atlas.
+Auth = token de path + secret en API. Detalle: [webhooks-edge.md](../deployment/webhooks-edge.md).
+
 ## Diagrama de confianza
 
 ```text
 [Usuario] → Cloudflare → Traefik+Authentik → [UI]
                                       └→ [API]  (solo red interna + headers)
+[GitHub]  → Cloudflare → Traefik (sin Authentik) → [UI nginx] → [API webhooks]
 [API] → Postgres / Redis
 [Worker] → Hosts (SSH/Docker)   // credenciales nunca al browser
 ```

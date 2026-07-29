@@ -6,6 +6,7 @@
 - Docker + redes `atlas-public` / `atlas-internal`.
 - Traefik + Cloudflare Tunnel + HTTPS.
 - Authentik SSO (ForwardAuth).
+- Git webhooks: path `/api/v1/webhooks/` **fuera** de Authentik (ver [webhooks-edge.md](./webhooks-edge.md)).
 - PostgreSQL compartido o dedicado (Compose actual trae Postgres propio).
 - Prometheus, Grafana, Loki, Node Exporter.
 
@@ -45,6 +46,8 @@ No hace falta un segundo Dockerfile todavía.
 | `atlas-internal` | backend, worker, postgres, redis |
 
 Backend **no** publicado a Internet; solo vía proxy UI o router Traefik interno con ForwardAuth si se expone API directa.
+
+Excepción edge: router Traefik `atlas-webhooks` (`PathPrefix(/api/v1/webhooks/)`) **sin** middleware `authentik`, para que GitHub no reciba 302. Labels en `docker-compose.prod.yml.example`.
 
 ## Configuración
 

@@ -47,6 +47,8 @@ Traefik ForwardAuth inyecta cabeceras (`X-authentik-username`, `X-authentik-grou
 
 **Limitación de seguridad:** confiar en cabeceras solo es seguro si Atlas no es alcanzable sin Traefik ForwardAuth. No expongas el puerto del backend a redes no confiables con SSO activado (un cliente podría falsificar `X-authentik-*`).
 
+**Webhooks Git:** `POST /api/v1/webhooks/` debe quedar **fuera** de Authentik (router Traefik dedicado); GitHub no sigue 302. Ver `docs/deployment/webhooks-edge.md`.
+
 ### Local / desarrollo (sin Authentik)
 
 Con `ATLAS_AUTHENTIK_ENABLED=false` (perfil `local` por defecto) o sin cabeceras Authentik, `/auth/sso` responde 401 y el SPA muestra el login usuario/password JWT habitual (`admin` / `ChangeMe123!`).

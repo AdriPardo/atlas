@@ -59,11 +59,22 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=atlas-public"
+      # UI + API behind Authentik ForwardAuth (middleware defined on Traefik infra).
       - "traefik.http.routers.atlas.rule=Host(`atlas.atlasops.dev`)"
       - "traefik.http.routers.atlas.entrypoints=websecure"
       - "traefik.http.routers.atlas.tls=true"
       - "traefik.http.routers.atlas.tls.certresolver=cloudflare"
       - "traefik.http.routers.atlas.middlewares=authentik,securityHeaders@file,gzip@file"
+      - "traefik.http.routers.atlas.priority=1"
+      # GitHub/GitLab webhooks must NOT hit Authentik (302 → Invalid HTTP Response).
+      # Token-auth lives in Atlas API (permitAll + webhook secret). Priority > atlas.
+      - "traefik.http.routers.atlas-webhooks.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/v1/webhooks/`)"
+      - "traefik.http.routers.atlas-webhooks.entrypoints=websecure"
+      - "traefik.http.routers.atlas-webhooks.tls=true"
+      - "traefik.http.routers.atlas-webhooks.tls.certresolver=cloudflare"
+      - "traefik.http.routers.atlas-webhooks.middlewares=securityHeaders@file,gzip@file"
+      - "traefik.http.routers.atlas-webhooks.service=atlas"
+      - "traefik.http.routers.atlas-webhooks.priority=100"
       - "traefik.http.services.atlas.loadbalancer.server.port=80"
     logging:
       driver: json-file
