@@ -82,7 +82,7 @@ export function PipelineDetailPage() {
   }
 
   return (
-    <PageShell maxWidth={960}>
+    <PageShell>
       <PageHeader
         title={query.data?.name ?? 'Pipeline'}
         description="Deploy pipeline — Run now or trigger via git webhook."

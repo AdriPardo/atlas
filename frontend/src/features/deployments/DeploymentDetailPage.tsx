@@ -35,7 +35,7 @@ export function DeploymentDetailPage() {
   const live = query.data ? ACTIVE.has(query.data.status) : false
 
   return (
-    <PageShell maxWidth={860}>
+    <PageShell>
       <PageHeader
         title="Deployment"
         description={query.data ? `Run ${query.data.id.slice(0, 8)}` : 'Deployment record'}

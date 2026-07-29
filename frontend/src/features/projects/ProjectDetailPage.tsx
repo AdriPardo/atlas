@@ -82,7 +82,7 @@ export function ProjectDetailPage() {
   })
 
   return (
-    <PageShell maxWidth={760}>
+    <PageShell>
       <PageHeader
         title={query.data?.name ?? 'Project'}
         description="Connect the app; Atlas places and deploys it."

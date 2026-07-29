@@ -75,7 +75,7 @@ export function HostDetailPage() {
   const grafanaConfigured = Boolean(obsQuery.data?.configured && obsQuery.data?.grafanaBaseUrl)
 
   return (
-    <PageShell maxWidth={960}>
+    <PageShell>
       <PageHeader
         title={query.data?.hostname ?? 'Host'}
         description="Inventory, containers, and observability links."

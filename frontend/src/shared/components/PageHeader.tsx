@@ -17,7 +17,7 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
       flexDirection={{ xs: 'column', sm: 'row' }}
       mb={0.5}
     >
-      <Box maxWidth={640}>
+      <Box maxWidth={{ xs: '100%', md: 'min(720px, 70%)' }}>
         <Typography variant="h4" component="h1" gutterBottom={Boolean(description)}>
           {title}
         </Typography>
