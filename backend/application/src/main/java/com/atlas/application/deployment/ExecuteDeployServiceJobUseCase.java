@@ -1,5 +1,6 @@
 package com.atlas.application.deployment;
 
+import com.atlas.application.manifest.ComposePathResolver;
 import com.atlas.application.networking.EnsureDomainDnsCnameUseCase;
 import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
@@ -52,6 +53,7 @@ public class ExecuteDeployServiceJobUseCase {
     private final EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
     private final EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
     private final EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase;
+    private final ComposePathResolver composePathResolver;
     private final TransactionTemplate transactionTemplate;
 
     public ExecuteDeployServiceJobUseCase(
@@ -68,6 +70,38 @@ public class ExecuteDeployServiceJobUseCase {
             EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase,
             EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase,
             PlatformTransactionManager transactionManager) {
+        this(
+                deploymentRepository,
+                serviceRepository,
+                projectRepository,
+                hostRepository,
+                domainRepository,
+                gitRepository,
+                containerRuntime,
+                resolveSecretValue,
+                workspacePathResolver,
+                evaluateProductAlertsUseCase,
+                ensureDomainTunnelIngressUseCase,
+                ensureDomainDnsCnameUseCase,
+                new ComposePathResolver(),
+                transactionManager);
+    }
+
+    ExecuteDeployServiceJobUseCase(
+            DeploymentRepositoryPort deploymentRepository,
+            ServiceRepositoryPort serviceRepository,
+            ProjectRepositoryPort projectRepository,
+            HostRepositoryPort hostRepository,
+            DomainRepositoryPort domainRepository,
+            GitRepositoryPort gitRepository,
+            ContainerRuntimePort containerRuntime,
+            ResolveSecretValueUseCase resolveSecretValue,
+            WorkspacePathResolver workspacePathResolver,
+            EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
+            EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase,
+            EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase,
+            ComposePathResolver composePathResolver,
+            PlatformTransactionManager transactionManager) {
         this.deploymentRepository = deploymentRepository;
         this.serviceRepository = serviceRepository;
         this.projectRepository = projectRepository;
@@ -80,6 +114,7 @@ public class ExecuteDeployServiceJobUseCase {
         this.evaluateProductAlertsUseCase = evaluateProductAlertsUseCase;
         this.ensureDomainTunnelIngressUseCase = ensureDomainTunnelIngressUseCase;
         this.ensureDomainDnsCnameUseCase = ensureDomainDnsCnameUseCase;
+        this.composePathResolver = composePathResolver;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
@@ -125,9 +160,13 @@ public class ExecuteDeployServiceJobUseCase {
 
             seedAtlasEnvFile(workspace, loaded.service(), logSink);
 
+            ComposePathResolver.Resolution compose =
+                    composePathResolver.resolve(workspace, loaded.service().getComposePath());
+            logSink.accept("Using " + compose.describe());
+
             Optional<String> sshKey = resolveSshKey(loaded.host());
             containerRuntime.composeUp(
-                    loaded.host(), workspace, loaded.service().getComposePath(), sshKey, logSink);
+                    loaded.host(), workspace, compose.composeFilePath(), sshKey, logSink);
 
             transactionTemplate.executeWithoutResult(status -> {
                 Deployment succeeded = deploymentRepository

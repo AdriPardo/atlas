@@ -1,5 +1,6 @@
 dependencies {
     implementation(project(":domain"))
+    implementation("org.yaml:snakeyaml")
 
     compileOnly("org.springframework:spring-context")
     compileOnly("org.springframework:spring-tx")

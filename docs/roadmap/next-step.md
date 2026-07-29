@@ -2,29 +2,30 @@
 
 ## Estado del último incremento (completado)
 
-**Cloudflare token scopes in Secrets UI** (v0.8.8):
+**Lectura de `atlas.yml` en deploy (ADR-0014 fase B / v0.8.9):**
 
-- Hint en Org secrets + Project secrets: Zone DNS Edit + Tunnel / Cloudflare One Edit para `cloudflare.api.token`.
-- HelperText dinámico al crear/vincular ese nombre.
-- Docs (`config-security`, public hostname) alineados.
+- Tras clone: si existe `atlas.yml` (o alias `atlas.project.yml`) válido → `runtime.composeFile` alimenta `composeUp`.
+- Sin manifiesto (o sin `composeFile`) → fallback a `Service.composePath` (sin eliminar columna/API).
+- `runtime.kind` omitido / `compose` / `podman-compose` OK; otros kinds → error claro.
+- Tests: loader, resolver, deploy job.
 
-**Previo:** Auto-deploy on git push (v0.8.7); stale RUNNING recovery; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
+**Previo:** Cloudflare token scopes in Secrets UI (v0.8.8); Auto-deploy on git push; stale RUNNING recovery; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**Primer slice de lectura de `atlas.yml` (ADR-0014 fase B)** — parsear manifiesto del repo en deploy path **sin eliminar** `composePath` (fallback si no hay `atlas.yml`).
+**Fase C ligera (ADR-0014):** UI/API dejan de *exigir* `composePath` cuando el repo trae `atlas.yml` con `runtime.composeFile`; campo DB pasa a opcional / derivado. Repos solo-compose sin manifiesto: Atlas sintetiza manifiesto mínimo en memoria.
 
 ## Por qué es el paso más rentable ahora
 
-1. Scopes CF en UI cierran fricción dogfood PUBLIC (Tunnel + DNS).
-2. ADR-0014 es el norte; fase B desbloquea “repo declara cómo correr” sin romper Compose.
-3. No bloquea ops diarios: `composePath` sigue siendo el default.
+1. Fase B ya lee el manifiesto en el hot path; falta alinear contrato de producto (create project no fuerza path Compose si hay manifest).
+2. Desbloquea “repo declara cómo correr” de punta a punta sin rewrite de orchestrator.
+3. Aún no toca Hosts / Traefik / Tunnel.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Definir schema mínimo `atlas.yml` (runtime `compose` + path/service hints) según ADR-0014.
-2. En deploy: si el checkout tiene `atlas.yml` válido → usarlo; si no → `composePath` actual.
-3. Tests + docs; **no** eliminar columnas/API `composePath`.
+1. `composePath` opcional en create/update Service cuando hay manifiesto (o default sintetizado).
+2. UI New Project: path Compose opcional si documentamos `atlas.yml`.
+3. Tests + docs; **aún no** renombrar `ContainerRuntimePort` ni eliminar columna.
 
 ## Secundario (si sobra capacidad)
 
@@ -33,14 +34,14 @@
 
 ## Norte estratégico (no es el siguiente incremento)
 
-**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): el repo declara *cómo correr* en `atlas.yml`; Docker Compose es el adapter de hoy. Fases C–D (desacoplar / eliminar `composePath`) después de migrar el deploy path.
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases C–D (desacoplar / eliminar `composePath`, port genérico). Compose sigue adapter default.
 
 ## Qué no hacer
 
 - No billing/AI/marketplace, no Redis/Kafka obligatorio.
-- No motor completo de manifiesto ni eliminar `composePath` antes de migrar el deploy path (ADR-0014 fases B–D).
+- No motor completo de manifiesto ni eliminar `composePath` de DB antes de migrar callers (fase C–D).
 - No `compose down -v` ni tocar `.env` en runbooks de deploy.
 
 ## Definición de éxito (siguiente)
 
-> Deploy de un service con `atlas.yml` en el repo usa ese manifiesto; sin archivo, el path Compose existente sigue funcionando igual.
+> Crear/actualizar service sin `composePath` obligatorio cuando el repo declara `runtime.composeFile`; deploys legacy con solo `composePath` siguen verdes.

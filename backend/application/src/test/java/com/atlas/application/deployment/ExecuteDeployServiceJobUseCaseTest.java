@@ -159,6 +159,55 @@ class ExecuteDeployServiceJobUseCaseTest {
                 .composeUp(eq(host), eq(workspace), eq("docker-compose.yml"), eq(Optional.empty()), any());
         assertEquals(ServiceStatus.RUNNING, service.getStatus());
         assertTrue(running.getLogs().contains("compose up ok") || running.getStatus() == DeploymentStatus.SUCCEEDED);
+        assertTrue(running.getLogs().contains("composePath") || running.getStatus() == DeploymentStatus.SUCCEEDED);
+    }
+
+    @Test
+    void usesComposeFileFromAtlasYmlWhenPresent() throws Exception {
+        java.nio.file.Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  kind: compose
+                  composeFile: docker-compose.atlas.yml
+                """);
+
+        Project project = Project.create("demo", "d");
+        ServiceUnit service = ServiceUnit.createDefault(
+                project.getId(), "https://example.com/demo.git", "main", "docker-compose.yml", "");
+        Host host = Host.create("local", "127.0.0.1", "linux", "26", true, ConnectionType.LOCAL, null, 22, null);
+        Deployment deployment = Deployment.create(service.getId(), host.getId());
+        Deployment running = Deployment.rehydrate(
+                deployment.getId(),
+                deployment.getServiceId(),
+                deployment.getHostId(),
+                DeploymentStatus.PENDING,
+                null,
+                null,
+                "",
+                deployment.getCreatedAt(),
+                deployment.getUpdatedAt());
+
+        when(deploymentRepository.findById(deployment.getId())).thenReturn(Optional.of(running));
+        when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(hostRepository.findById(host.getId())).thenReturn(Optional.of(host));
+        when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(resolveSecretValue.forProject(project.getId(), ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.empty());
+
+        doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());
+        doAnswer(inv -> null).when(containerRuntime).composeUp(any(), any(), any(), any(), any());
+
+        useCase.execute(deployment.getId());
+
+        verify(containerRuntime)
+                .composeUp(eq(host), eq(workspace), eq("docker-compose.atlas.yml"), eq(Optional.empty()), any());
+        assertTrue(running.getLogs().contains("atlas.yml") || running.getStatus() == DeploymentStatus.SUCCEEDED);
     }
 
     @Test

@@ -1,7 +1,8 @@
 # ADR-0014 — Project manifest como fuente de verdad del runtime
 
-- **Estado:** Accepted (dirección estratégica; motor aún no implementado)
+- **Estado:** Accepted (fase B parcial: lectura de `runtime.composeFile` en deploy; fases C–D pendientes)
 - **Fecha:** 2026-07-27
+- **Actualizado:** 2026-07-29 — phase B thin slice en `ExecuteDeployServiceJobUseCase`
 
 ## Contexto
 
@@ -104,12 +105,12 @@ Reglas de diseño del schema:
 
 ## Qué no hacer aún
 
-- No implementar motor completo de manifiesto ni parsers en el hot path de deploy.
-- No eliminar `composePath` de API/DB en este incremento.
+- No implementar motor completo de manifiesto (services/build/health mapping) en el hot path.
+- No eliminar `composePath` de API/DB en este incremento (fase C).
 - No forzar a todos los customer repos a adoptar `atlas.yml` antes de Fase C.
 - No meter billing/AI ni rewrite de Hosts/Deployments.
-- No añadir un segundo port paralelo vacío sin consumidores; evolucionar `ContainerRuntimePort` cuando exista el primer parser.
+- No ampliar `ContainerRuntimePort` a `apply`/`teardown` genéricos hasta que haya segundo runtime.
 
 ## Relación con el siguiente paso operativo
 
-El runbook restore v0.8 está cerrado (`docs/deployment/backup-restore.md`). Reuse Proxmox (`REUSED`) también. Este ADR sigue siendo **norte estratégico** / slice posterior (tras recovery de jobs stale o cuando toque desacoplar `composePath`); ver `docs/roadmap/next-step.md`.
+Fase B thin slice: deploy lee `atlas.yml` / `atlas.project.yml` y usa `runtime.composeFile` con fallback a `composePath`. Siguiente: fase C (composePath opcional en API/UI). Ver `docs/roadmap/next-step.md`.

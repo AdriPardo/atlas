@@ -25,7 +25,7 @@ Campos clave: `name`, `slug`, `description`, `status`, timestamps, `created_by`.
 
 Campos heredados del Application actual: `repositoryUrl`, `branch`, `composePath`, `domain`, `status`.
 
-**Dirección (ADR-0014):** `composePath` es el puente Compose de hoy; el contrato objetivo es un manifiesto `atlas.yml` (`runtime.kind` + services/build/expose/health) con runtime pluggable. Autopilot no vive en el manifiesto (placement, DNS, secrets, exposure).
+**Dirección (ADR-0014):** `composePath` es el puente Compose de hoy; en deploy, si el checkout tiene `atlas.yml` con `runtime.composeFile`, ese path gana (fase B). El contrato objetivo sigue siendo manifiesto + runtime pluggable. Autopilot no vive en el manifiesto (placement, DNS, secrets, exposure).
 
 Estados: `REGISTERED` | `READY` | `DEPLOYING` | `RUNNING` | `DEGRADED` | `STOPPED` | `FAILED`.
 

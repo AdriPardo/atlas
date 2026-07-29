@@ -23,6 +23,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.6** | Stale RUNNING job recovery | Redeploy tras crash del worker |
 | **v0.8.7** | Auto-deploy on git push | One-click pipeline + filtro push/branch + GitHub webhook opcional |
 | **v0.8.8** | Cloudflare token scopes in Secrets UI | Operador ve scopes mínimos Tunnel+DNS al crear el secret |
+| **v0.8.9** | Read `atlas.yml` on deploy (ADR-0014 B) | Repo declara compose file; fallback `composePath` |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -204,6 +205,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Docs alineados (`config-security`, public hostname).
 
 **Criterio done:** operador ve en Secrets UI qué scopes necesita; Tunnel/DNS assist no falla por scopes mal documentados.
+
+---
+
+## v0.8.9 — Project manifest read on deploy (ADR-0014 phase B)
+
+- Tras `cloneOrUpdate`, si el workspace tiene `atlas.yml` / `atlas.project.yml` válido → `runtime.composeFile` se pasa a `composeUp`.
+- Sin manifiesto o sin `composeFile` → `Service.composePath` (fallback; columna/API intactas).
+- `runtime.kind` omitido / `compose` / `podman-compose`; otros kinds fallan el deploy con mensaje claro.
+- Schema de ejemplo y ADR alineados; sin rewrite del orchestrator.
+
+**Criterio done:** deploy con `atlas.yml` usa ese compose file; repo sin manifiesto se comporta igual que antes.
 
 ---
 

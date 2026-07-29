@@ -1,6 +1,6 @@
 # Atlas project manifest — sketch (ADR-0014)
 # Canonical filename in repo: atlas.yml  (alias: atlas.project.yml)
-# Status: design contract only; deploy path still uses Service.composePath + docker compose.
+# Status: phase B — deploy reads runtime.composeFile when present; else Service.composePath.
 
 apiVersion: atlas/v1alpha1
 kind: Project
