@@ -27,10 +27,11 @@ Inventario de volúmenes Docker relevantes a Services; binding a backups. Metada
 
 Registro de instancias DB (Postgres/MySQL/…) usadas por projects:
 
-- Externas (connection string en Secrets).
-- Gestionadas (compose profile Atlas-known) — fase posterior.
+- **Hoy:** connection string en Secrets del project (`db.url`); convención schema `app_<slug>` ([ADR-0015](../decisions/ADR-0015-project-database-access.md), [project-database-access.md](../product/project-database-access.md)).
+- **Externas:** mismo binding; Atlas no provisiona el cluster remoto.
+- **Gestionadas (post-billing):** CREATE ROLE/SCHEMA + grants `db.read` / `db.migrate` / `db.admin`; luego URLs TTL. SQL proxy diferido.
 
-Útil para backups/restore y variables de conexión tipadas.
+Útil para backups/restore de **apps** (futuro; distinto de `BACKUP_DATABASE` del control plane Atlas) y variables de conexión tipadas.
 
 ## Queues (infra del cliente)
 

@@ -47,5 +47,10 @@ Nombres lógicos conocidos (hints en UI):
 |--------|-----|----------------|
 | `git.token` | Clone privado + registro webhook GitHub | PAT GitHub con scope `repo` |
 | `cloudflare.api.token` | Autopilot PUBLIC Tunnel + DNS CNAME | **Zone → DNS → Edit** + **Account → Cloudflare Tunnel / Cloudflare One → Edit** (un solo token basta) |
+| `db.url` | Connection string de la DB del project (p. ej. `DATABASE_URL` en Compose) | Preferido. Aislamiento: schema/rol propios — [ADR-0015](../decisions/ADR-0015-project-database-access.md) |
+| `db.schema` | Nombre de schema canónico (`app_<project_slug>`) | Metadata / binding; no sustituye `db.url` |
+| `db.password` | Password suelta si el repo no usa URL única | Legacy; preferir `db.url` |
 
 Rotación: crear nueva versión / reemplazar valor; deploys siguientes usan latest.
+
+Acceso DB por project (producto): [project-database-access.md](../product/project-database-access.md).

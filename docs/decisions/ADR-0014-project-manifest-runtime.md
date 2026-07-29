@@ -75,7 +75,7 @@ services:
       path: /actuator/health
       intervalSeconds: 15
     envFrom:
-      - secretRef: db.password          # nombre lógico Atlas Secrets
+      - secretRef: db.url               # nombre lógico Atlas Secrets (ADR-0015); db.password = legacy
       - configKey: DOMAIN               # relleno por Autopilot / .env seed
 
   web:

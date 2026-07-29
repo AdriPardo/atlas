@@ -156,7 +156,7 @@ export function SecretsListPage() {
               onChange={(e) => setName(e.target.value)}
               helperText={secretNameHelperText(
                 name,
-                'e.g. cloudflare.api.token or shared-github-pat (link as git.token)',
+                'e.g. cloudflare.api.token, db.url, or shared-github-pat (link as git.token)',
               )}
               fullWidth
               autoFocus

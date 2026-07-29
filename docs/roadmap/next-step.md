@@ -10,6 +10,8 @@
 
 **Previo:** OpenAPI + sunset `/applications` (v0.8.16); UX Domains 403 scopes (v0.8.15); Host capabilities DB + filtro placement (v0.8.14); Pipeline `hostId` opcional; `migrateCommand`; RuntimeOrchestratorPort; composePath opcional; atlas.yml; Cloudflare scopes UI; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
+**Docs (sin código de provisioning):** [ADR-0015](../decisions/ADR-0015-project-database-access.md) — acceso DB por Project (roles+schemas; secrets `db.url`); nota [project-database-access.md](../product/project-database-access.md).
+
 ## Recomendación única (siguiente)
 
 **Billing/usage meters (v0.9)** o performance pass sintético. Alternativa: adapter Podman real (solo si hay demanda).
@@ -18,6 +20,7 @@
 
 1. Capabilities sync listo; envelope comercial (meters/entitlements) desbloquea polish v0.9.
 2. Segundo runtime adapter no urgente mientras Compose cubre flota.
+3. Acceso DB de apps (ADR-0015) queda **encolado después de billing**: contrato + convención de secrets ya documentados; provisioner Postgres es incremento propio.
 
 ## Alcance concreto del incremento (siguiente)
 
@@ -30,6 +33,14 @@
 - Adapter Podman vía `RuntimeOrchestratorPort` (opt-in).
 - Feature flags / plan local.
 
+## Cola post-billing (no es el siguiente)
+
+**Project DB access — slice 1 (provisioner)** ([ADR-0015](../decisions/ADR-0015-project-database-access.md)):
+
+1. Convención ya viva: secret `db.url` (+ `db.schema`) por project; schema `app_<slug>`.
+2. Build: provisioner CREATE ROLE/SCHEMA + grants `db.read` / `db.migrate`; UI metadata en Project; **sin** SQL proxy.
+3. Luego: URLs/credenciales TTL (opción C). Proxy+RLS (B) diferido.
+
 ## Norte estratégico (no es el siguiente incremento)
 
 **Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + capabilities DB + sync probe + OpenAPI hechas; Compose sigue adapter default. Podman/K8s = adapters futuros.
@@ -40,6 +51,8 @@
 - No eliminar `composePath` de DB antes de migrar callers restantes.
 - No `compose down -v` ni tocar `.env` en runbooks de deploy.
 - No retirar `/applications` antes de Sunset 2027-08-01.
+- No provisionar roles Postgres ni SQL console antes de cerrar v0.9 billing/usage (salvo urgencia ops documentada).
+- No interferir con fixes de login Reelpath en paralelo.
 
 ## Definición de éxito (siguiente)
 

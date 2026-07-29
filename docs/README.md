@@ -17,6 +17,7 @@ Esta carpeta describe el **diseño objetivo** y la evolución desde el MVP actua
 | 7 | [roadmap/versions.md](roadmap/versions.md) | v0.1 → v1.0 |
 | 8 | [roadmap/next-step.md](roadmap/next-step.md) | Siguiente paso de implementación |
 | — | [decisions/](decisions/) | ADRs (decisiones vinculantes) |
+| — | [product/project-database-access.md](product/project-database-access.md) | Acceso DB por Project (ADR-0015) |
 
 ## Estado del producto (hoy)
 

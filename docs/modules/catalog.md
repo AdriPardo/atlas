@@ -15,7 +15,7 @@ Estado: `MVP` (en código) · `v0.x` (roadmap) · `v1.0` · `future` · `designe
 | Hosts | Inventario y conectividad de máquinas | MVP | [runtime.md](runtime.md) |
 | Containers | Vista runtime Docker en hosts | designed | [runtime.md](runtime.md) |
 | Storage / Volumes | Volúmenes y mounts | designed | [runtime.md](runtime.md) |
-| Databases | Catálogo DB gestionadas / externas | designed | [runtime.md](runtime.md) |
+| Databases | Catálogo DB gestionadas / externas | designed (ADR-0015 contrato + `db.url`; provisioner post-billing) | [runtime.md](runtime.md) · [project-database-access.md](../product/project-database-access.md) |
 | Queues | Registro de brokers (Redis/Rabbit) del cliente | designed | [runtime.md](runtime.md) |
 | Cron | Jobs programados en flota | designed | [runtime.md](runtime.md) |
 | Logs | Consulta/stream logs app y deploy | designed | [observability-modules.md](observability-modules.md) |

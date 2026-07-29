@@ -31,7 +31,8 @@ services:
       path: /actuator/health
       intervalSeconds: 15
     envFrom:
-      - secretRef: db.password
+      # Prefer db.url (full DATABASE_URL). db.password = legacy split credentials.
+      - secretRef: db.url
       - configKey: DOMAIN
 
   web:

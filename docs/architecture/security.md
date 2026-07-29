@@ -52,6 +52,8 @@ Mapeo Authentik: grupos → roles (`ATLAS_AUTHENTIK_ADMIN_GROUP`, etc.).
 
 Resolución por nombre en deploy: binding alias → project-owned → org/global. Clave maestra: env / file mount (`ATLAS_SECRETS_MASTER_KEY`).
 
+DB de apps: secret lógico `db.url` (schema `app_<slug>`); DB control plane `atlas` no se expone a projects — [ADR-0015](../decisions/ADR-0015-project-database-access.md).
+
 
 ## Hardening operativo
 
