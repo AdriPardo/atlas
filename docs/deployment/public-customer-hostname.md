@@ -28,7 +28,7 @@ Cloudflare Tunnel ingress is **remotely managed**. Autopilot assists registratio
 | `ATLAS_CF_ZONE_ID` | Optional zone id (skips zone name lookup) |
 | `ATLAS_CF_TUNNEL_ORIGIN` | Default `https://traefik:443` |
 | `ATLAS_CF_TUNNEL_NO_TLS_VERIFY` | Default `true` (match atlas edge) |
-| Secret `cloudflare.api.token` | **Tunnel Edit** and/or **Zone DNS Edit** |
+| Secret `cloudflare.api.token` | **Zone → DNS → Edit** + **Account → Cloudflare Tunnel / Cloudflare One → Edit** |
 
 Without zone/tunnel/token, Atlas still returns the exact paste values (mode `MANUAL`).
 

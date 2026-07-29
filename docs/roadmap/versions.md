@@ -22,6 +22,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.5** | Autopilot Proxmox REUSED | ISOLATED reutiliza Host/VM por hostname/tag; clone solo si no hay match |
 | **v0.8.6** | Stale RUNNING job recovery | Redeploy tras crash del worker |
 | **v0.8.7** | Auto-deploy on git push | One-click pipeline + filtro push/branch + GitHub webhook opcional |
+| **v0.8.8** | Cloudflare token scopes in Secrets UI | Operador ve scopes mínimos Tunnel+DNS al crear el secret |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -193,6 +194,16 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - UI: panel “Auto-deploy on push” en Project detail + instrucciones claras en Pipeline detail.
 
 **Criterio done:** push a la branch del service redeployea sin crear pipeline/webhook a mano; otros eventos no encolan deploy.
+
+---
+
+## v0.8.8 — Cloudflare token scopes in Secrets UI
+
+- Hint persistente en Org secrets y Project secrets: scopes mínimos para `cloudflare.api.token` (Zone DNS Edit + Tunnel / Cloudflare One Edit).
+- HelperText dinámico al crear/vincular ese nombre.
+- Docs alineados (`config-security`, public hostname).
+
+**Criterio done:** operador ve en Secrets UI qué scopes necesita; Tunnel/DNS assist no falla por scopes mal documentados.
 
 ---
 

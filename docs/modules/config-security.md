@@ -41,4 +41,11 @@ Hosts SSH siguen resolviendo por `sshPrivateKeySecretId` (id), sin cascada por n
 
 UI: panel **Secrets** en Project detail; página sidebar **Org secrets** (`/secrets`) para el almacén compartido.
 
+Nombres lógicos conocidos (hints en UI):
+
+| Nombre | Uso | Scopes / notas |
+|--------|-----|----------------|
+| `git.token` | Clone privado + registro webhook GitHub | PAT GitHub con scope `repo` |
+| `cloudflare.api.token` | Autopilot PUBLIC Tunnel + DNS CNAME | **Zone → DNS → Edit** + **Account → Cloudflare Tunnel / Cloudflare One → Edit** (un solo token basta) |
+
 Rotación: crear nueva versión / reemplazar valor; deploys siguientes usan latest.

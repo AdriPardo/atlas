@@ -2,38 +2,38 @@
 
 ## Estado del último incremento (completado)
 
-**Auto-deploy on git push** (v0.8.7):
+**Cloudflare token scopes in Secrets UI** (v0.8.8):
 
-- One-click `POST /api/v1/pipelines/enable-auto-deploy` + panel en Project detail.
-- Registro opcional de webhook GitHub vía API cuando existe `git.token`.
-- Filtro webhook: solo `push` a la branch del service (ignora ping/PR/otras ramas).
-- Docs + tests.
+- Hint en Org secrets + Project secrets: Zone DNS Edit + Tunnel / Cloudflare One Edit para `cloudflare.api.token`.
+- HelperText dinámico al crear/vincular ese nombre.
+- Docs (`config-security`, public hostname) alineados.
 
-**Previo:** Stale RUNNING job recovery (v0.8.6); Proxmox VM reuse; DNS CNAME; guest-ready; Tunnel PUBLIC.
+**Previo:** Auto-deploy on git push (v0.8.7); stale RUNNING recovery; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**Endurecer scopes de token Cloudflare documentados en UI Secrets hint** — o primer slice de lectura de `atlas.yml` (ADR-0014 fase B) sin eliminar `composePath`.
+**Primer slice de lectura de `atlas.yml` (ADR-0014 fase B)** — parsear manifiesto del repo en deploy path **sin eliminar** `composePath` (fallback si no hay `atlas.yml`).
 
 ## Por qué es el paso más rentable ahora
 
-1. Auto-deploy cierra la fricción “push → redeploy” (Reelpath / dogfood).
-2. Cloudflare scopes reduce fricción de dogfood PUBLIC (Tunnel + DNS).
-3. ADR-0014 sigue siendo norte; no bloquea ops diarios.
+1. Scopes CF en UI cierran fricción dogfood PUBLIC (Tunnel + DNS).
+2. ADR-0014 es el norte; fase B desbloquea “repo declara cómo correr” sin romper Compose.
+3. No bloquea ops diarios: `composePath` sigue siendo el default.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Documentar en UI Secrets los scopes mínimos Cloudflare (Zone DNS Edit + Tunnel/Cloudflare One Edit).
-2. Opcional: slice lectura `atlas.yml` (ADR-0014 fase B) si sobra capacidad.
+1. Definir schema mínimo `atlas.yml` (runtime `compose` + path/service hints) según ADR-0014.
+2. En deploy: si el checkout tiene `atlas.yml` válido → usarlo; si no → `composePath` actual.
+3. Tests + docs; **no** eliminar columnas/API `composePath`.
 
 ## Secundario (si sobra capacidad)
 
-- Primer slice de lectura de `atlas.yml` (ADR-0014 fase B) sin eliminar `composePath`.
 - Host opcional en Pipeline (Autopilot en cada run webhook) en lugar de `hostId` pinneado.
+- UX Domains: mensaje explícito si Ensure falla por 403 (scopes insuficientes).
 
 ## Norte estratégico (no es el siguiente incremento)
 
-**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): el repo declara *cómo correr* en `atlas.yml`; Docker Compose es el adapter de hoy. Slice cuando toque desacoplar `composePath`.
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): el repo declara *cómo correr* en `atlas.yml`; Docker Compose es el adapter de hoy. Fases C–D (desacoplar / eliminar `composePath`) después de migrar el deploy path.
 
 ## Qué no hacer
 
@@ -43,4 +43,4 @@
 
 ## Definición de éxito (siguiente)
 
-> Operador ve en Secrets UI qué scopes necesita el token Cloudflare; Tunnel/DNS assist no falla por scopes mal documentados.
+> Deploy de un service con `atlas.yml` en el repo usa ese manifiesto; sin archivo, el path Compose existente sigue funcionando igual.

@@ -26,6 +26,8 @@ import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
+import { CloudflareTokenScopesHint } from './CloudflareTokenScopesHint'
+import { secretNameHelperText } from './knownSecretHints'
 
 export function SecretsListPage() {
   const queryClient = useQueryClient()
@@ -62,14 +64,29 @@ export function SecretsListPage() {
         }
       />
 
-      <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
-        Deploy resolves <Box component="code">git.token</Box> as: project binding alias → project-owned
-        name → organization secret. Create project-scoped secrets under{' '}
-        <Button component={RouterLink} to="/projects" size="small" sx={{ verticalAlign: 'baseline', p: 0, minWidth: 0 }}>
-          Projects
-        </Button>
-        , or link an org secret into a project with alias <Box component="code">git.token</Box>.
-      </Alert>
+      <Stack spacing={1.5} sx={{ mb: 2 }}>
+        <Alert severity="info" variant="outlined">
+          Deploy resolves <Box component="code">git.token</Box> as: project binding alias → project-owned
+          name → organization secret. Create project-scoped secrets under{' '}
+          <Button
+            component={RouterLink}
+            to="/projects"
+            size="small"
+            sx={{ verticalAlign: 'baseline', p: 0, minWidth: 0 }}
+          >
+            Projects
+          </Button>
+          , or link an org secret into a project with alias <Box component="code">git.token</Box>.
+        </Alert>
+        <CloudflareTokenScopesHint
+          footer={
+            <>
+              Prefer an org-level <Box component="code">cloudflare.api.token</Box> shared across projects,
+              or create/link the same name on each Project.
+            </>
+          }
+        />
+      </Stack>
 
       <DataTableFrame>
         <QueryState isLoading={query.isLoading} isError={query.isError}>
@@ -137,7 +154,10 @@ export function SecretsListPage() {
               label="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              helperText='e.g. "shared-github-pat" — link into projects as git.token'
+              helperText={secretNameHelperText(
+                name,
+                'e.g. cloudflare.api.token or shared-github-pat (link as git.token)',
+              )}
               fullWidth
               autoFocus
             />

@@ -20,6 +20,8 @@ import { EmptyState } from '../../shared/components/EmptyState'
 import { QueryState } from '../../shared/components/QueryState'
 import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
+import { CloudflareTokenScopesHint } from '../secrets/CloudflareTokenScopesHint'
+import { secretNameHelperText } from '../secrets/knownSecretHints'
 import { useAuth } from '../auth/AuthContext'
 
 export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
@@ -89,12 +91,14 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
         Secrets
       </Typography>
       <Alert severity="info" variant="outlined">
-        Deploy resolves <Typography component="span" className="atlas-mono" sx={{ fontSize: '0.85em' }}>
+        Deploy resolves{' '}
+        <Typography component="span" className="atlas-mono" sx={{ fontSize: '0.85em' }}>
           git.token
         </Typography>{' '}
         in order: project binding alias → project-owned name → organization secret. OPERATOR+ can
         manage project secrets; organization secrets are ADMIN-only.
       </Alert>
+      <CloudflareTokenScopesHint />
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'flex-start' }}>
         <TextField
@@ -103,7 +107,7 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           sx={{ minWidth: 140 }}
-          helperText="e.g. git.token"
+          helperText={secretNameHelperText(name)}
         />
         <TextField
           label="Value"
@@ -161,7 +165,7 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
             value={alias}
             onChange={(e) => setAlias(e.target.value)}
             sx={{ minWidth: 140 }}
-            helperText="Logical name for deploy"
+            helperText={secretNameHelperText(alias, 'Logical name for deploy')}
           />
           <Button
             variant="outlined"
@@ -193,7 +197,7 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
           {rows.length === 0 ? (
             <EmptyState
               title="No project secrets"
-              description="Create git.token here, or link an organization secret as git.token."
+              description="Create git.token or cloudflare.api.token here, or link an organization secret."
             />
           ) : (
             <Table size="small">
