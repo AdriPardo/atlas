@@ -31,6 +31,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.14** | Host capabilities DB + placement filter | SHARED solo hosts con `compose`; tags en DB |
 | **v0.8.15** | UX Domains 403 scopes | Ensure Tunnel/DNS: 403 → mensaje scopes + link Secrets |
 | **v0.8.16** | OpenAPI + `/applications` sunset path | Contrato publicado; alias deprecated hasta 2027-08-01 |
+| **v0.8.17** | Host sync runtime capabilities | Sync escribe `compose`/`podman` desde probe; unreachable no pisa |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -299,6 +300,16 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Live Swagger solo perfiles `local`/`docker`/`test` (sin cambio de security).
 
 **Criterio done:** cliente externo puede consumir `openapi.json`; operador conoce successor `/projects`+`/services` y fecha Sunset.
+
+---
+
+## v0.8.17 — Host sync writes real runtimeCapabilities
+
+- `HostConnectorPort.HostInspection` incluye tags detectados; probe soft Docker + Podman (local/SSH).
+- `ExecuteSyncHostJobUseCase` reemplaza `runtime_capabilities` solo si el probe devolvió tags; unreachable / vacío → conserva tags previos (SHARED compose no se rompe por flapping).
+- Docker presente → `compose`; Podman presente → `podman`; ambos coexisten. Sin adapter Podman de deploy aún.
+
+**Criterio done:** sync con Docker → host anuncia `compose`; solo Podman → `podman` sin inventar compose; host offline mantiene capabilities anteriores.
 
 ---
 

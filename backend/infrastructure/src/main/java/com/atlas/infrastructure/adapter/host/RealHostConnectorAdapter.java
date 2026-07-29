@@ -1,5 +1,6 @@
 package com.atlas.infrastructure.adapter.host;
 
+import com.atlas.application.host.RuntimeCapabilityDetector;
 import com.atlas.application.port.out.HostConnectorPort;
 import com.atlas.domain.host.ConnectionType;
 import com.atlas.domain.host.Host;
@@ -8,6 +9,7 @@ import com.atlas.infrastructure.adapter.runtime.ProcessCommandRunner;
 import com.atlas.infrastructure.adapter.runtime.SshCommandRunner;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -36,20 +38,24 @@ public class RealHostConnectorAdapter implements HostConnectorPort {
             }
             return inspectSsh(host);
         } catch (Exception ex) {
-            return new HostInspection(host.getHostname(), host.getOperatingSystem(), host.getDockerVersion(), false);
+            return new HostInspection(
+                    host.getHostname(), host.getOperatingSystem(), host.getDockerVersion(), false, Set.of());
         }
     }
 
     private HostInspection inspectLocal() {
-        String hostname = firstLine(processCommandRunner.run(List.of("hostname"), null, line -> {}));
-        String os = firstLine(processCommandRunner.run(List.of("uname", "-s"), null, line -> {}));
-        String docker = extractDockerVersion(
-                processCommandRunner.run(List.of("docker", "version", "--format", "{{.Server.Version}}"), null, line -> {}));
+        String hostname = softLocal(List.of("hostname"));
+        String os = softLocal(List.of("uname", "-s"));
+        String docker = extractVersion(softLocal(List.of("docker", "version", "--format", "{{.Server.Version}}")));
+        String podman = extractVersion(softLocal(List.of("podman", "version", "--format", "{{.Version}}")));
+        Set<String> caps = RuntimeCapabilityDetector.tagsFromProbe(docker, podman);
+        boolean reachable = !caps.isEmpty();
         return new HostInspection(
                 blank(hostname, "localhost"),
                 blank(os, System.getProperty("os.name", "unknown")),
                 docker,
-                !docker.isBlank());
+                reachable,
+                caps);
     }
 
     private HostInspection inspectSsh(Host host) {
@@ -58,21 +64,35 @@ public class RealHostConnectorAdapter implements HostConnectorPort {
         }
         String privateKey = resolveSecretValue.byId(host.getSshPrivateKeySecretId());
         String user = host.getSshUser() == null ? "root" : host.getSshUser();
-        String hostname = firstLine(sshCommandRunner.run(
-                host.getIp(), host.getSshPort(), user, privateKey, "hostname", line -> {}));
-        String os = firstLine(sshCommandRunner.run(
-                host.getIp(), host.getSshPort(), user, privateKey, "uname -s", line -> {}));
-        String docker = extractDockerVersion(sshCommandRunner.run(
-                host.getIp(),
-                host.getSshPort(),
-                user,
-                privateKey,
-                "docker version --format '{{.Server.Version}}'",
-                line -> {}));
-        return new HostInspection(blank(hostname, host.getHostname()), blank(os, "linux"), docker, !docker.isBlank());
+        String hostname = softSsh(host, user, privateKey, "hostname");
+        String os = softSsh(host, user, privateKey, "uname -s");
+        String docker = extractVersion(softSsh(
+                host, user, privateKey, "docker version --format '{{.Server.Version}}'"));
+        String podman = extractVersion(softSsh(host, user, privateKey, "podman version --format '{{.Version}}'"));
+        Set<String> caps = RuntimeCapabilityDetector.tagsFromProbe(docker, podman);
+        boolean reachable = !caps.isEmpty();
+        return new HostInspection(
+                blank(hostname, host.getHostname()), blank(os, "linux"), docker, reachable, caps);
     }
 
-    private static String extractDockerVersion(String output) {
+    private String softLocal(List<String> command) {
+        try {
+            return processCommandRunner.run(command, null, line -> {});
+        } catch (Exception ex) {
+            return "";
+        }
+    }
+
+    private String softSsh(Host host, String user, String privateKey, String remoteCommand) {
+        try {
+            return sshCommandRunner.run(
+                    host.getIp(), host.getSshPort(), user, privateKey, remoteCommand, line -> {});
+        } catch (Exception ex) {
+            return "";
+        }
+    }
+
+    private static String extractVersion(String output) {
         if (output == null) {
             return "";
         }

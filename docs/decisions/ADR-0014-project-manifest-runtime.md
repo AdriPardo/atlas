@@ -13,7 +13,7 @@ Hoy el path de deploy acopla la intención del usuario a tecnologías concretas:
 | Modelo `Service` / `Project` | Campo obligatorio `composePath` (p. ej. `docker-compose.atlas.yml`) |
 | Job `DEPLOY_SERVICE` | `GitRepositoryPort.cloneOrUpdate` → `RuntimeOrchestratorPort.apply(...)` (Compose adapter → `composeUp`) |
 | `ContainerRuntimePort` | Inspect/logs/restart + delegate Compose; stack apply vía `RuntimeOrchestratorPort` |
-| Host | `dockerVersion` + `runtimeCapabilities` persistidos (`compose` default); sync orientado a Docker |
+| Host | `dockerVersion` + `runtimeCapabilities` persistidos; sync probe Docker/Podman escribe tags reales |
 | Edge Autopilot | Traefik labels + Cloudflare Tunnel + DNS CNAME (correcto como *platform* edge, no como “cómo arrancar la app”) |
 | Producto / UI | “New Project = repo + compose path opcional”; Autopilot placement asume compose en el host |
 
@@ -119,4 +119,4 @@ Reglas de diseño del schema:
 
 ## Relación con el siguiente paso operativo
 
-Fases B–D + pipeline sin host pin (v0.8.12) + capabilities persistidos / filtro placement (v0.8.14) + UX Domains 403 scopes (v0.8.15) + OpenAPI publicado / sunset `/applications` (v0.8.16): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host anuncia `compose` en DB; webhook/auto-deploy usan Autopilot por run; Ensure 403 → mensaje scopes; contrato OpenAPI en `docs/api/openapi.json`. Siguiente: sync Host capabilities. Ver `docs/roadmap/next-step.md`.
+Fases B–D + pipeline sin host pin (v0.8.12) + capabilities persistidos / filtro placement (v0.8.14) + UX Domains 403 scopes (v0.8.15) + OpenAPI publicado / sunset `/applications` (v0.8.16) + sync capabilities reales (v0.8.17): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host sync escribe `compose`/`podman` desde probe; webhook/auto-deploy usan Autopilot por run; Ensure 403 → mensaje scopes; contrato OpenAPI en `docs/api/openapi.json`. Siguiente: billing/usage (v0.9). Ver `docs/roadmap/next-step.md`.
