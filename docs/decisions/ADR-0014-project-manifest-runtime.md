@@ -113,4 +113,4 @@ Reglas de diseño del schema:
 
 ## Relación con el siguiente paso operativo
 
-Fases B–D hechas: deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host anuncia `compose`. Siguiente producto: Pipeline sin host pin (Autopilot por webhook). Ver `docs/roadmap/next-step.md`.
+Fases B–D + pipeline sin host pin (v0.8.12): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host anuncia `compose`; webhook/auto-deploy usan Autopilot por run. Siguiente: tags capability persistidos / filtros placement. Ver `docs/roadmap/next-step.md`.

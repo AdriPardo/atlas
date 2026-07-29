@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Button,
   FormControl,
@@ -10,6 +14,7 @@ import {
   Select,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material'
 import { hostsApi, pipelinesApi, projectsApi, servicesApi } from '../../shared/api/endpoints'
 import { PageHeader } from '../../shared/components/PageHeader'
@@ -50,7 +55,7 @@ export function PipelineFormPage() {
         projectId,
         name,
         serviceId,
-        hostId,
+        hostId: hostId || undefined,
       }),
     onSuccess: (pipeline) => navigate(`/pipelines/${pipeline.id}`),
     onError: () => setError('Unable to create pipeline. Check name uniqueness and selections.'),
@@ -59,13 +64,13 @@ export function PipelineFormPage() {
   const projects = projectsQuery.data?.content ?? []
   const services = servicesQuery.data?.content ?? []
   const hosts = hostsQuery.data?.content ?? []
-  const canSubmit = name.trim() && projectId && serviceId && hostId && !createMutation.isPending
+  const canSubmit = name.trim() && projectId && serviceId && !createMutation.isPending
 
   return (
     <PageShell maxWidth={640}>
       <PageHeader
         title="New pipeline"
-        description="Bind a service deploy to a host. Running the pipeline enqueues a deploy job."
+        description="Bind a service deploy. Leave host empty for Autopilot placement on each run."
         actions={
           <Button onClick={() => navigate('/pipelines')}>Cancel</Button>
         }
@@ -117,21 +122,35 @@ export function PipelineFormPage() {
             ))}
           </Select>
         </FormControl>
-        <FormControl fullWidth required>
-          <InputLabel id="pipeline-host">Host</InputLabel>
-          <Select
-            labelId="pipeline-host"
-            label="Host"
-            value={hostId}
-            onChange={(e) => setHostId(e.target.value)}
-          >
-            {hosts.map((h) => (
-              <MenuItem key={h.id} value={h.id}>
-                {h.hostname} ({h.ip})
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Accordion disableGutters elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="body2">Advanced — host override</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={1.5}>
+              <Typography variant="caption" color="text.secondary">
+                Leave empty for Autopilot placement (SHARED) on each webhook/run.
+              </Typography>
+              <TextField
+                select
+                label="Target host (optional)"
+                value={hostId}
+                onChange={(e) => setHostId(e.target.value)}
+                fullWidth
+                helperText="Optional pin. Empty = resolve host per run like manual deploy."
+              >
+                <MenuItem value="">
+                  <em>Autopilot (recommended)</em>
+                </MenuItem>
+                {hosts.map((h) => (
+                  <MenuItem key={h.id} value={h.id}>
+                    {h.hostname} ({h.ip})
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
         <Button type="submit" variant="contained" disabled={!canSubmit}>
           Create pipeline
         </Button>

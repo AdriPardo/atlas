@@ -37,6 +37,7 @@ Estados: `REGISTERED` | `READY` | `DEPLOYING` | `RUNNING` | `DEGRADED` | `STOPPE
 - Deploy keys / PAT cifrados.
 - Webhook endpoint Atlas: `POST /api/v1/webhooks/git/{token}` → encola pipeline.
 - **v0.8.7:** filtro `push` + branch del service; one-click `POST /pipelines/enable-auto-deploy` (crea Pipeline + intenta registrar webhook GitHub si existe `git.token`).
+- **v0.8.12:** Pipeline `hostId` opcional; auto-deploy/webhook resuelven placement Autopilot por run (sin pin por defecto).
 
 ## Pipelines
 
@@ -46,7 +47,7 @@ Estados: `REGISTERED` | `READY` | `DEPLOYING` | `RUNNING` | `DEGRADED` | `STOPPE
 - `PipelineRun` + steps.
 - v0.x: pipeline implícito “deploy only”; v0.6+: steps visibles.
 - **Auto-deploy:** Project UI → “Enable auto-deploy” o API `POST /api/v1/pipelines/enable-auto-deploy`.
-
+- **Host:** opcional; null → Autopilot en cada run (como deploy manual sin host).
 ## Deployments
 
 **Propósito:** intento concreto de publicar un Service en un Host (o environment).

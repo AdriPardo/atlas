@@ -208,7 +208,8 @@ export interface Pipeline {
   projectId: string
   name: string
   serviceId: string
-  hostId: string
+  /** Null = Autopilot placement on each run. */
+  hostId: string | null
   webhookToken: string
   createdAt: string
   updatedAt: string

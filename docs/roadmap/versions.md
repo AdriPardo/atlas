@@ -26,6 +26,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.9** | Read `atlas.yml` on deploy (ADR-0014 B) | Repo declara compose file; fallback `composePath` |
 | **v0.8.10** | Optional `composePath` (ADR-0014 C) | Create/update sin path si hay manifiesto; error claro si falta ambos |
 | **v0.8.11** | RuntimeOrchestratorPort (ADR-0014 D) | Deploy vía port genérico; Host `runtimeCapabilities`; Compose adapter |
+| **v0.8.12** | Pipeline hostId optional + Autopilot webhook | Webhook/run sin pin; placement SHARED por run |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -192,7 +193,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 
 ## v0.8.7 — Auto-deploy on git push
 
-- `POST /pipelines/enable-auto-deploy`: asegura Pipeline por service (host vía Autopilot) y registra webhook GitHub si hay `git.token` + `publicBaseUrl`.
+- `POST /pipelines/enable-auto-deploy`: asegura Pipeline por service (**sin** host pin por defecto; Autopilot en cada run) y registra webhook GitHub si hay `git.token` + `publicBaseUrl`.
 - Webhook git: solo eventos `push` a la branch del service (ignora ping/PR/otras ramas/tags/deleted).
 - UI: panel “Auto-deploy on push” en Project detail + instrucciones claras en Pipeline detail.
 
@@ -240,6 +241,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Sin segundo runtime; sin eliminar `compose_path`.
 
 **Criterio done:** deploy verde vía orchestrator; Host response incluye capabilities; inspect/logs/restart intactos.
+
+---
+
+## v0.8.12 — Pipeline hostId optional + Autopilot on webhook/run
+
+- `Pipeline.hostId` nullable (Flyway V19); create/update DTOs sin `@NotNull` host.
+- `enable-auto-deploy` crea pipeline **sin** pin de host (Reelpath-safe: Autopilot SHARED en cada push); `hostId` explícito sigue como override advanced.
+- `RunPipeline` / git webhook pasan host null → `DeployServiceUseCase` → `AutopilotPlacementService.resolveHost`.
+- UI: form Pipeline host en Advanced; list/detail muestran Autopilot si null.
+
+**Criterio done:** webhook/auto-deploy sin host pin → placement por run; pin legacy sigue verde.
 
 ---
 

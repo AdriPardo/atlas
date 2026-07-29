@@ -23,7 +23,7 @@ public class PipelineJpaEntity {
     @Column(name = "service_id", nullable = false)
     private UUID serviceId;
 
-    @Column(name = "host_id", nullable = false)
+    @Column(name = "host_id")
     private UUID hostId;
 
     @Column(name = "webhook_token", nullable = false, length = 80)

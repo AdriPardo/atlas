@@ -2,9 +2,11 @@ package com.atlas.application.pipeline;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -76,5 +78,55 @@ class RunPipelineUseCaseTest {
         assertNotNull(run.getStartedAt());
         verify(deployServiceUseCase).execute(serviceId, hostId);
         verify(authorizationService).require(projectId, ProjectPermission.DEPLOY);
+    }
+
+    @Test
+    void passesNullHostIdForAutopilotPlacement() {
+        UUID projectId = UUID.randomUUID();
+        UUID serviceId = UUID.randomUUID();
+        UUID resolvedHostId = UUID.randomUUID();
+        Pipeline pipeline = Pipeline.create(projectId, "auto-deploy", serviceId, null);
+        assertNull(pipeline.getHostId());
+
+        when(pipelineRepository.findById(pipeline.getId())).thenReturn(Optional.of(pipeline));
+        when(pipelineRunRepository.save(any(PipelineRun.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(authorizationService).require(eq(projectId), eq(ProjectPermission.DEPLOY));
+
+        Deployment deployment = Deployment.create(serviceId, resolvedHostId);
+        Job job = Job.enqueue(JobType.DEPLOY_SERVICE, "{}", 3);
+        when(deployServiceUseCase.execute(eq(serviceId), isNull()))
+                .thenReturn(new DeployServiceUseCase.DeployResult(deployment, job));
+        when(recordAuditUseCase.execute(anyString(), anyString(), any(), anyString()))
+                .thenReturn(com.atlas.domain.audit.AuditEntry.record(
+                        UUID.randomUUID(), "admin", "PIPELINE_RUN", "pipeline_run", UUID.randomUUID(), "{}"));
+
+        PipelineRun run = useCase.execute(pipeline.getId(), "manual");
+
+        assertEquals(PipelineRunStatus.RUNNING, run.getStatus());
+        verify(deployServiceUseCase).execute(serviceId, null);
+    }
+
+    @Test
+    void trustedPathPassesNullHostId() {
+        UUID projectId = UUID.randomUUID();
+        UUID serviceId = UUID.randomUUID();
+        UUID resolvedHostId = UUID.randomUUID();
+        Pipeline pipeline = Pipeline.create(projectId, "auto-deploy", serviceId, null);
+
+        when(pipelineRepository.findById(pipeline.getId())).thenReturn(Optional.of(pipeline));
+        when(pipelineRunRepository.save(any(PipelineRun.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Deployment deployment = Deployment.create(serviceId, resolvedHostId);
+        Job job = Job.enqueue(JobType.DEPLOY_SERVICE, "{}", 3);
+        when(deployServiceUseCase.executeTrusted(eq(serviceId), isNull()))
+                .thenReturn(new DeployServiceUseCase.DeployResult(deployment, job));
+        when(recordAuditUseCase.execute(anyString(), anyString(), any(), anyString()))
+                .thenReturn(com.atlas.domain.audit.AuditEntry.record(
+                        UUID.randomUUID(), "admin", "PIPELINE_RUN", "pipeline_run", UUID.randomUUID(), "{}"));
+
+        PipelineRun run = useCase.executeTrusted(pipeline.getId(), "webhook");
+
+        assertEquals(PipelineRunStatus.RUNNING, run.getStatus());
+        verify(deployServiceUseCase).executeTrusted(serviceId, null);
     }
 }

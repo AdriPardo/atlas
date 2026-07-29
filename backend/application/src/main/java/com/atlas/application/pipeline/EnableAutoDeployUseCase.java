@@ -1,14 +1,13 @@
 package com.atlas.application.pipeline;
 
 import com.atlas.application.access.ProjectAuthorizationService;
-import com.atlas.application.deployment.AutopilotPlacementService;
 import com.atlas.application.deployment.ExecuteDeployServiceJobUseCase;
 import com.atlas.application.port.out.GitProviderWebhookPort;
+import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.PipelineRepositoryPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.application.secret.ResolveSecretValueUseCase;
 import com.atlas.domain.access.ProjectPermission;
-import com.atlas.domain.host.Host;
 import com.atlas.domain.pipeline.Pipeline;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.domain.shared.DomainException;
@@ -24,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * One-click auto-deploy: ensure a default Pipeline for a service, optionally register a GitHub
  * push webhook when {@code git.token} + absolute public base URL are available.
+ *
+ * <p>Default pipeline omits {@code hostId} so each webhook/run uses Autopilot placement (SHARED
+ * unless the caller later pins a host). Explicit {@code hostId} remains an advanced override.
  */
 @Service
 @RequiredArgsConstructor
@@ -33,8 +35,8 @@ public class EnableAutoDeployUseCase {
 
     private final PipelineRepositoryPort pipelineRepository;
     private final ServiceRepositoryPort serviceRepository;
+    private final HostRepositoryPort hostRepository;
     private final ProjectAuthorizationService authorizationService;
-    private final AutopilotPlacementService placementService;
     private final ResolveSecretValueUseCase resolveSecretValue;
     private final GitProviderWebhookPort gitProviderWebhook;
 
@@ -56,12 +58,10 @@ public class EnableAutoDeployUseCase {
             pipeline = existing.get(0);
             created = false;
         } else {
-            Host host = placementService
-                    .resolveHost(command.hostId(), null, service.getProjectId(), service.getName())
-                    .host();
+            UUID pinnedHostId = resolveOptionalPin(command.hostId());
             String name = uniquePipelineName(service.getProjectId(), DEFAULT_PIPELINE_NAME);
             pipeline = pipelineRepository.save(
-                    Pipeline.create(service.getProjectId(), name, service.getId(), host.getId()));
+                    Pipeline.create(service.getProjectId(), name, service.getId(), pinnedHostId));
             created = true;
         }
 
@@ -80,6 +80,16 @@ public class EnableAutoDeployUseCase {
                 registration.message(),
                 registration.providerHookId().orElse(null),
                 setupInstructions(service, webhookUrl, pipeline.getWebhookToken(), registration));
+    }
+
+    private UUID resolveOptionalPin(UUID hostId) {
+        if (hostId == null) {
+            return null;
+        }
+        if (hostRepository.findById(hostId).isEmpty()) {
+            throw new NotFoundException("Host not found: " + hostId);
+        }
+        return hostId;
     }
 
     private GitProviderWebhookPort.RegisterResult registerIfPossible(

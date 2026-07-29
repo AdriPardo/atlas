@@ -45,6 +45,7 @@ public class RunPipelineUseCase {
 
         PipelineRun run = pipelineRunRepository.save(PipelineRun.start(pipelineId, triggeredBy));
         try {
+            // null hostId → DeployServiceUseCase → AutopilotPlacementService (SHARED default)
             DeployServiceUseCase.DeployResult result = authorize
                     ? deployServiceUseCase.execute(pipeline.getServiceId(), pipeline.getHostId())
                     : deployServiceUseCase.executeTrusted(pipeline.getServiceId(), pipeline.getHostId());

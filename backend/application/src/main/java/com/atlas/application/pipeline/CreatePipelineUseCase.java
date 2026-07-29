@@ -38,14 +38,18 @@ public class CreatePipelineUseCase {
         if (!service.getProjectId().equals(command.projectId())) {
             throw new DomainException("Service does not belong to project");
         }
-        if (hostRepository.findById(command.hostId()).isEmpty()) {
-            throw new NotFoundException("Host not found: " + command.hostId());
-        }
+        requireHostIfPinned(command.hostId());
         if (pipelineRepository.existsByProjectIdAndName(command.projectId(), command.name().trim())) {
             throw new ConflictException("Pipeline name already exists in project");
         }
         return pipelineRepository.save(
                 Pipeline.create(command.projectId(), command.name(), command.serviceId(), command.hostId()));
+    }
+
+    private void requireHostIfPinned(UUID hostId) {
+        if (hostId != null && hostRepository.findById(hostId).isEmpty()) {
+            throw new NotFoundException("Host not found: " + hostId);
+        }
     }
 
     public record CreatePipelineCommand(UUID projectId, String name, UUID serviceId, UUID hostId) {}

@@ -131,11 +131,15 @@ export const pipelinesApi = {
   list: (params?: Record<string, string | number | undefined>) =>
     api.get<PageResponse<Pipeline>>('/pipelines', { params }).then((r) => r.data),
   get: (id: string) => api.get<Pipeline>(`/pipelines/${id}`).then((r) => r.data),
-  create: (body: { projectId: string; name: string; serviceId: string; hostId: string }) =>
-    api.post<Pipeline>('/pipelines', body).then((r) => r.data),
+  create: (body: {
+    projectId: string
+    name: string
+    serviceId: string
+    hostId?: string
+  }) => api.post<Pipeline>('/pipelines', body).then((r) => r.data),
   enableAutoDeploy: (body: { serviceId: string; hostId?: string; publicBaseUrl?: string }) =>
     api.post<AutoDeployResult>('/pipelines/enable-auto-deploy', body).then((r) => r.data),
-  update: (id: string, body: { name: string; serviceId: string; hostId: string }) =>
+  update: (id: string, body: { name: string; serviceId: string; hostId?: string | null }) =>
     api.put<Pipeline>(`/pipelines/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/pipelines/${id}`),
   run: (id: string) => api.post<PipelineRun>(`/pipelines/${id}/runs`).then((r) => r.data),

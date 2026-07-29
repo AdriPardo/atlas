@@ -65,7 +65,7 @@ Autopilot is a **policy layer** on top of the existing control plane — not a r
 | **Job `DEPLOY_SERVICE`** | Async worker path (clone + runtime apply). Unchanged contract; payload still carries `deploymentId` / `hostId`. |
 | **Domain + Traefik metadata** | PUBLIC edge descriptor; INTERNAL skips public domain. |
 | **VmProvisionerPort** | ISOLATED path → Proxmox clone / reuse (ADR-0012). |
-| **Pipelines / webhooks** | May still pin a `hostId`; Autopilot deploy omits it. |
+| **Pipelines / webhooks** | `hostId` opcional; omitido → Autopilot placement en cada run (SHARED default). Pin advanced sigue válido. |
 
 ## Out of scope (explicit)
 

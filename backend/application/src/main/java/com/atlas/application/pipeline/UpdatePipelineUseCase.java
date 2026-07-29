@@ -36,7 +36,7 @@ public class UpdatePipelineUseCase {
         if (!service.getProjectId().equals(pipeline.getProjectId())) {
             throw new DomainException("Service does not belong to pipeline project");
         }
-        if (hostRepository.findById(command.hostId()).isEmpty()) {
+        if (command.hostId() != null && hostRepository.findById(command.hostId()).isEmpty()) {
             throw new NotFoundException("Host not found: " + command.hostId());
         }
         if (pipelineRepository.existsByProjectIdAndNameAndIdNot(

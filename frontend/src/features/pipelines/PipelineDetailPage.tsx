@@ -140,9 +140,13 @@ export function PipelineDetailPage() {
                 {query.data.serviceId}
               </DetailField>
               <DetailField label="Host" mono>
-                <Link component={RouterLink} to={`/hosts/${query.data.hostId}`}>
-                  {query.data.hostId.slice(0, 8)}
-                </Link>
+                {query.data.hostId ? (
+                  <Link component={RouterLink} to={`/hosts/${query.data.hostId}`}>
+                    {query.data.hostId.slice(0, 8)}
+                  </Link>
+                ) : (
+                  'Autopilot (per run)'
+                )}
               </DetailField>
               <DetailField label="Created">
                 {new Date(query.data.createdAt).toLocaleString()}

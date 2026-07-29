@@ -116,7 +116,7 @@ export function PipelinesListPage() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" className="atlas-mono">
-                        {row.hostId.slice(0, 8)}
+                        {row.hostId ? row.hostId.slice(0, 8) : 'Autopilot'}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">

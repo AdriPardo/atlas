@@ -2,40 +2,39 @@
 
 ## Estado del último incremento (completado)
 
-**`RuntimeOrchestratorPort` + Host `runtimeCapabilities` (ADR-0014 fase D / v0.8.11):**
+**Pipeline `hostId` opcional + Autopilot en webhook/run (v0.8.12):**
 
-- Deploy habla `RuntimeOrchestratorPort.apply` (no `composeUp` directo).
-- Adapter Compose delega a `ContainerRuntimePort` (inspect/logs/restart intactos).
-- Host API expone `runtimeCapabilities` (hoy `["compose"]`); prep para filtros placement futuros.
-- Sin segundo runtime; sin eliminar `compose_path`.
+- `Pipeline.hostId` nullable (Flyway V19); create/update/enable-auto-deploy sin pin obligatorio.
+- `enable-auto-deploy` guarda pipeline sin host por defecto (Reelpath-safe: SHARED vía Autopilot en cada push).
+- `RunPipeline` / webhook pasan `hostId` null → `DeployServiceUseCase` → `AutopilotPlacementService.resolveHost` (SHARED; ISOLATED si el deploy lo pide).
+- UI Pipeline: host en Advanced opcional; detalle/lista muestran “Autopilot”.
 
-**Previo:** `composePath` opcional (fase C); lectura `atlas.yml` (fase B); Cloudflare scopes; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
+**Previo:** `RuntimeOrchestratorPort` + Host `runtimeCapabilities` (fase D); `composePath` opcional (fase C); lectura `atlas.yml` (fase B); Cloudflare scopes; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**Autopilot por webhook sin host pin:** Pipeline `hostId` opcional → `RunPipeline` / auto-deploy resuelve placement en cada run (SHARED/ISOLATED). Alternativa: persistir Host capability tags en DB + filtro en placement; o UX Domains 403 scopes.
+**Persistir Host `runtimeCapabilities` en DB + filtro en placement**, o UX Domains 403 scopes (mensaje explícito si Ensure falla por token insuficiente). Alternativa: OpenAPI / deprecations `/applications`.
 
 ## Por qué es el paso más rentable ahora
 
-1. Fase D ya desacopla el port nombrado Compose; pipelines siguen pinneando host en create.
-2. Autopilot deploy omite host; webhooks aún no — gap producto cerrado.
-3. Segundo runtime (Podman/K8s) aún no; tags DB pueden esperar.
+1. Webhook ya no pinnea host; placement puede filtrar por capability cuando tags existan en DB.
+2. Domains 403 es dolor operador real y acotado.
+3. Segundo runtime (Podman/K8s) aún no; adapters adicionales esperan tags.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. `Pipeline.hostId` nullable; create/update/enable-auto-deploy sin pin obligatorio.
-2. `RunPipeline` → `AutopilotPlacementService.resolveHost` cuando `hostId` ausente.
-3. Tests + docs; migración Flyway nullable; UI Pipeline advanced host opcional.
+1. Columna / sync `runtime_capabilities` en Host (hoy derivado en dominio).
+2. Placement SHARED filtra hosts que anuncien `compose` (o capability pedida).
+3. Tests + docs; sin segundo runtime aún.
 
 ## Secundario (si sobra capacidad)
 
 - UX Domains: mensaje explícito si Ensure falla por 403 (scopes insuficientes).
 - OpenAPI / deprecations `/applications`.
-- Persistir `runtime_capabilities` en DB (hoy derivado en dominio).
 
 ## Norte estratégico (no es el siguiente incremento)
 
-**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D hechas; siguiente motor = adapters adicionales / tags persistidos. Compose sigue adapter default.
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + pipeline sin pin hechas; siguiente motor = adapters adicionales / tags persistidos. Compose sigue adapter default.
 
 ## Qué no hacer
 
@@ -45,4 +44,4 @@
 
 ## Definición de éxito (siguiente)
 
-> Webhook / auto-deploy sin host pin → Autopilot placement por run; deploy compose vía `RuntimeOrchestratorPort` sigue verde.
+> Placement elige solo hosts con capability compatible; Host API/DB alineados; deploy compose sigue verde.

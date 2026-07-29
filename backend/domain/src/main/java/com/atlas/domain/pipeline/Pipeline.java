@@ -67,7 +67,8 @@ public class Pipeline {
     private void apply(String name, UUID serviceId, UUID hostId, String webhookToken, Instant updatedAt) {
         this.name = requireText(name, "name");
         this.serviceId = Objects.requireNonNull(serviceId, "serviceId is required");
-        this.hostId = Objects.requireNonNull(hostId, "hostId is required");
+        // null hostId = Autopilot placement on each run (SHARED default)
+        this.hostId = hostId;
         this.webhookToken = webhookToken;
         this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt is required");
     }
