@@ -69,12 +69,13 @@ Acciones largas → `202 Accepted` + cuerpo `{ "deploymentId"|"jobId": "..." }` 
 
 - RBAC en método.
 - Never return secret values in list/get (salvo reveal dedicado).
-- OpenAPI solo en perfiles no productivos (o protegido).
+- OpenAPI live (`/v3/api-docs`, Swagger UI) solo en perfiles `local` / `docker` / `test`.
+- Contrato publicado para clientes externos: [`openapi.json`](./openapi.json) — ver [`openapi.md`](./openapi.md).
 
 ## Compatibilidad Application → Project
 
-Durante transición:
+Durante transición (hasta Sunset **2027-08-01**):
 
-- `/api/v1/applications` permanece (deprecated header `Deprecation` / `Sunset`).
-- `/api/v1/projects` canónico.
-- Mismo shape enriquecido; documentar mapping en release notes.
+- `/api/v1/applications` permanece con headers `Deprecation` / `Sunset` / `Link`.
+- `/api/v1/projects` (+ `/services`) canónico.
+- Mapeo y path de retirada: [`deprecations.md`](./deprecations.md).

@@ -2,46 +2,44 @@
 
 ## Estado del último incremento (completado)
 
-**UX Domains 403 scopes (v0.8.15):**
+**OpenAPI publicado + deprecation `/applications` (v0.8.16):**
 
-- `CloudflareApiErrorMessages`: 403 Tunnel/DNS → mensaje `token scopes insufficient` (+ scopes + Org/Project secrets hint).
-- Adapters Ensure `FAILED` con frase estable; tests unitarios.
-- UI Domains: warning + link `/secrets` si scopes; Publish incompleto si Ensure falló.
-- Docs networking + public-customer-hostname.
+- Snapshot `docs/api/openapi.json` + guía `docs/api/openapi.md`.
+- Contract test `OpenApiContractIntegrationTest` (paths + `applications` deprecated).
+- Path claro: `docs/api/deprecations.md` (Sunset 2027-08-01); alias **no** retirado.
+- `OpenApiConfig` documenta deprecation; README/conventions/endpoints actualizados.
 
-**Previo:** Host `runtimeCapabilities` DB + filtro placement (v0.8.14); Pipeline `hostId` opcional (v0.8.12); `migrateCommand` (v0.8.13); RuntimeOrchestratorPort; composePath opcional; atlas.yml; Cloudflare scopes UI; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
+**Previo:** UX Domains 403 scopes (v0.8.15); Host `runtimeCapabilities` DB + filtro placement (v0.8.14); Pipeline `hostId` opcional; `migrateCommand`; RuntimeOrchestratorPort; composePath opcional; atlas.yml; Cloudflare scopes UI; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**OpenAPI / deprecations `/applications`**, o sync Host que detecte capabilities reales (Docker/Podman). Alternativa: billing/usage meters (v0.9).
+**Sync Host que detecte capabilities reales (Docker/Podman)** y escriba `runtime_capabilities`. Alternativa: billing/usage meters (v0.9).
 
 ## Por qué es el paso más rentable ahora
 
-1. Operador ya entiende 403 scopes; deuda API (OpenAPI + sunset `/applications`) bloquea v0.9 polish.
-2. Sync capabilities habilita segundo runtime cuando haya demanda Podman/K8s.
-3. Billing meters cierran envelope comercial.
+1. OpenAPI + sunset path listos; sync capabilities habilita segundo runtime cuando haya demanda Podman/K8s.
+2. Billing meters cierran envelope comercial (v0.9).
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Publicar OpenAPI (o regenerar) + marcar/retirar alias `/applications` según sunset.
-2. O: Host sync enriquece `runtime_capabilities` desde inspección runtime.
-3. Tests + docs; sin segundo runtime obligatorio.
+1. Host sync: inspección Docker/Podman → actualizar `runtime_capabilities` sin romper placement compose.
+2. Tests + docs; sin segundo runtime obligatorio.
 
 ## Secundario (si sobra capacidad)
 
-- Sync Host capabilities desde Docker/Podman probe.
 - Performance pass / usage meters (v0.9).
 
 ## Norte estratégico (no es el siguiente incremento)
 
-**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + pipeline sin pin + capabilities DB + UX scopes hechas; siguiente motor = adapters adicionales. Compose sigue adapter default.
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + pipeline sin pin + capabilities DB + UX scopes + OpenAPI hechas; siguiente motor = adapters adicionales + sync capabilities. Compose sigue adapter default.
 
 ## Qué no hacer
 
 - No billing/AI/marketplace, no Redis/Kafka obligatorio.
 - No eliminar `composePath` de DB antes de migrar callers restantes.
 - No `compose down -v` ni tocar `.env` en runbooks de deploy.
+- No retirar `/applications` antes de Sunset 2027-08-01.
 
 ## Definición de éxito (siguiente)
 
-> OpenAPI usable por clientes externos y/o `/applications` deprecado con path claro; o Host sync escribe capabilities reales sin romper placement compose.
+> Host sync escribe capabilities reales (compose/podman) sin romper placement SHARED compose.

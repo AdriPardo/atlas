@@ -1,5 +1,6 @@
 package com.atlas.api.web;
 
+import com.atlas.api.config.OpenApiConfig;
 import com.atlas.api.dto.common.PageResponse;
 import com.atlas.api.dto.common.PageResponses;
 import com.atlas.api.dto.request.CreateApplicationRequest;
@@ -42,10 +43,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/applications")
 @RequiredArgsConstructor
-@Tag(name = "Applications (deprecated)", description = "Deprecated alias for Projects + default Service")
+@Tag(
+        name = "Applications (deprecated)",
+        description =
+                "Deprecated alias for Projects + default Service. Prefer /api/v1/projects and "
+                        + "/api/v1/services. Sunset "
+                        + OpenApiConfig.APPLICATIONS_SUNSET
+                        + ". See docs/api/deprecations.md.")
 public class ApplicationController {
 
-    private static final String SUNSET = "Wed, 01 Jul 2027 00:00:00 GMT";
+    private static final String SUNSET = OpenApiConfig.APPLICATIONS_SUNSET;
     private static final String DEPRECATION_LINK =
             "</api/v1/projects>; rel=\"successor-version\", </api/v1/services>; rel=\"alternate\"";
 

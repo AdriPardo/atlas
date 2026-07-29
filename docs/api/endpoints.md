@@ -16,7 +16,7 @@ Leyenda versión: **MVP** | **v0.2+** | **v0.4+** | **v0.5+** | **v0.6+** | **v0
 
 | Método | Path | Versión |
 |--------|------|---------|
-| CRUD | `/applications` | MVP (deprecated → projects) |
+| CRUD | `/applications` | MVP (**deprecated** → projects; Sunset 2027-08-01 — [deprecations.md](./deprecations.md)) |
 | CRUD | `/projects` | v0.2 |
 | CRUD | `/projects/{id}/services` | v0.2 |
 | GET/POST | `/services` | v0.2 |

@@ -22,4 +22,4 @@ No reescribir el frontend/backend de golpe.
 
 - (+) Escala a monorepos / multi-service.
 - (+) Roadmap claro.
-- (−) Dualidad temporal de APIs — gestionar con Sunset headers y docs.
+- (−) Dualidad temporal de APIs — gestionar con Sunset headers y docs ([deprecations.md](../api/deprecations.md)). Sunset: **2027-08-01**.

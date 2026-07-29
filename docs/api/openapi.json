@@ -1,0 +1,4787 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "title" : "Atlas API",
+    "description" : "Operations platform for self-hosted applications.\n\nBase path: `/api/v1`. Authenticate with `Authorization: Bearer <jwt>` from `POST /api/v1/auth/login` or SSO.\n\n**Deprecations**\n- `/api/v1/applications` is a deprecated alias for Project + default Service. Prefer `/api/v1/projects` and `/api/v1/services`. Responses include `Deprecation: true`, `Sunset: Wed, 01 Jul 2027 00:00:00 GMT`, and `Link` successor headers. Alias remains until Sunset; see `docs/api/deprecations.md`.\n\nPublished contract snapshot: `docs/api/openapi.json` (regenerate with `-Datlas.writeOpenApi=true` on `OpenApiContractIntegrationTest`).\n",
+    "contact" : {
+      "name" : "Atlas",
+      "url" : "https://github.com/AdriPardo/atlas"
+    },
+    "license" : {
+      "name" : "Proprietary"
+    },
+    "version" : "v1"
+  },
+  "externalDocs" : {
+    "description" : "API conventions & deprecations",
+    "url" : "https://github.com/AdriPardo/atlas/blob/master/docs/api/conventions.md"
+  },
+  "servers" : [ {
+    "url" : "/",
+    "description" : "Current host"
+  } ],
+  "security" : [ {
+    "bearerAuth" : [ ]
+  } ],
+  "tags" : [ {
+    "name" : "Applications (deprecated)",
+    "description" : "Deprecated alias for Projects + default Service. Prefer /api/v1/projects and /api/v1/services. Sunset Wed, 01 Jul 2027 00:00:00 GMT. See docs/api/deprecations.md."
+  } ],
+  "paths" : {
+    "/api/v1/services/{id}" : {
+      "get" : {
+        "tags" : [ "Services" ],
+        "operationId" : "getById",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ServiceResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Services" ],
+        "operationId" : "update",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateServiceRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ServiceResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Services" ],
+        "operationId" : "delete",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/memberships/{membershipId}" : {
+      "put" : {
+        "tags" : [ "project-membership-controller" ],
+        "operationId" : "update_1",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "membershipId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateProjectMembershipRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectMembershipResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "project-membership-controller" ],
+        "operationId" : "remove",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "membershipId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}" : {
+      "get" : {
+        "tags" : [ "Projects" ],
+        "operationId" : "getById_1",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Projects" ],
+        "operationId" : "update_2",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateProjectRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Projects" ],
+        "operationId" : "delete_1",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{id}" : {
+      "get" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "getById_2",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PipelineResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "update_3",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdatePipelineRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PipelineResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "delete_2",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/notification-channels/{channelId}" : {
+      "get" : {
+        "tags" : [ "notification-channel-controller" ],
+        "operationId" : "get",
+        "parameters" : [ {
+          "name" : "channelId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationChannelResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "notification-channel-controller" ],
+        "operationId" : "update_4",
+        "parameters" : [ {
+          "name" : "channelId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateNotificationChannelRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationChannelResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "notification-channel-controller" ],
+        "operationId" : "delete_3",
+        "parameters" : [ {
+          "name" : "channelId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/{id}" : {
+      "get" : {
+        "tags" : [ "host-controller" ],
+        "operationId" : "getById_3",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/HostResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "host-controller" ],
+        "operationId" : "update_5",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateHostRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/HostResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "host-controller" ],
+        "operationId" : "delete_4",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/domains/{domainId}" : {
+      "get" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "get_1",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DomainResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "update_6",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateDomainRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DomainResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "delete_5",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/deployments/{id}" : {
+      "get" : {
+        "tags" : [ "deployment-controller" ],
+        "operationId" : "getById_4",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeploymentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "deployment-controller" ],
+        "operationId" : "update_7",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateDeploymentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeploymentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "deployment-controller" ],
+        "operationId" : "delete_6",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/cron-jobs/{cronJobId}" : {
+      "get" : {
+        "tags" : [ "cron-job-controller" ],
+        "operationId" : "get_2",
+        "parameters" : [ {
+          "name" : "cronJobId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CronJobResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "cron-job-controller" ],
+        "operationId" : "update_8",
+        "parameters" : [ {
+          "name" : "cronJobId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateCronJobRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CronJobResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "cron-job-controller" ],
+        "operationId" : "delete_7",
+        "parameters" : [ {
+          "name" : "cronJobId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/applications/{id}" : {
+      "get" : {
+        "tags" : [ "Applications (deprecated)" ],
+        "operationId" : "getById_5",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApplicationResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : true
+      },
+      "put" : {
+        "tags" : [ "Applications (deprecated)" ],
+        "operationId" : "update_9",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateApplicationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApplicationResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : true
+      },
+      "delete" : {
+        "tags" : [ "Applications (deprecated)" ],
+        "operationId" : "delete_8",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "deprecated" : true
+      }
+    },
+    "/api/v1/alerts/{ruleId}" : {
+      "get" : {
+        "tags" : [ "alert-rule-controller" ],
+        "operationId" : "get_3",
+        "parameters" : [ {
+          "name" : "ruleId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AlertRuleResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "alert-rule-controller" ],
+        "operationId" : "update_10",
+        "parameters" : [ {
+          "name" : "ruleId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateAlertRuleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AlertRuleResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "alert-rule-controller" ],
+        "operationId" : "delete_9",
+        "parameters" : [ {
+          "name" : "ruleId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/git/{token}" : {
+      "post" : {
+        "tags" : [ "git-webhook-controller" ],
+        "operationId" : "receive",
+        "parameters" : [ {
+          "name" : "token",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Hub-Signature-256",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Gitea-Signature",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-GitHub-Event",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Gitea-Event",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string",
+                "format" : "byte"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PipelineRunResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/services/{id}/deploy" : {
+      "post" : {
+        "tags" : [ "Services" ],
+        "operationId" : "deploy",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeployServiceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeployResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/secrets" : {
+      "get" : {
+        "tags" : [ "secret-controller" ],
+        "operationId" : "list",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SecretResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "secret-controller" ],
+        "operationId" : "create",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateSecretRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SecretResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects" : {
+      "get" : {
+        "tags" : [ "Projects" ],
+        "operationId" : "list_1",
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseProjectResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Projects" ],
+        "operationId" : "create_1",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateProjectRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/services" : {
+      "get" : {
+        "tags" : [ "Projects" ],
+        "operationId" : "listServices",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "name",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseServiceResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Projects" ],
+        "operationId" : "createService",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateServiceRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ServiceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/secrets" : {
+      "get" : {
+        "tags" : [ "project-secret-controller" ],
+        "operationId" : "list_2",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProjectSecretEntryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "project-secret-controller" ],
+        "operationId" : "createOwned",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateSecretRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SecretResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/secrets/bindings" : {
+      "post" : {
+        "tags" : [ "project-secret-controller" ],
+        "operationId" : "link",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BindProjectSecretRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectSecretEntryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/memberships" : {
+      "get" : {
+        "tags" : [ "project-membership-controller" ],
+        "operationId" : "list_3",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProjectMembershipResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "project-membership-controller" ],
+        "operationId" : "add",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateProjectMembershipRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectMembershipResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/domains" : {
+      "get" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "listByProject",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DomainResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "create_2",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateDomainRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DomainResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/deploy" : {
+      "post" : {
+        "tags" : [ "Projects" ],
+        "operationId" : "deployDefaultService",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeployServiceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeployResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines" : {
+      "get" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "list_4",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "name",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponsePipelineResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "create_3",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreatePipelineRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PipelineResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{id}/webhook-token/rotate" : {
+      "post" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "rotateWebhookToken",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PipelineResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{id}/runs" : {
+      "get" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "listRuns",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponsePipelineRunResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "run",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PipelineRunResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/enable-auto-deploy" : {
+      "post" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "enableAutoDeploy",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EnableAutoDeployRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AutoDeployResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notification-channels" : {
+      "get" : {
+        "tags" : [ "notification-channel-controller" ],
+        "operationId" : "list_5",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/NotificationChannelResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "notification-channel-controller" ],
+        "operationId" : "create_4",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateNotificationChannelRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationChannelResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts" : {
+      "get" : {
+        "tags" : [ "host-controller" ],
+        "operationId" : "list_6",
+        "parameters" : [ {
+          "name" : "hostname",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "online",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseHostResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "host-controller" ],
+        "operationId" : "create_5",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateHostRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/HostResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/{id}/sync" : {
+      "post" : {
+        "tags" : [ "host-controller" ],
+        "operationId" : "sync",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/{id}/containers/{containerRef}/restart" : {
+      "post" : {
+        "tags" : [ "host-controller" ],
+        "operationId" : "restartContainer",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "containerRef",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/domains/{domainId}/verify" : {
+      "post" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "verify",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DomainResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/domains/{domainId}/tunnel-ingress/ensure" : {
+      "post" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "ensureTunnelIngress",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TunnelIngressResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/domains/{domainId}/dns-cname/ensure" : {
+      "post" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "ensureDnsCname",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DnsCnameResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/deployments" : {
+      "get" : {
+        "tags" : [ "deployment-controller" ],
+        "operationId" : "list_7",
+        "parameters" : [ {
+          "name" : "serviceId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "applicationId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "hostId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseDeploymentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "deployment-controller" ],
+        "operationId" : "create_6",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateDeploymentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeploymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cron-jobs" : {
+      "get" : {
+        "tags" : [ "cron-job-controller" ],
+        "operationId" : "list_8",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CronJobResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "cron-job-controller" ],
+        "operationId" : "create_7",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateCronJobRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CronJobResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/sso" : {
+      "get" : {
+        "tags" : [ "auth-controller" ],
+        "operationId" : "ssoGet",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "auth-controller" ],
+        "operationId" : "ssoPost",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login" : {
+      "post" : {
+        "tags" : [ "auth-controller" ],
+        "operationId" : "login",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applications" : {
+      "get" : {
+        "tags" : [ "Applications (deprecated)" ],
+        "operationId" : "list_9",
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseApplicationResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : true
+      },
+      "post" : {
+        "tags" : [ "Applications (deprecated)" ],
+        "operationId" : "create_8",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateApplicationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApplicationResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : true
+      }
+    },
+    "/api/v1/applications/{id}/deploy" : {
+      "post" : {
+        "tags" : [ "Applications (deprecated)" ],
+        "operationId" : "deploy_1",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeployApplicationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeployResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : true
+      }
+    },
+    "/api/v1/alerts" : {
+      "get" : {
+        "tags" : [ "alert-rule-controller" ],
+        "operationId" : "list_10",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AlertRuleResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "alert-rule-controller" ],
+        "operationId" : "create_9",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateAlertRuleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AlertRuleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/{ruleId}/silence" : {
+      "post" : {
+        "tags" : [ "alert-rule-controller" ],
+        "operationId" : "silence",
+        "parameters" : [ {
+          "name" : "ruleId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AlertRuleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/purge" : {
+      "post" : {
+        "tags" : [ "admin-controller" ],
+        "operationId" : "purge",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/backup" : {
+      "post" : {
+        "tags" : [ "admin-controller" ],
+        "operationId" : "backup",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users" : {
+      "get" : {
+        "tags" : [ "user-controller" ],
+        "operationId" : "list_11",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/UserResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/traefik/routes/{domainId}" : {
+      "get" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "traefikRoute",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TraefikMetadataResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/observability" : {
+      "get" : {
+        "tags" : [ "settings-controller" ],
+        "operationId" : "observability",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ObservabilitySettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/services" : {
+      "get" : {
+        "tags" : [ "Services" ],
+        "operationId" : "list_12",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "name",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseServiceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/runs/{runId}" : {
+      "get" : {
+        "tags" : [ "pipeline-controller" ],
+        "operationId" : "getRun",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PipelineRunResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me" : {
+      "get" : {
+        "tags" : [ "me-controller" ],
+        "operationId" : "me",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs" : {
+      "get" : {
+        "tags" : [ "job-controller" ],
+        "operationId" : "list_13",
+        "parameters" : [ {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseJobResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{id}" : {
+      "get" : {
+        "tags" : [ "job-controller" ],
+        "operationId" : "getById_6",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/{id}/containers" : {
+      "get" : {
+        "tags" : [ "host-controller" ],
+        "operationId" : "listContainers",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContainerResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/{id}/containers/{containerRef}/logs" : {
+      "get" : {
+        "tags" : [ "host-controller" ],
+        "operationId" : "containerLogs",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "containerRef",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "tail",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ContainerLogsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/domains/{domainId}/tunnel-ingress" : {
+      "get" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "tunnelIngress",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TunnelIngressResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/domains/{domainId}/traefik" : {
+      "get" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "traefik",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TraefikMetadataResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/domains/{domainId}/dns-cname" : {
+      "get" : {
+        "tags" : [ "domain-controller" ],
+        "operationId" : "dnsCname",
+        "parameters" : [ {
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DnsCnameResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/stats" : {
+      "get" : {
+        "tags" : [ "me-controller" ],
+        "operationId" : "dashboardStats",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DashboardStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit" : {
+      "get" : {
+        "tags" : [ "audit-controller" ],
+        "operationId" : "list_14",
+        "parameters" : [ {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 50
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "createdAt,desc"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseAuditEntryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/secrets/{secretId}" : {
+      "delete" : {
+        "tags" : [ "project-secret-controller" ],
+        "operationId" : "deleteOwned",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "secretId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/secrets/bindings/{bindingId}" : {
+      "delete" : {
+        "tags" : [ "project-secret-controller" ],
+        "operationId" : "unlink",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "bindingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "UpdateServiceRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "repositoryUrl" : {
+            "type" : "string"
+          },
+          "branch" : {
+            "type" : "string"
+          },
+          "composePath" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "domain" : {
+            "type" : "string"
+          },
+          "environment" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          }
+        },
+        "required" : [ "branch", "name", "repositoryUrl", "status" ]
+      },
+      "ServiceResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "repositoryUrl" : {
+            "type" : "string"
+          },
+          "branch" : {
+            "type" : "string"
+          },
+          "composePath" : {
+            "type" : "string"
+          },
+          "domain" : {
+            "type" : "string"
+          },
+          "environment" : {
+            "type" : "string"
+          },
+          "exposure" : {
+            "type" : "string",
+            "enum" : [ "PUBLIC", "INTERNAL" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateProjectMembershipRequest" : {
+        "type" : "object",
+        "properties" : {
+          "role" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "role" ]
+      },
+      "ProjectMembershipResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "role" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateProjectRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          }
+        },
+        "required" : [ "name", "status" ]
+      },
+      "ProjectResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "organizationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "slug" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdatePipelineRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "serviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "hostId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "name", "serviceId" ]
+      },
+      "PipelineResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "serviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "hostId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "webhookToken" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateNotificationChannelRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "WEBHOOK", "EMAIL" ]
+          },
+          "target" : {
+            "type" : "string",
+            "maxLength" : 512,
+            "minLength" : 0
+          },
+          "enabled" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "name", "target", "type" ]
+      },
+      "NotificationChannelResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "WEBHOOK", "EMAIL" ]
+          },
+          "target" : {
+            "type" : "string"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateHostRequest" : {
+        "type" : "object",
+        "properties" : {
+          "hostname" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "ip" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "operatingSystem" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "dockerVersion" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "online" : {
+            "type" : "boolean"
+          },
+          "connectionType" : {
+            "type" : "string",
+            "enum" : [ "LOCAL", "SSH" ]
+          },
+          "sshUser" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "sshPort" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sshPrivateKeySecretId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "hostname", "ip", "operatingSystem" ]
+      },
+      "HostResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "hostname" : {
+            "type" : "string"
+          },
+          "ip" : {
+            "type" : "string"
+          },
+          "operatingSystem" : {
+            "type" : "string"
+          },
+          "dockerVersion" : {
+            "type" : "string"
+          },
+          "online" : {
+            "type" : "boolean"
+          },
+          "connectionType" : {
+            "type" : "string",
+            "enum" : [ "LOCAL", "SSH" ]
+          },
+          "sshUser" : {
+            "type" : "string"
+          },
+          "sshPort" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sshPrivateKeySecretId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "runtimeCapabilities" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateDomainRequest" : {
+        "type" : "object",
+        "properties" : {
+          "hostname" : {
+            "type" : "string",
+            "maxLength" : 253,
+            "minLength" : 0
+          },
+          "serviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "hostname" ]
+      },
+      "DomainResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "serviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "hostname" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING_DNS", "ACTIVE", "ERROR" ]
+          },
+          "verificationToken" : {
+            "type" : "string"
+          },
+          "dnsTxtName" : {
+            "type" : "string"
+          },
+          "dnsTxtValue" : {
+            "type" : "string"
+          },
+          "certificateIssuer" : {
+            "type" : "string"
+          },
+          "certificateExpiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "certificateSans" : {
+            "type" : "string"
+          },
+          "verifiedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "lastError" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateDeploymentRequest" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED" ]
+          },
+          "startedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "finishedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "logs" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "status" ]
+      },
+      "DeploymentResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "serviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "applicationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "hostId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED" ]
+          },
+          "startedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "finishedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "logs" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateCronJobRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "cronExpression" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "targetType" : {
+            "type" : "string",
+            "enum" : [ "SYNC_HOST", "BACKUP_DATABASE" ]
+          },
+          "targetId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "cronExpression", "name", "targetType" ]
+      },
+      "CronJobResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "cronExpression" : {
+            "type" : "string"
+          },
+          "targetType" : {
+            "type" : "string",
+            "enum" : [ "SYNC_HOST", "BACKUP_DATABASE" ]
+          },
+          "targetId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "lastFiredAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "lastError" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateApplicationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "description" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          },
+          "repositoryUrl" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "branch" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "composePath" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "domain" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          }
+        },
+        "required" : [ "branch", "composePath", "name", "repositoryUrl", "status" ]
+      },
+      "ApplicationResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "repositoryUrl" : {
+            "type" : "string"
+          },
+          "branch" : {
+            "type" : "string"
+          },
+          "composePath" : {
+            "type" : "string"
+          },
+          "domain" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateAlertRuleRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "eventType" : {
+            "type" : "string",
+            "enum" : [ "DEPLOY_FAILED", "JOB_FAILED" ]
+          },
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "channelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "channelId", "eventType", "name" ]
+      },
+      "AlertRuleResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "eventType" : {
+            "type" : "string",
+            "enum" : [ "DEPLOY_FAILED", "JOB_FAILED" ]
+          },
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "channelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "OK", "PENDING", "FIRING", "SILENCED" ]
+          },
+          "lastFiredAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "lastError" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "PipelineRunResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "pipelineId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "triggeredBy" : {
+            "type" : "string"
+          },
+          "deploymentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "jobId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "startedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "finishedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "lastError" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "DeployServiceRequest" : {
+        "type" : "object",
+        "properties" : {
+          "hostId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "exposure" : {
+            "type" : "string",
+            "enum" : [ "PUBLIC", "INTERNAL" ]
+          },
+          "placementMode" : {
+            "type" : "string",
+            "enum" : [ "SHARED", "ISOLATED" ]
+          }
+        }
+      },
+      "DeployResponse" : {
+        "type" : "object",
+        "properties" : {
+          "deploymentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "jobId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CreateSecretRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "value" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "value" ]
+      },
+      "SecretResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "CreateProjectRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "repositoryUrl" : {
+            "type" : "string"
+          },
+          "branch" : {
+            "type" : "string"
+          },
+          "composePath" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "domain" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "branch", "name", "repositoryUrl" ]
+      },
+      "CreateServiceRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "repositoryUrl" : {
+            "type" : "string"
+          },
+          "branch" : {
+            "type" : "string"
+          },
+          "composePath" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "domain" : {
+            "type" : "string"
+          },
+          "environment" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "branch", "repositoryUrl" ]
+      },
+      "BindProjectSecretRequest" : {
+        "type" : "object",
+        "properties" : {
+          "secretId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "alias" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "secretId" ]
+      },
+      "ProjectSecretEntryResponse" : {
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string"
+          },
+          "secretId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "secretName" : {
+            "type" : "string"
+          },
+          "bindingId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "alias" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "CreateProjectMembershipRequest" : {
+        "type" : "object",
+        "properties" : {
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "role" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "role", "userId" ]
+      },
+      "CreateDomainRequest" : {
+        "type" : "object",
+        "properties" : {
+          "hostname" : {
+            "type" : "string",
+            "maxLength" : 253,
+            "minLength" : 0
+          },
+          "serviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "hostname" ]
+      },
+      "CreatePipelineRequest" : {
+        "type" : "object",
+        "properties" : {
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "serviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "hostId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "name", "projectId", "serviceId" ]
+      },
+      "EnableAutoDeployRequest" : {
+        "type" : "object",
+        "properties" : {
+          "serviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "hostId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "publicBaseUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "serviceId" ]
+      },
+      "AutoDeployResponse" : {
+        "type" : "object",
+        "properties" : {
+          "pipeline" : {
+            "$ref" : "#/components/schemas/PipelineResponse"
+          },
+          "created" : {
+            "type" : "boolean"
+          },
+          "webhookUrl" : {
+            "type" : "string"
+          },
+          "trackedBranch" : {
+            "type" : "string"
+          },
+          "githubWebhookRegistered" : {
+            "type" : "boolean"
+          },
+          "githubWebhookMessage" : {
+            "type" : "string"
+          },
+          "githubHookId" : {
+            "type" : "string"
+          },
+          "setupInstructions" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CreateNotificationChannelRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "WEBHOOK", "EMAIL" ]
+          },
+          "target" : {
+            "type" : "string",
+            "maxLength" : 512,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "name", "target", "type" ]
+      },
+      "CreateHostRequest" : {
+        "type" : "object",
+        "properties" : {
+          "hostname" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "ip" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "operatingSystem" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "dockerVersion" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "online" : {
+            "type" : "boolean"
+          },
+          "connectionType" : {
+            "type" : "string",
+            "enum" : [ "LOCAL", "SSH" ]
+          },
+          "sshUser" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "sshPort" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sshPrivateKeySecretId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "hostname", "ip", "operatingSystem" ]
+      },
+      "JobResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "DEPLOY_SERVICE", "SYNC_HOST", "BACKUP_DATABASE" ]
+          },
+          "payload" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED" ]
+          },
+          "attempts" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "maxAttempts" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "availableAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "lockedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "lockedBy" : {
+            "type" : "string"
+          },
+          "startedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "finishedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "lastError" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "TunnelIngressResponse" : {
+        "type" : "object",
+        "properties" : {
+          "hostname" : {
+            "type" : "string"
+          },
+          "subdomain" : {
+            "type" : "string"
+          },
+          "zone" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "originUrl" : {
+            "type" : "string"
+          },
+          "originService" : {
+            "type" : "string"
+          },
+          "noTlsVerify" : {
+            "type" : "boolean"
+          },
+          "tunnelId" : {
+            "type" : "string"
+          },
+          "cnameTarget" : {
+            "type" : "string"
+          },
+          "copyBlock" : {
+            "type" : "string"
+          },
+          "zeroTrustHint" : {
+            "type" : "string"
+          },
+          "mode" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "DnsCnameResponse" : {
+        "type" : "object",
+        "properties" : {
+          "hostname" : {
+            "type" : "string"
+          },
+          "zone" : {
+            "type" : "string"
+          },
+          "recordName" : {
+            "type" : "string"
+          },
+          "cnameTarget" : {
+            "type" : "string"
+          },
+          "proxied" : {
+            "type" : "boolean"
+          },
+          "copyBlock" : {
+            "type" : "string"
+          },
+          "mode" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CreateDeploymentRequest" : {
+        "type" : "object",
+        "properties" : {
+          "serviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "applicationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "hostId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "hostId" ]
+      },
+      "CreateCronJobRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "cronExpression" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "targetType" : {
+            "type" : "string",
+            "enum" : [ "SYNC_HOST", "BACKUP_DATABASE" ]
+          },
+          "targetId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "cronExpression", "name", "targetType" ]
+      },
+      "LoginResponse" : {
+        "type" : "object",
+        "properties" : {
+          "accessToken" : {
+            "type" : "string"
+          },
+          "tokenType" : {
+            "type" : "string"
+          },
+          "expiresIn" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "LoginRequest" : {
+        "type" : "object",
+        "properties" : {
+          "username" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "password" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "password", "username" ]
+      },
+      "CreateApplicationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "description" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          },
+          "repositoryUrl" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "branch" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "composePath" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "domain" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "branch", "composePath", "name", "repositoryUrl" ]
+      },
+      "DeployApplicationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "hostId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "hostId" ]
+      },
+      "CreateAlertRuleRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "eventType" : {
+            "type" : "string",
+            "enum" : [ "DEPLOY_FAILED", "JOB_FAILED" ]
+          },
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "channelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "channelId", "eventType", "name" ]
+      },
+      "UserResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "username" : {
+            "type" : "string"
+          },
+          "role" : {
+            "type" : "string",
+            "enum" : [ "ADMIN", "OPERATOR" ]
+          }
+        }
+      },
+      "TraefikMetadataResponse" : {
+        "type" : "object",
+        "properties" : {
+          "routerName" : {
+            "type" : "string"
+          },
+          "rule" : {
+            "type" : "string"
+          },
+          "entryPoints" : {
+            "type" : "string"
+          },
+          "tls" : {
+            "type" : "boolean"
+          },
+          "certResolver" : {
+            "type" : "string"
+          },
+          "labels" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "ObservabilitySettingsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "grafanaBaseUrl" : {
+            "type" : "string"
+          },
+          "lokiBaseUrl" : {
+            "type" : "string"
+          },
+          "configured" : {
+            "type" : "boolean"
+          },
+          "hostMetricsUrl" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PageResponseServiceResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ServiceResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PageResponseProjectResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ProjectResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PageResponsePipelineResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PipelineResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PageResponsePipelineRunResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PipelineRunResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PageResponseJobResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/JobResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PageResponseHostResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/HostResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ContainerResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "image" : {
+            "type" : "string"
+          },
+          "state" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "ports" : {
+            "type" : "string"
+          },
+          "labels" : {
+            "type" : "string"
+          },
+          "grafanaLogsUrl" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ContainerLogsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "containerRef" : {
+            "type" : "string"
+          },
+          "logs" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PageResponseDeploymentResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DeploymentResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "DashboardStatsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "projects" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "applications" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "hosts" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "deployments" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "AuditEntryResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "actorUserId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "actorUsername" : {
+            "type" : "string"
+          },
+          "action" : {
+            "type" : "string"
+          },
+          "resourceType" : {
+            "type" : "string"
+          },
+          "resourceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "metadata" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "PageResponseAuditEntryResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AuditEntryResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PageResponseApplicationResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApplicationResponse"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "type" : "http",
+        "name" : "bearerAuth",
+        "scheme" : "bearer",
+        "bearerFormat" : "JWT"
+      }
+    }
+  }
+}

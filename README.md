@@ -164,11 +164,15 @@ Siguiente paso recomendado: [docs/roadmap/next-step.md](docs/roadmap/next-step.m
 
 Base: `/api/v1`
 
+Contrato OpenAPI: [`docs/api/openapi.json`](docs/api/openapi.json) · [guía](docs/api/openapi.md) · [deprecations](docs/api/deprecations.md).
+
 | Recurso | Rutas |
 |---------|--------|
 | Auth | `POST /auth/login`, `GET/POST /auth/sso` |
 | Me | `GET /me`, `GET /dashboard/stats` |
-| Applications | `GET/POST /applications`, `GET/PUT/DELETE /applications/{id}`, `POST /applications/{id}/deploy` |
+| Projects | `GET/POST /projects`, `GET/PUT/DELETE /projects/{id}` |
+| Services | `GET/POST /services`, `POST /services/{id}/deploy` |
+| Applications | **Deprecated** alias → Projects; Sunset 2027-08-01 |
 | Hosts | `GET/POST /hosts`, `GET/PUT/DELETE /hosts/{id}`, `POST /hosts/{id}/sync` |
 | Deployments | `GET/POST /deployments`, `GET/PUT/DELETE /deployments/{id}` |
 | Jobs | `GET /jobs`, `GET /jobs/{id}` |

@@ -31,7 +31,7 @@ on: pull_request, push master
 - Tests unit + integration (Testcontainers).
 - No secretos en imágenes (multi-stage ya en Dockerfiles).
 - Scan opcional Trivy en CI (v0.6+).
-- Versionar OpenAPI artifact.
+- OpenAPI artifact versionado: [`docs/api/openapi.json`](../api/openapi.json) (regenerar vía `OpenApiContractIntegrationTest` + `-Datlas.writeOpenApi=true`).
 
 ## Release notes
 

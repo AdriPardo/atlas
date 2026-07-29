@@ -50,4 +50,4 @@ Estado: `MVP` (en código) · `v0.x` (roadmap) · `v1.0` · `future` · `designe
 | Deployment | Deployment | Se liga a PipelineRun opcional |
 | User | User | + memberships |
 
-Compatibilidad: aliases API `/applications` durante v0.2–v0.4; deprecación documentada.
+Compatibilidad: alias API `/applications` deprecated hasta Sunset **2027-08-01** ([deprecations.md](../api/deprecations.md)); canónico = Projects + Services.

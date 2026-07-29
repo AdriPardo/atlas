@@ -93,4 +93,4 @@ Un módulo de producto ≠ un JAR. En v1.0 sigue siendo un monolito modular; los
 
 - Unit: domain + use cases con fakes de ports.
 - Integration: Testcontainers Postgres (ya existe).
-- Contract: OpenAPI snapshots opcionales post-v0.3.
+- Contract: OpenAPI snapshot en `docs/api/openapi.json` + test `OpenApiContractIntegrationTest` (v0.8.16).

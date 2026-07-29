@@ -30,3 +30,8 @@ dependencies {
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     archiveFileName.set("atlas.jar")
 }
+
+tasks.named<Test>("test") {
+    // Forward: ./gradlew :bootstrap:test -Datlas.writeOpenApi=true
+    systemProperty("atlas.writeOpenApi", System.getProperty("atlas.writeOpenApi") ?: "")
+}

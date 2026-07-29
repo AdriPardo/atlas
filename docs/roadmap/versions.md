@@ -30,6 +30,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.13** | `runtime.migrateCommand` hook | App declara migrator; Atlas ejecuta post-compose |
 | **v0.8.14** | Host capabilities DB + placement filter | SHARED solo hosts con `compose`; tags en DB |
 | **v0.8.15** | UX Domains 403 scopes | Ensure Tunnel/DNS: 403 → mensaje scopes + link Secrets |
+| **v0.8.16** | OpenAPI + `/applications` sunset path | Contrato publicado; alias deprecated hasta 2027-08-01 |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -287,6 +288,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Otros status Cloudflare siguen mensaje opaco + copy fallback. Sin segundo runtime.
 
 **Criterio done:** Ensure con token sin permisos → UI/API dice scopes; token correcto → Tunnel/DNS Apply/Already present verdes.
+
+---
+
+## v0.8.16 — OpenAPI published + `/applications` deprecation path
+
+- Snapshot versionado: `docs/api/openapi.json` (+ `openapi.md`, regenerar con `ATLAS_WRITE_OPENAPI=true` / `-Datlas.writeOpenApi=true`).
+- Contract test: paths canónicos + `/applications` marcado `deprecated` en OpenAPI.
+- Path de retirada documentado: `docs/api/deprecations.md` (Sunset **2027-08-01**); headers `Deprecation`/`Sunset`/`Link` sin retirar alias.
+- Live Swagger solo perfiles `local`/`docker`/`test` (sin cambio de security).
+
+**Criterio done:** cliente externo puede consumir `openapi.json`; operador conoce successor `/projects`+`/services` y fecha Sunset.
 
 ---
 
