@@ -17,5 +17,7 @@ class ProjectManifestTest {
         assertEquals("docker-compose.yml", manifest.getComposeFile().orElseThrow());
         assertEquals(ProjectManifest.API_VERSION_V1_ALPHA1, manifest.getApiVersion());
         assertEquals(ProjectManifest.KIND_PROJECT, manifest.getKind());
+        assertTrue(manifest.isMinifyEnabled());
+        assertTrue(manifest.isRequireTlsEnabled());
     }
 }

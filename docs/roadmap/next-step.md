@@ -2,7 +2,13 @@
 
 ## Estado del último incremento (completado)
 
-**Host sync capabilities reales (v0.8.17):**
+**PUBLIC hardening contrato (ADR-0016):**
+
+- “Encrypt APIs” = **TLS in transit** (HTTPS / Traefik websecure + Tunnel); no payload crypto.
+- “Minify fronts” = `NODE_ENV=production` en deploy cuando `build.minify` (default true).
+- Docs: [ADR-0016](../decisions/ADR-0016-public-app-hardening.md), [public-app-hardening.md](../product/public-app-hardening.md); schema `atlas.yml` + loader + deploy env upsert.
+
+**Previo — Host sync capabilities reales (v0.8.17):**
 
 - Sync inspecciona Docker + Podman; escribe `runtime_capabilities` (`compose` / `podman`).
 - Unreachable o probe vacío → **no** pisa tags existentes (placement compose seguro).
@@ -18,9 +24,10 @@
 
 ## Por qué es el paso más rentable ahora
 
-1. Capabilities sync listo; envelope comercial (meters/entitlements) desbloquea polish v0.9.
+1. Capabilities sync + PUBLIC hardening contrato listos; envelope comercial (meters/entitlements) desbloquea polish v0.9.
 2. Segundo runtime adapter no urgente mientras Compose cubre flota.
 3. Acceso DB de apps (ADR-0015) queda **encolado después de billing**: contrato + convención de secrets ya documentados; provisioner Postgres es incremento propio.
+4. Post-build minify audit / HSTS (ADR-0016 cola) no bloquean billing.
 
 ## Alcance concreto del incremento (siguiente)
 
@@ -32,6 +39,7 @@
 
 - Adapter Podman vía `RuntimeOrchestratorPort` (opt-in).
 - Feature flags / plan local.
+- HSTS / post-build minify check (ADR-0016).
 
 ## Cola post-billing (no es el siguiente)
 
@@ -53,6 +61,7 @@
 - No retirar `/applications` antes de Sunset 2027-08-01.
 - No provisionar roles Postgres ni SQL console antes de cerrar v0.9 billing/usage (salvo urgencia ops documentada).
 - No interferir con fixes de login Reelpath en paralelo.
+- No payload encryption de APIs salvo demanda explícita (ADR-0016: TLS = encrypt).
 
 ## Definición de éxito (siguiente)
 

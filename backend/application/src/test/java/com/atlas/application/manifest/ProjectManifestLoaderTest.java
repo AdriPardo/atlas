@@ -45,6 +45,31 @@ class ProjectManifestLoaderTest {
         assertEquals(Optional.empty(), manifest.getMigrateCommand());
         assertEquals("atlas.yml", manifest.getSourceFileName());
         assertTrue(manifest.isComposeCompatible());
+        assertTrue(manifest.isMinifyEnabled());
+        assertTrue(manifest.isRequireTlsEnabled());
+    }
+
+    @Test
+    void loadsPublicHardeningFlags() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  composeFile: docker-compose.atlas.yml
+                build:
+                  minify: false
+                exposure:
+                  default: public
+                  requireTls: false
+                """);
+
+        ProjectManifest manifest = loader.load(workspace).orElseThrow();
+        assertEquals(Optional.of(false), manifest.getMinify());
+        assertEquals(Optional.of(false), manifest.getRequireTls());
+        assertTrue(!manifest.isMinifyEnabled());
+        assertTrue(!manifest.isRequireTlsEnabled());
     }
 
     @Test

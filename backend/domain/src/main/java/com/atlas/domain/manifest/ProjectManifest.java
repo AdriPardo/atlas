@@ -5,6 +5,7 @@ import java.util.Optional;
 
 /**
  * Minimal project manifest (ADR-0014). Repo declares how to run; Compose is today's adapter.
+ * PUBLIC hardening hints (ADR-0016): {@code build.minify}, {@code exposure.requireTls}.
  */
 public final class ProjectManifest {
 
@@ -16,6 +17,8 @@ public final class ProjectManifest {
     private final String runtimeKind;
     private final String composeFile;
     private final String migrateCommand;
+    private final Boolean minify;
+    private final Boolean requireTls;
     private final String sourceFileName;
 
     public static final String SYNTHESIZED_SOURCE = "(synthesized)";
@@ -27,11 +30,25 @@ public final class ProjectManifest {
             String composeFile,
             String migrateCommand,
             String sourceFileName) {
+        this(apiVersion, kind, runtimeKind, composeFile, migrateCommand, null, null, sourceFileName);
+    }
+
+    public ProjectManifest(
+            String apiVersion,
+            String kind,
+            String runtimeKind,
+            String composeFile,
+            String migrateCommand,
+            Boolean minify,
+            Boolean requireTls,
+            String sourceFileName) {
         this.apiVersion = requireText(apiVersion, "apiVersion");
         this.kind = requireText(kind, "kind");
         this.runtimeKind = blankToNull(runtimeKind);
         this.composeFile = blankToNull(composeFile);
         this.migrateCommand = blankToNull(migrateCommand);
+        this.minify = minify;
+        this.requireTls = requireTls;
         this.sourceFileName = requireText(sourceFileName, "sourceFileName");
     }
 
@@ -41,7 +58,7 @@ public final class ProjectManifest {
      */
     public static ProjectManifest synthesizeFromComposePath(String composePath) {
         String path = requireText(composePath, "composePath");
-        return new ProjectManifest(API_VERSION_V1_ALPHA1, KIND_PROJECT, "compose", path, null, SYNTHESIZED_SOURCE);
+        return new ProjectManifest(API_VERSION_V1_ALPHA1, KIND_PROJECT, "compose", path, null, null, null, SYNTHESIZED_SOURCE);
     }
 
     public boolean isSynthesized() {
@@ -70,6 +87,30 @@ public final class ProjectManifest {
      */
     public Optional<String> getMigrateCommand() {
         return Optional.ofNullable(migrateCommand);
+    }
+
+    /**
+     * Declared {@code build.minify}; empty means platform default (true).
+     */
+    public Optional<Boolean> getMinify() {
+        return Optional.ofNullable(minify);
+    }
+
+    /**
+     * Declared {@code exposure.requireTls}; empty means platform default (true).
+     */
+    public Optional<Boolean> getRequireTls() {
+        return Optional.ofNullable(requireTls);
+    }
+
+    /** ADR-0016: production frontend build unless explicitly disabled. */
+    public boolean isMinifyEnabled() {
+        return minify == null || minify;
+    }
+
+    /** ADR-0016: PUBLIC edge must use TLS unless explicitly disabled. */
+    public boolean isRequireTlsEnabled() {
+        return requireTls == null || requireTls;
     }
 
     public String getSourceFileName() {

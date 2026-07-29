@@ -63,6 +63,7 @@ DB de apps: secret lógico `db.url` (schema `app_<slug>`); DB control plane `atl
 - Rate limit en Traefik para `/auth/login`.
 - Audit log append-only para acciones privilegiadas.
 - Edge: excluir solo `/api/v1/webhooks/` de Authentik (GitHub no sigue 302); ver [webhooks-edge.md](../deployment/webhooks-edge.md).
+- Apps PUBLIC de cliente: HTTPS en edge (Tunnel + Traefik `websecure`); minify via `NODE_ENV=production` — [ADR-0016](../decisions/ADR-0016-public-app-hardening.md).
 
 ## Cumplimiento ligero
 

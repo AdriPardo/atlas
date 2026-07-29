@@ -76,7 +76,24 @@ public final class ProjectManifestLoader {
                 throw new DomainException("Invalid " + fileName + ": runtime must be a mapping");
             }
 
-            return new ProjectManifest(apiVersion, kind, runtimeKind, composeFile, migrateCommand, fileName);
+            Boolean minify = null;
+            Object buildNode = root.get("build");
+            if (buildNode instanceof Map<?, ?> build) {
+                minify = booleanField(build, "minify", fileName);
+            } else if (buildNode != null) {
+                throw new DomainException("Invalid " + fileName + ": build must be a mapping");
+            }
+
+            Boolean requireTls = null;
+            Object exposureNode = root.get("exposure");
+            if (exposureNode instanceof Map<?, ?> exposure) {
+                requireTls = booleanField(exposure, "requireTls", fileName);
+            } else if (exposureNode != null) {
+                throw new DomainException("Invalid " + fileName + ": exposure must be a mapping");
+            }
+
+            return new ProjectManifest(
+                    apiVersion, kind, runtimeKind, composeFile, migrateCommand, minify, requireTls, fileName);
         } catch (DomainException | IllegalArgumentException ex) {
             throw ex instanceof DomainException domain
                     ? domain
@@ -97,5 +114,22 @@ public final class ProjectManifestLoader {
             return s;
         }
         return String.valueOf(value);
+    }
+
+    private static Boolean booleanField(Map<?, ?> map, String key, String fileName) {
+        Object value = map.get(key);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        if (value instanceof String s) {
+            String normalized = s.trim().toLowerCase(java.util.Locale.ROOT);
+            if ("true".equals(normalized) || "false".equals(normalized)) {
+                return Boolean.valueOf(normalized);
+            }
+        }
+        throw new DomainException("Invalid " + fileName + ": " + key + " must be a boolean");
     }
 }

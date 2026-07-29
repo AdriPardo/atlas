@@ -27,7 +27,30 @@ class ComposePathResolverTest {
         assertEquals(ComposePathResolver.Source.COMPOSE_PATH, resolution.source());
         assertEquals(Optional.empty(), resolution.manifestFileName());
         assertEquals(Optional.empty(), resolution.migrateCommand());
+        assertTrue(resolution.minifyEnabled());
+        assertTrue(resolution.requireTlsEnabled());
         assertTrue(resolution.describe().contains("composePath"));
+    }
+
+    @Test
+    void surfacesPublicHardeningFlagsFromManifest() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  composeFile: docker-compose.atlas.yml
+                build:
+                  minify: false
+                exposure:
+                  requireTls: false
+                """);
+
+        ComposePathResolver.Resolution resolution = resolver.resolve(workspace, null);
+
+        assertTrue(!resolution.minifyEnabled());
+        assertTrue(!resolution.requireTlsEnabled());
     }
 
     @Test

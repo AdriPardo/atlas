@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Resolves the Compose file for deploy: {@code atlas.yml} {@code runtime.composeFile} when present,
  * else legacy {@code Service.composePath} via an in-memory synthesized manifest (ADR-0014 phase C).
- * Also surfaces optional {@code runtime.migrateCommand}.
+ * Also surfaces optional {@code runtime.migrateCommand} and PUBLIC hardening flags (ADR-0016).
  */
 public final class ComposePathResolver {
 
@@ -21,7 +21,9 @@ public final class ComposePathResolver {
             String composeFilePath,
             Source source,
             Optional<String> manifestFileName,
-            Optional<String> migrateCommand) {
+            Optional<String> migrateCommand,
+            boolean minifyEnabled,
+            boolean requireTlsEnabled) {
 
         public Resolution {
             if (manifestFileName == null) {
@@ -75,14 +77,18 @@ public final class ComposePathResolver {
                         fromManifest.get(),
                         Source.MANIFEST,
                         Optional.of(manifest.getSourceFileName()),
-                        migrate);
+                        migrate,
+                        manifest.isMinifyEnabled(),
+                        manifest.isRequireTlsEnabled());
             }
             if (fallback != null) {
                 return new Resolution(
                         fallback,
                         Source.COMPOSE_PATH,
                         Optional.of(manifest.getSourceFileName()),
-                        migrate);
+                        migrate,
+                        manifest.isMinifyEnabled(),
+                        manifest.isRequireTlsEnabled());
             }
             throw new DomainException(
                     MISSING_COMPOSE_MSG
@@ -97,7 +103,9 @@ public final class ComposePathResolver {
                     synthesized.getComposeFile().orElseThrow(),
                     Source.COMPOSE_PATH,
                     Optional.empty(),
-                    Optional.empty());
+                    Optional.empty(),
+                    synthesized.isMinifyEnabled(),
+                    synthesized.isRequireTlsEnabled());
         }
 
         throw new DomainException(MISSING_COMPOSE_MSG);

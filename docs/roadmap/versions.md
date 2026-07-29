@@ -32,6 +32,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.15** | UX Domains 403 scopes | Ensure Tunnel/DNS: 403 → mensaje scopes + link Secrets |
 | **v0.8.16** | OpenAPI + `/applications` sunset path | Contrato publicado; alias deprecated hasta 2027-08-01 |
 | **v0.8.17** | Host sync runtime capabilities | Sync escribe `compose`/`podman` desde probe; unreachable no pisa |
+| **v0.8.18** | PUBLIC minify + TLS guarantees | ADR-0016: `NODE_ENV=production` + requireTls docs/edge |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 

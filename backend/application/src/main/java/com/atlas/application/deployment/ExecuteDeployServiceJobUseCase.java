@@ -173,6 +173,9 @@ public class ExecuteDeployServiceJobUseCase {
                     composePathResolver.resolve(workspace, loaded.service().getComposePath());
             logSink.accept("Using " + compose.describe());
 
+            ensureProductionBuildEnv(workspace, compose.minifyEnabled(), logSink);
+            logPublicTlsPolicy(loaded.service(), compose.requireTlsEnabled(), logSink);
+
             Host host = loaded.host();
             if (!host.supportsRuntime(RuntimeCapability.COMPOSE)) {
                 throw new DomainException(
@@ -304,6 +307,58 @@ public class ExecuteDeployServiceJobUseCase {
         } catch (Exception ex) {
             throw new DomainException("Failed to seed .env for deploy: " + ex.getMessage());
         }
+    }
+
+    /**
+     * ADR-0016: when {@code build.minify} is enabled (default), ensure {@code NODE_ENV=production}
+     * so frontend tooling minifies. Upserts only that key; leaves other env lines alone.
+     */
+    private void ensureProductionBuildEnv(Path workspace, boolean minifyEnabled, Consumer<String> logSink) {
+        if (!minifyEnabled) {
+            logSink.accept("build.minify=false — skip NODE_ENV=production (debug/opt-out)");
+            return;
+        }
+        Path envFile = workspace.resolve(".env");
+        try {
+            String body = Files.exists(envFile) ? Files.readString(envFile) : "";
+            if (body.lines().anyMatch(line -> line.equals("NODE_ENV=production"))) {
+                logSink.accept("build.minify: NODE_ENV=production already set");
+                return;
+            }
+            String updated;
+            if (body.lines().anyMatch(line -> line.startsWith("NODE_ENV="))) {
+                updated = body.lines()
+                        .map(line -> line.startsWith("NODE_ENV=") ? "NODE_ENV=production" : line)
+                        .collect(java.util.stream.Collectors.joining("\n", "", "\n"));
+                logSink.accept("build.minify: set NODE_ENV=production in .env");
+            } else {
+                String suffix = body.isEmpty() || body.endsWith("\n") ? "" : "\n";
+                updated = body + suffix + "NODE_ENV=production\n";
+                logSink.accept("build.minify: appended NODE_ENV=production to .env");
+            }
+            Files.writeString(envFile, updated);
+        } catch (Exception ex) {
+            throw new DomainException("Failed to ensure NODE_ENV=production: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * ADR-0016: PUBLIC exposure requires TLS at the platform edge (Traefik websecure + Tunnel HTTPS).
+     * Soft policy: log guarantee; do not fail deploy (Tunnel ensure remains assistive).
+     */
+    private void logPublicTlsPolicy(ServiceUnit service, boolean requireTls, Consumer<String> logSink) {
+        if (service.getExposure() != ServiceExposure.PUBLIC) {
+            return;
+        }
+        if (!requireTls) {
+            logSink.accept(
+                    "WARNING: exposure.requireTls=false on PUBLIC — platform still prefers Traefik websecure;"
+                            + " plain HTTP public exposure is unsupported");
+            return;
+        }
+        logSink.accept(
+                "PUBLIC TLS policy (exposure.requireTls): client HTTPS via Tunnel/CDN;"
+                        + " Traefik entrypoint websecure + tls=true (ADR-0016)");
     }
 
     private Optional<String> resolveSshKey(Host host) {

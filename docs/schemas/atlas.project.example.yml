@@ -47,5 +47,12 @@ services:
       intervalSeconds: 30
 
 # Autopilot may override at deploy time (PUBLIC | INTERNAL).
+# ADR-0016: PUBLIC apps — production minify hint + TLS at edge (HTTPS), not payload crypto.
+build:
+  # Default true when omitted. Deploy ensures NODE_ENV=production in workspace .env.
+  minify: true
+
 exposure:
   default: public
+  # Default true when omitted. PUBLIC path uses Traefik websecure + Tunnel HTTPS.
+  requireTls: true

@@ -88,6 +88,9 @@ services:
 # Opcional: intención de edge (Autopilot puede override / enriquecer)
 exposure:
   default: public       # public | internal — UI Autopilot sigue siendo autoridad en deploy
+  requireTls: true      # ADR-0016: PUBLIC edge HTTPS (default); not payload crypto
+build:
+  minify: true          # ADR-0016: deploy ensures NODE_ENV=production (default)
 ```
 
 Reglas de diseño del schema:
