@@ -2,7 +2,9 @@
 
 ## Settings
 
-Configuración de la instalación: URLs Grafana/Prometheus/Loki, feature flags, retention, SMTP, providers Cloudflare/Traefik, branding ligero.
+Configuración de la instalación: URLs Grafana/Prometheus/Loki, feature flags (`GET /settings/features`), retention, SMTP, providers Cloudflare/Traefik, branding ligero.
+
+Plan local: `ATLAS_PLAN_CODE=community|enterprise`. Flags: `enterprise` (derive del plan), `billing` (default on; `ATLAS_FEATURE_BILLING`), `audit_export` (on en enterprise; override `ATLAS_FEATURE_AUDIT_EXPORT`).
 
 Almacenamiento: fila Organization.settings JSON + claves tipadas en UI. Secretos de settings vía Secrets module.
 
@@ -11,10 +13,10 @@ Almacenamiento: fila Organization.settings JSON + claves tipadas en UI. Secretos
 Aunque el producto sea self-hosted sin pasarela de pago, el módulo existe para:
 
 - Medir usage: deploys (`deploy.count`), gauges live de projects/hosts/deployments.
-- Exponer reportes (`GET /billing/usage`, export CSV UI) y límites soft (`plan` local: `community`).
+- Exponer reportes (`GET /billing/usage`, export CSV UI) y límites soft (`plan` local: `community` | `enterprise`).
 - Preparar licenciamiento comercial futuro sin reescribir dominio.
 
-Entidades: `UsageRecord`, `PlanEntitlement`. `InvoiceStub` diferido.
+Entidades: `UsageRecord`, `PlanEntitlement`. `InvoiceStub` diferido. Feature gate: flag `billing`.
 
 **No** integrar Stripe en v1.0 salvo demanda explícita. Puerto: `BillingMeterPort` (adapter in-process).
 

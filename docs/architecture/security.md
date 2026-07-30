@@ -68,5 +68,5 @@ DB de apps: secret lógico `db.url` (schema `app_<slug>`); DB control plane `atl
 ## Cumplimiento ligero
 
 - Retention configurable de audit y deployment logs.
-- Export de audit (JSON) para clientes enterprise (v1.0).
+- Export de audit (JSON) vía `GET /audit/export` — flag `audit_export` (plan enterprise o override).
 - Billing module registra *usage* (minutos de deploy, GB backup) sin requerir cobro.

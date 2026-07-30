@@ -49,7 +49,9 @@ class OpenApiContractIntegrationTest {
             "/api/v1/hosts",
             "/api/v1/applications",
             "/api/v1/billing/usage",
-            "/api/v1/billing/entitlements");
+            "/api/v1/billing/entitlements",
+            "/api/v1/settings/features",
+            "/api/v1/audit/export");
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")

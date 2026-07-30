@@ -1,11 +1,13 @@
 package com.atlas.application.billing;
 
+import com.atlas.application.access.FeatureGateService;
 import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.port.out.CurrentUserPort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.PlanEntitlementPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
+import com.atlas.domain.billing.FeatureFlags;
 import com.atlas.domain.billing.PlanEntitlement;
 import com.atlas.domain.billing.UsageMeters;
 import com.atlas.domain.shared.ForbiddenException;
@@ -24,6 +26,7 @@ public class GetPlanEntitlementsUseCase {
     private final HostRepositoryPort hostRepository;
     private final DeploymentRepositoryPort deploymentRepository;
     private final ProjectAuthorizationService authorizationService;
+    private final FeatureGateService featureGate;
 
     @Transactional(readOnly = true)
     public Result execute() {
@@ -31,6 +34,7 @@ public class GetPlanEntitlementsUseCase {
         if (!actor.isAdmin()) {
             throw new ForbiddenException("Only ADMIN can read billing entitlements");
         }
+        featureGate.require(FeatureFlags.BILLING);
         List<LiveGauge> gauges = List.of(
                 new LiveGauge(UsageMeters.PROJECT_COUNT, BigDecimal.valueOf(projectRepository.count())),
                 new LiveGauge(UsageMeters.HOST_COUNT, BigDecimal.valueOf(hostRepository.count())),

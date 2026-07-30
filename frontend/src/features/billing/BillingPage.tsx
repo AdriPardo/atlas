@@ -18,6 +18,7 @@ import { PageShell } from '../../shared/components/PageShell'
 import { QueryState } from '../../shared/components/QueryState'
 import type { UsageRecord } from '../../shared/types/api'
 import { useAuth } from '../auth/AuthContext'
+import { useFeatureFlags } from '../platform/useFeatureFlags'
 
 function exportUsageCsv(rows: UsageRecord[]) {
   const header = ['createdAt', 'meter', 'quantity', 'periodStart', 'periodEnd', 'dimensions']
@@ -46,17 +47,18 @@ function exportUsageCsv(rows: UsageRecord[]) {
 export function BillingPage() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'ADMIN'
+  const { planCode, billingEnabled, isEnterprise } = useFeatureFlags()
 
   const entitlementsQuery = useQuery({
     queryKey: ['billing', 'entitlements'],
     queryFn: () => billingApi.entitlements(),
-    enabled: isAdmin,
+    enabled: isAdmin && billingEnabled,
   })
 
   const usageQuery = useQuery({
     queryKey: ['billing', 'usage'],
     queryFn: () => billingApi.usage({ page: 0, size: 200, sort: 'createdAt,desc' }),
-    enabled: isAdmin,
+    enabled: isAdmin && billingEnabled,
   })
 
   const usageRows = usageQuery.data?.content ?? []
@@ -68,7 +70,7 @@ export function BillingPage() {
         title="Billing"
         description="Usage meters and local plan entitlements (price may be 0). No Stripe required."
         actions={
-          isAdmin ? (
+          isAdmin && billingEnabled ? (
             <Button
               variant="outlined"
               startIcon={<DownloadOutlinedIcon />}
@@ -82,12 +84,18 @@ export function BillingPage() {
       />
       {!isAdmin ? (
         <EmptyState title="Admin only" description="Billing usage is restricted to ADMIN users." />
+      ) : !billingEnabled ? (
+        <EmptyState
+          title="Billing disabled"
+          description="Feature flag billing is off for this installation (ATLAS_FEATURE_BILLING)."
+        />
       ) : (
         <Stack spacing={3}>
           <DataTableFrame>
             <QueryState isLoading={entitlementsQuery.isLoading} isError={entitlementsQuery.isError}>
               <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
-                Plan: {entitlements?.planCode ?? '—'}
+                Plan: {entitlements?.planCode ?? planCode}
+                {isEnterprise ? ' · enterprise' : ''}
               </Typography>
               <Table size="small" sx={{ mb: 2 }}>
                 <TableHead>

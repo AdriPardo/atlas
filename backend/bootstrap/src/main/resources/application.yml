@@ -91,6 +91,13 @@ atlas:
     cloudflare-zone-id: ${ATLAS_CF_ZONE_ID:}
     cloudflare-tunnel-origin: ${ATLAS_CF_TUNNEL_ORIGIN:https://traefik:443}
     cloudflare-tunnel-no-tls-verify: ${ATLAS_CF_TUNNEL_NO_TLS_VERIFY:true}
+  # Local plan + feature flags (no Stripe). community | enterprise
+  plan:
+    code: ${ATLAS_PLAN_CODE:community}
+  features:
+    billing: ${ATLAS_FEATURE_BILLING:true}
+    # Blank = on when plan=enterprise. Set true|false to override.
+    audit-export: ${ATLAS_FEATURE_AUDIT_EXPORT:}
   # ADR-0015: customer schemas/roles. Must NOT be the control-plane database "atlas".
   app-database:
     jdbc-url: ${ATLAS_APP_DB_URL:}

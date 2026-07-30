@@ -1509,7 +1509,7 @@
     "/api/v1/projects/{projectId}/database/provision" : {
       "post" : {
         "tags" : [ "Project database" ],
-        "summary" : "Provision schema + migrator role; store db.url / db.schema secrets",
+        "summary" : "Provision schema + migrator/read roles; store db.url / db.schema secrets",
         "operationId" : "provision",
         "parameters" : [ {
           "name" : "projectId",
@@ -1527,6 +1527,72 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ProjectDatabaseProvisionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/database/credentials" : {
+      "get" : {
+        "tags" : [ "Project database" ],
+        "summary" : "List active TTL credential roles (no passwords)",
+        "operationId" : "listCredentials",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProjectDatabaseCredentialListItemResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Project database" ],
+        "summary" : "Issue TTL connection URL (default profile db.read)",
+        "operationId" : "issueCredential",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IssueProjectDatabaseCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectDatabaseCredentialResponse"
                 }
               }
             }
@@ -2521,7 +2587,8 @@
     },
     "/api/v1/settings/observability" : {
       "get" : {
-        "tags" : [ "settings-controller" ],
+        "tags" : [ "Settings" ],
+        "summary" : "Observability deep-link settings",
         "operationId" : "observability",
         "responses" : {
           "200" : {
@@ -2530,6 +2597,25 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ObservabilitySettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/features" : {
+      "get" : {
+        "tags" : [ "Settings" ],
+        "summary" : "Local plan code and feature flags (authenticated)",
+        "operationId" : "features",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FeatureFlagsResponse"
                 }
               }
             }
@@ -2996,7 +3082,8 @@
     },
     "/api/v1/audit" : {
       "get" : {
-        "tags" : [ "audit-controller" ],
+        "tags" : [ "Audit" ],
+        "summary" : "List audit entries (ADMIN)",
         "operationId" : "list_14",
         "parameters" : [ {
           "name" : "page",
@@ -3032,6 +3119,28 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/PageResponseAuditEntryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit/export" : {
+      "get" : {
+        "tags" : [ "Audit" ],
+        "summary" : "Export audit entries as JSON (ADMIN + enterprise audit_export flag)",
+        "operationId" : "export",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AuditEntryResponse"
+                  }
                 }
               }
             }
@@ -3086,6 +3195,34 @@
           "schema" : {
             "type" : "string",
             "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/database/credentials/{role}" : {
+      "delete" : {
+        "tags" : [ "Project database" ],
+        "summary" : "Revoke a TTL credential role early",
+        "operationId" : "revokeCredential",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "role",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
           }
         } ],
         "responses" : {
@@ -4084,6 +4221,44 @@
           }
         }
       },
+      "IssueProjectDatabaseCredentialRequest" : {
+        "type" : "object",
+        "properties" : {
+          "profile" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "ttlMinutes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 1440,
+            "minimum" : 5
+          }
+        }
+      },
+      "ProjectDatabaseCredentialResponse" : {
+        "type" : "object",
+        "properties" : {
+          "role" : {
+            "type" : "string"
+          },
+          "profile" : {
+            "type" : "string"
+          },
+          "connectionUrl" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "ttlMinutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "CreatePipelineRequest" : {
         "type" : "object",
         "properties" : {
@@ -4551,6 +4726,20 @@
           }
         }
       },
+      "FeatureFlagsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "planCode" : {
+            "type" : "string"
+          },
+          "flags" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "boolean"
+            }
+          }
+        }
+      },
       "PageResponseServiceResponse" : {
         "type" : "object",
         "properties" : {
@@ -4634,6 +4823,21 @@
           },
           "message" : {
             "type" : "string"
+          }
+        }
+      },
+      "ProjectDatabaseCredentialListItemResponse" : {
+        "type" : "object",
+        "properties" : {
+          "role" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "expired" : {
+            "type" : "boolean"
           }
         }
       },

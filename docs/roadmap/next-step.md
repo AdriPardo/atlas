@@ -2,40 +2,41 @@
 
 ## Estado del último incremento (completado)
 
-**Project DB TTL credentials (ADR-0015 opción C):**
+**Feature flags / plan local (enterprise):**
 
-- Emisión `POST /projects/{id}/database/credentials` — rol efímero `VALID UNTIL`, perfiles `db.read` (default) / `db.migrate` / `db.admin`.
-- List + revoke; audit `PROJECT_DB_CREDENTIAL_*`; UI panel Database (issue URL + revoke).
-- No rota `db.url` (migrator permanente intacto). SQL proxy (opción B) sigue diferido.
+- `ATLAS_PLAN_CODE=community|enterprise` + flags `billing` / `audit_export` (derive + override).
+- `GET /settings/features`; gating billing API/UI; `GET /audit/export` (ADMIN + enterprise).
+- Entitlements enterprise = límites unlimited (soft); UI nav + Export JSON audit.
 
-**Previo:** provisioner slice 1; envFrom secrets inject; índice `idx_projects_name_lower` + IT 5k; Billing/usage; PUBLIC minify + TLS; Host sync capabilities; OpenAPI + sunset `/applications`; UX Domains 403; Pipeline `hostId`; `migrateCommand`; Cloudflare scopes; Auto-deploy; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
+**Previo:** Project DB TTL credentials (ADR-0015 C); provisioner slice 1; envFrom; índice 5k; Billing/usage; PUBLIC minify + TLS; Host sync capabilities; OpenAPI + sunset `/applications`; UX Domains 403; Pipeline `hostId`; `migrateCommand`; Cloudflare scopes; Auto-deploy; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**Feature flags / plan local (enterprise flag)** — endurecer entitlements ya esbozados en billing. Alternativa: adapter Podman vía `RuntimeOrchestratorPort` solo si hay demanda.
+**Adapter Podman** vía `RuntimeOrchestratorPort` (opt-in) — host sync ya anuncia `podman`; falta deploy path. Alternativa: más meters (job minutes, backup GB) si billing pide densificar informe.
 
 ## Por qué es el paso más rentable ahora
 
-1. ADR-0015 (A+C) cerrado; SQL proxy B fuera de scope.
+1. Envelope comercial v0.9 cerrado (usage + plan + flags).
 2. Soft limits / Stripe / Redis-Kafka siguen fuera.
-3. Flags cierran envelope comercial v0.9 sin tocar runtime.
+3. Capabilities Podman ya en hosts; adapter cierra gap ADR-0014 sin tocar Compose default.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Feature flags / plan local usable (enterprise flag + gating UI/API mínimo).
-2. Tests + docs; sin Stripe obligatorio / sin Redis-Kafka / sin SQL console proxy.
+1. Adapter Podman opt-in vía `RuntimeOrchestratorPort` (deploy mínimo).
+2. Tests + docs; sin Stripe / sin Redis-Kafka / sin SQL console proxy.
 
 ## Secundario (si sobra capacidad)
 
-- Adapter Podman vía `RuntimeOrchestratorPort` (opt-in).
 - Más meters (job minutes, backup GB).
+- Hard-enforce soft limits (hoy solo reportan).
 
 ## Cola (no es el siguiente obligatorio)
 
 1. Convención viva: secret `db.url` (+ `db.schema`); schema `app_<slug>`; envFrom → Compose ✅.
 2. Provisioner CREATE ROLE/SCHEMA + grants + UI metadata ✅.
 3. URLs/credenciales TTL (opción C) ✅.
-4. Proxy+RLS (B) diferido.
+4. Feature flags / plan local ✅.
+5. Proxy+RLS (B) diferido.
 
 ## Norte estratégico (no es el siguiente incremento)
 
@@ -53,4 +54,4 @@
 
 ## Definición de éxito (siguiente)
 
-> Feature flag / plan local operable para gating enterprise; sin romper SSO/deploy/envFrom/DB provisioner/TTL credentials.
+> Deploy vía adapter Podman en host con capability `podman` (opt-in); Compose default intacto; SSO/deploy/envFrom/DB provisioner/TTL/flags sin romper.

@@ -331,10 +331,10 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - **Hecho (performance 5k):** índice `lower(name)`; IT seed 5k + smoke list/search.
 - **Hecho (DB provisioner slice 1):** CREATE ROLE/SCHEMA + grants; secrets `db.url`/`db.schema`; UI Database; `ATLAS_APP_DB_*` (DB `apps`, nunca `atlas`).
 - **Hecho (TTL credentials opción C):** issue/list/revoke URLs de corta vida; perfiles read/migrate/admin; audit; UI.
-- Feature flags / plan local (pendiente endurecer) — **siguiente recomendado**.
+- **Hecho (feature flags / plan local):** `ATLAS_PLAN_CODE`; `GET /settings/features`; flags `enterprise`/`billing`/`audit_export`; enterprise entitlements unlimited; `GET /audit/export` + UI Export JSON.
 - OpenAPI published; deprecations `/applications` removed if sunset elapsed.
 
-**Criterio done:** informe de usage exportable ✅; carga objetivo validada ✅; entrega secret→Compose ✅; provisioner schema/rol ✅; TTL credentials ✅.
+**Criterio done:** informe de usage exportable ✅; carga objetivo validada ✅; entrega secret→Compose ✅; provisioner schema/rol ✅; TTL credentials ✅; plan/flags operable ✅.
 
 ---
 

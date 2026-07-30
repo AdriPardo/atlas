@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link as RouterLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   AppBar,
@@ -31,10 +31,20 @@ import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import { useAuth } from '../../features/auth/AuthContext'
+import { useFeatureFlags } from '../../features/platform/useFeatureFlags'
 
 const drawerWidth = 244
 
-const navGroups = [
+interface NavItem {
+  to: string
+  label: string
+  icon: ReactNode
+  /** When set, item hidden unless flag is enabled. */
+  flag?: 'billing'
+  adminOnly?: boolean
+}
+
+const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Operate',
     items: [
@@ -43,8 +53,14 @@ const navGroups = [
       { to: '/hosts', label: 'Hosts · adv.', icon: <DnsOutlinedIcon fontSize="small" /> },
       { to: '/deployments', label: 'Deployments', icon: <RocketLaunchOutlinedIcon fontSize="small" /> },
       { to: '/pipelines', label: 'Pipelines', icon: <AccountTreeOutlinedIcon fontSize="small" /> },
-      { to: '/audit', label: 'Audit', icon: <PolicyOutlinedIcon fontSize="small" /> },
-      { to: '/billing', label: 'Billing', icon: <ReceiptLongOutlinedIcon fontSize="small" /> },
+      { to: '/audit', label: 'Audit', icon: <PolicyOutlinedIcon fontSize="small" />, adminOnly: true },
+      {
+        to: '/billing',
+        label: 'Billing',
+        icon: <ReceiptLongOutlinedIcon fontSize="small" />,
+        flag: 'billing',
+        adminOnly: true,
+      },
       { to: '/alerts', label: 'Alerts', icon: <NotificationsOutlinedIcon fontSize="small" /> },
       { to: '/cron', label: 'Cron', icon: <ScheduleOutlinedIcon fontSize="small" /> },
       { to: '/secrets', label: 'Org secrets', icon: <VpnKeyOutlinedIcon fontSize="small" /> },
@@ -107,6 +123,8 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const { logout, user } = useAuth()
+  const { billingEnabled } = useFeatureFlags()
+  const isAdmin = user?.role === 'ADMIN'
 
   const drawer = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -156,7 +174,13 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
               {group.label}
             </Typography>
             <List disablePadding>
-              {group.items.map((item) => {
+              {group.items
+                .filter((item) => {
+                  if (item.adminOnly && !isAdmin) return false
+                  if (item.flag === 'billing' && !billingEnabled) return false
+                  return true
+                })
+                .map((item) => {
                 const selected =
                   item.to === '/'
                     ? location.pathname === '/'

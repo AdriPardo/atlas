@@ -16,9 +16,19 @@ public class AtlasProperties {
     private final Networking networking = new Networking();
     private final Proxmox proxmox = new Proxmox();
     private final AppDatabase appDatabase = new AppDatabase();
+    private final Plan plan = new Plan();
+    private final Features features = new Features();
 
     public Worker getWorker() {
         return worker;
+    }
+
+    public Plan getPlan() {
+        return plan;
+    }
+
+    public Features getFeatures() {
+        return features;
     }
 
     public Workspace getWorkspace() {
@@ -59,6 +69,45 @@ public class AtlasProperties {
 
     public AppDatabase getAppDatabase() {
         return appDatabase;
+    }
+
+    /** Local commercial plan ({@code community} | {@code enterprise}). */
+    public static class Plan {
+        private String code = "community";
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+    }
+
+    /**
+     * Feature flags. {@code billing} defaults on; {@code auditExport} blank derives from enterprise
+     * plan ({@code true}/{@code false} override).
+     */
+    public static class Features {
+        private boolean billing = true;
+        /** Blank = derive from plan (on when enterprise). */
+        private String auditExport = "";
+
+        public boolean isBilling() {
+            return billing;
+        }
+
+        public void setBilling(boolean billing) {
+            this.billing = billing;
+        }
+
+        public String getAuditExport() {
+            return auditExport;
+        }
+
+        public void setAuditExport(String auditExport) {
+            this.auditExport = auditExport;
+        }
     }
 
     /**

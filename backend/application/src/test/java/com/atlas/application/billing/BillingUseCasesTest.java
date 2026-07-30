@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atlas.application.access.FeatureGateService;
 import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.port.out.CurrentUserPort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
@@ -50,6 +51,9 @@ class BillingUseCasesTest {
 
     @Mock
     private ProjectAuthorizationService authorizationService;
+
+    @Mock
+    private FeatureGateService featureGate;
 
     @InjectMocks
     private ListUsageRecordsUseCase listUsageRecordsUseCase;

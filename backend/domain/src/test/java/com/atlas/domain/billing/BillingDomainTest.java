@@ -50,3 +50,15 @@ class PlanEntitlementTest {
         assertFalse(entitlement.isUnlimited());
     }
 }
+
+class PlanCodesTest {
+
+    @Test
+    void normalizesEnterpriseAndUnknown() {
+        assertEquals(PlanCodes.ENTERPRISE, PlanCodes.normalize("Enterprise"));
+        assertEquals(PlanCodes.COMMUNITY, PlanCodes.normalize("free"));
+        assertEquals(PlanCodes.COMMUNITY, PlanCodes.normalize(null));
+        assertTrue(PlanCodes.isEnterprise("enterprise"));
+        assertFalse(PlanCodes.isEnterprise("community"));
+    }
+}

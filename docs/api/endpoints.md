@@ -82,7 +82,10 @@ Leyenda versión: **MVP** | **v0.2+** | **v0.4+** | **v0.5+** | **v0.6+** | **v0
 | GET/PATCH | `/users` | v0.7 |
 | CRUD | `/teams` | v0.7 |
 | GET | `/audit` | v0.7 |
+| GET | `/audit/export` | v0.9 (ADMIN + flag `audit_export`) |
 | GET/PATCH | `/settings` | v0.4 |
+| GET | `/settings/features` | v0.9 (plan + flags) |
+| GET | `/settings/observability` | v0.5 |
 | GET | `/billing/usage` | v0.9 |
 | GET | `/billing/entitlements` | v0.9 |
 | CRUD | `/backups` | v0.8 |

@@ -1,16 +1,30 @@
 import { useQuery } from '@tanstack/react-query'
-import { Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { Button, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
 import { auditApi } from '../../shared/api/endpoints'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { QueryState } from '../../shared/components/QueryState'
+import type { AuditEntry } from '../../shared/types/api'
 import { useAuth } from '../auth/AuthContext'
+import { useFeatureFlags } from '../platform/useFeatureFlags'
+
+function exportAuditJson(rows: AuditEntry[]) {
+  const blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = `atlas-audit-${new Date().toISOString().slice(0, 10)}.json`
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
 
 export function AuditListPage() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'ADMIN'
+  const { auditExportEnabled } = useFeatureFlags()
 
   const query = useQuery({
     queryKey: ['audit'],
@@ -25,6 +39,21 @@ export function AuditListPage() {
       <PageHeader
         title="Audit"
         description="Append-only trail of privileged actions (deploy, pipeline run)."
+        actions={
+          isAdmin && auditExportEnabled ? (
+            <Button
+              variant="outlined"
+              startIcon={<DownloadOutlinedIcon />}
+              disabled={rows.length === 0}
+              onClick={async () => {
+                const exported = await auditApi.export()
+                exportAuditJson(exported)
+              }}
+            >
+              Export JSON
+            </Button>
+          ) : undefined
+        }
       />
       {!isAdmin ? (
         <EmptyState title="Admin only" description="Audit log is restricted to ADMIN users." />

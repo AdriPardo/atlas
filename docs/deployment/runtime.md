@@ -51,7 +51,7 @@ Excepción edge: router Traefik `atlas-webhooks` (`PathPrefix(/api/v1/webhooks/)
 
 ## Configuración
 
-Variables: ver `.env.example` (`ATLAS_DB_*`, `ATLAS_JWT_*`, `ATLAS_AUTHENTIK_*`, `ATLAS_SECRETS_MASTER_KEY`, `ATLAS_WORKER_*`, `ATLAS_WORKSPACE_DIR`, admin seed, CORS, opcionales `ATLAS_CF_*` / `ATLAS_PROXMOX_*`).
+Variables: ver `.env.example` (`ATLAS_DB_*`, `ATLAS_JWT_*`, `ATLAS_AUTHENTIK_*`, `ATLAS_SECRETS_MASTER_KEY`, `ATLAS_WORKER_*`, `ATLAS_WORKSPACE_DIR`, admin seed, CORS, opcionales `ATLAS_CF_*` / `ATLAS_PROXMOX_*`, plan `ATLAS_PLAN_CODE` / flags `ATLAS_FEATURE_*`).
 
 Perfil `docker`: SSO on. Secretos de producción distintos de defaults.
 

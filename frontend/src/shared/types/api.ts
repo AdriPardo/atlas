@@ -381,6 +381,11 @@ export interface PlanEntitlements {
   gauges: LiveGauge[]
 }
 
+export interface FeatureFlags {
+  planCode: string
+  flags: Record<string, boolean>
+}
+
 export type NotificationChannelType = 'WEBHOOK' | 'EMAIL'
 export type AlertEventType = 'DEPLOY_FAILED' | 'JOB_FAILED'
 export type AlertRuleStatus = 'OK' | 'PENDING' | 'FIRING' | 'SILENCED'

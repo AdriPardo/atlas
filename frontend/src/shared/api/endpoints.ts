@@ -36,6 +36,7 @@ import type {
   TraefikMetadata,
   TunnelIngress,
   DnsCname,
+  FeatureFlags,
   UsageRecord,
   User,
 } from '../types/api'
@@ -131,6 +132,7 @@ export const hostsApi = {
 export const settingsApi = {
   observability: () =>
     api.get<ObservabilitySettings>('/settings/observability').then((r) => r.data),
+  features: () => api.get<FeatureFlags>('/settings/features').then((r) => r.data),
 }
 
 export const pipelinesApi = {
@@ -191,6 +193,7 @@ export const domainsApi = {
 export const auditApi = {
   list: (params?: Record<string, string | number | undefined>) =>
     api.get<PageResponse<AuditEntry>>('/audit', { params }).then((r) => r.data),
+  export: () => api.get<AuditEntry[]>('/audit/export').then((r) => r.data),
 }
 
 export const billingApi = {
