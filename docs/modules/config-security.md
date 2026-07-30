@@ -53,6 +53,8 @@ Override: `env:` o `as:` en el item. Valores **nunca** van a logs de deploy. Sec
 | DELETE | `/projects/{id}/secrets/{secretId}` | Delete owned |
 | GET | `/projects/{id}/database` | Metadata schema/status (sin credenciales) |
 | POST | `/projects/{id}/database/provision` | CREATE ROLE/SCHEMA + upsert `db.url` / `db.schema` |
+| GET/POST | `/projects/{id}/database/credentials` | List TTL roles / issue ephemeral URL (`db.read` default) |
+| DELETE | `/projects/{id}/database/credentials/{role}` | Revoke TTL role early |
 
 UI: panel **Database** + **Secrets** en Project detail; página sidebar **Org secrets** (`/secrets`) para el almacén compartido.
 

@@ -29,7 +29,7 @@ Registro de instancias DB (Postgres/MySQL/…) usadas por projects:
 
 - **Hoy:** connection string en Secrets del project (`db.url`); convención schema `app_<slug>` ([ADR-0015](../decisions/ADR-0015-project-database-access.md), [project-database-access.md](../product/project-database-access.md)).
 - **Externas:** mismo binding; Atlas no provisiona el cluster remoto.
-- **Gestionadas (post-billing):** CREATE ROLE/SCHEMA + grants `db.read` / `db.migrate` / `db.admin`; luego URLs TTL. SQL proxy diferido.
+- **Gestionadas:** CREATE ROLE/SCHEMA + grants; URLs TTL (`db.read` / `db.migrate` / `db.admin`). SQL proxy diferido.
 
 Útil para backups/restore de **apps** (futuro; distinto de `BACKUP_DATABASE` del control plane Atlas) y variables de conexión tipadas.
 

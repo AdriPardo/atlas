@@ -89,11 +89,13 @@ public class ProvisionProjectDatabaseUseCase {
 
         String schema = ProjectDatabaseNames.schemaName(project.getSlug());
         String role = ProjectDatabaseNames.migratorRole(project.getSlug());
+        String readRole = ProjectDatabaseNames.readOnlyRole(project.getSlug());
         String password = generatePassword();
         boolean rotated = secretRepository.existsByProjectIdAndName(projectId, ProjectDatabaseNames.DB_URL_SECRET);
 
         ProjectDatabaseProvisionerPort.ProvisionResult result =
-                provisioner.provision(new ProjectDatabaseProvisionerPort.ProvisionRequest(schema, role, password));
+                provisioner.provision(new ProjectDatabaseProvisionerPort.ProvisionRequest(
+                        schema, role, readRole, password));
 
         upsertOwned(projectId, ProjectDatabaseNames.DB_URL_SECRET, result.connectionUrl());
         upsertOwned(projectId, ProjectDatabaseNames.DB_SCHEMA_SECRET, result.schema());

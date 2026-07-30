@@ -330,11 +330,11 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - **Hecho (envFrom inject):** manifiesto `envFrom.secretRef` → `.env` en deploy (`db.url` → `DATABASE_URL`); ADR-0015 delivery sin provisioner.
 - **Hecho (performance 5k):** índice `lower(name)`; IT seed 5k + smoke list/search.
 - **Hecho (DB provisioner slice 1):** CREATE ROLE/SCHEMA + grants; secrets `db.url`/`db.schema`; UI Database; `ATLAS_APP_DB_*` (DB `apps`, nunca `atlas`).
-- Feature flags / plan local (pendiente endurecer).
+- **Hecho (TTL credentials opción C):** issue/list/revoke URLs de corta vida; perfiles read/migrate/admin; audit; UI.
+- Feature flags / plan local (pendiente endurecer) — **siguiente recomendado**.
 - OpenAPI published; deprecations `/applications` removed if sunset elapsed.
-- Credenciales TTL (ADR-0015 opción C) — **siguiente recomendado**.
 
-**Criterio done:** informe de usage exportable ✅; carga objetivo validada ✅; entrega secret→Compose ✅; provisioner schema/rol ✅.
+**Criterio done:** informe de usage exportable ✅; carga objetivo validada ✅; entrega secret→Compose ✅; provisioner schema/rol ✅; TTL credentials ✅.
 
 ---
 

@@ -179,6 +179,20 @@ export interface ProjectDatabaseProvisionResult {
   rotated: boolean
 }
 
+export interface ProjectDatabaseCredential {
+  role: string
+  profile: string
+  connectionUrl: string
+  expiresAt: string
+  ttlMinutes: number
+}
+
+export interface ProjectDatabaseCredentialListItem {
+  role: string
+  expiresAt: string | null
+  expired: boolean
+}
+
 export interface DeployResponse {
   deploymentId: string
   jobId: string

@@ -1,5 +1,6 @@
 package com.atlas;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -119,5 +120,34 @@ class ProjectDatabaseProvisionIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.name=='db.url')]").exists())
                 .andExpect(jsonPath("$[?(@.name=='db.schema')]").exists());
+
+        MvcResult cred = mockMvc.perform(post("/api/v1/projects/" + projectId + "/database/credentials")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"profile":"db.read","ttlMinutes":30}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.profile").value("db.read"))
+                .andExpect(jsonPath("$.ttlMinutes").value(30))
+                .andExpect(jsonPath("$.connectionUrl").exists())
+                .andExpect(jsonPath("$.role").value(org.hamcrest.Matchers.startsWith("app_db_slice_app_t_")))
+                .andReturn();
+        String role = com.jayway.jsonpath.JsonPath.read(cred.getResponse().getContentAsString(), "$.role");
+
+        mockMvc.perform(get("/api/v1/projects/" + projectId + "/database/credentials")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].role").value(role))
+                .andExpect(jsonPath("$[0].expired").value(false));
+
+        mockMvc.perform(delete("/api/v1/projects/" + projectId + "/database/credentials/" + role)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/projects/" + projectId + "/database/credentials")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
     }
 }

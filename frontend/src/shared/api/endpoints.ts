@@ -27,6 +27,8 @@ import type {
   ProjectSecretEntry,
   ProjectDatabaseStatus,
   ProjectDatabaseProvisionResult,
+  ProjectDatabaseCredential,
+  ProjectDatabaseCredentialListItem,
   SecretMeta,
   Service,
   ServiceExposure,
@@ -286,4 +288,17 @@ export const projectDatabaseApi = {
     api
       .post<ProjectDatabaseProvisionResult>(`/projects/${projectId}/database/provision`)
       .then((r) => r.data),
+  listCredentials: (projectId: string) =>
+    api
+      .get<ProjectDatabaseCredentialListItem[]>(`/projects/${projectId}/database/credentials`)
+      .then((r) => r.data),
+  issueCredential: (
+    projectId: string,
+    body?: { profile?: string; ttlMinutes?: number },
+  ) =>
+    api
+      .post<ProjectDatabaseCredential>(`/projects/${projectId}/database/credentials`, body ?? {})
+      .then((r) => r.data),
+  revokeCredential: (projectId: string, role: string) =>
+    api.delete(`/projects/${projectId}/database/credentials/${encodeURIComponent(role)}`),
 }

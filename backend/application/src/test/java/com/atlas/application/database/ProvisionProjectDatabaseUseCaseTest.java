@@ -101,6 +101,7 @@ class ProvisionProjectDatabaseUseCaseTest {
                 .thenReturn(new ProjectDatabaseProvisionerPort.ProvisionResult(
                         "app_reelpath_demo",
                         "app_reelpath_demo_migrator",
+                        "app_reelpath_demo_ro",
                         "apps",
                         "postgresql://app_reelpath_demo_migrator:x@postgres:5432/apps?currentSchema=app_reelpath_demo"));
 
