@@ -19,5 +19,13 @@ class ProjectManifestTest {
         assertEquals(ProjectManifest.KIND_PROJECT, manifest.getKind());
         assertTrue(manifest.isMinifyEnabled());
         assertTrue(manifest.isRequireTlsEnabled());
+        assertTrue(manifest.getEnvFromSecrets().isEmpty());
+    }
+
+    @Test
+    void envFromSecretRefMapsDbUrlToDatabaseUrl() {
+        EnvFromSecretRef ref = EnvFromSecretRef.of("db.url");
+        assertEquals("DATABASE_URL", ref.resolveEnvKey());
+        assertEquals("CUSTOM", new EnvFromSecretRef("db.url", "CUSTOM").resolveEnvKey());
     }
 }

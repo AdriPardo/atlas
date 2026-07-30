@@ -29,7 +29,27 @@ class ComposePathResolverTest {
         assertEquals(Optional.empty(), resolution.migrateCommand());
         assertTrue(resolution.minifyEnabled());
         assertTrue(resolution.requireTlsEnabled());
+        assertTrue(resolution.envFromSecrets().isEmpty());
         assertTrue(resolution.describe().contains("composePath"));
+    }
+
+    @Test
+    void surfacesEnvFromSecretsFromManifest() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  composeFile: docker-compose.atlas.yml
+                  envFrom:
+                    - secretRef: db.url
+                """);
+
+        ComposePathResolver.Resolution resolution = resolver.resolve(workspace, null);
+
+        assertEquals(1, resolution.envFromSecrets().size());
+        assertEquals("DATABASE_URL", resolution.envFromSecrets().get(0).resolveEnvKey());
     }
 
     @Test

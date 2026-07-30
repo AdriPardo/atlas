@@ -29,6 +29,19 @@ Orden para un nombre lógico (p. ej. `git.token`) en el contexto de un proyecto:
 
 Hosts SSH siguen resolviendo por `sshPrivateKeySecretId` (id), sin cascada por nombre.
 
+### Inyección a Compose (deploy)
+
+Si el manifiesto declara `envFrom.secretRef` (`runtime.envFrom` y/o `services.*.envFrom`), el worker escribe las keys en el `.env` del workspace **antes** de `compose up`:
+
+| Secret lógico | Env key por defecto |
+|---------------|---------------------|
+| `db.url` | `DATABASE_URL` |
+| `db.schema` | `DB_SCHEMA` |
+| `db.password` | `DB_PASSWORD` |
+| otro | `SCREAMING_SNAKE` (`.`/`-` → `_`) |
+
+Override: `env:` o `as:` en el item. Valores **nunca** van a logs de deploy. Secret no resuelto → warn + skip.
+
 ### API
 
 | Método | Ruta | Notas |

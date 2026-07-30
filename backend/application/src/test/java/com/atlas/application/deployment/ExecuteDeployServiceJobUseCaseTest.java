@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -92,7 +93,7 @@ class ExecuteDeployServiceJobUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        when(transactionManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
+        lenient().when(transactionManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
         useCase = new ExecuteDeployServiceJobUseCase(
                 deploymentRepository,
                 serviceRepository,
@@ -314,6 +315,68 @@ class ExecuteDeployServiceJobUseCaseTest {
         useCase.execute(deployment.getId());
 
         verify(hostCommand, org.mockito.Mockito.never()).run(any());
+    }
+
+    @Test
+    void injectsEnvFromSecretsIntoDotEnv() throws Exception {
+        java.nio.file.Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  composeFile: docker-compose.atlas.yml
+                  envFrom:
+                    - secretRef: db.url
+                """);
+
+        Project project = Project.create("demo", "d");
+        ServiceUnit service = ServiceUnit.createDefault(
+                project.getId(), "https://example.com/demo.git", "main", null, "app.example.com");
+        Host host = Host.create("local", "127.0.0.1", "linux", "26", true, ConnectionType.LOCAL, null, 22, null);
+        Deployment deployment = Deployment.create(service.getId(), host.getId());
+        Deployment running = Deployment.rehydrate(
+                deployment.getId(),
+                deployment.getServiceId(),
+                deployment.getHostId(),
+                DeploymentStatus.PENDING,
+                null,
+                null,
+                "",
+                deployment.getCreatedAt(),
+                deployment.getUpdatedAt());
+
+        when(deploymentRepository.findById(deployment.getId())).thenReturn(Optional.of(running));
+        when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(hostRepository.findById(host.getId())).thenReturn(Optional.of(host));
+        when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(resolveSecretValue.forProject(project.getId(), ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.empty());
+        when(resolveSecretValue.forProject(project.getId(), "db.url"))
+                .thenReturn(Optional.of("postgres://app:secret@db:5432/app"));
+
+        doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());
+        doAnswer(inv -> null).when(runtimeOrchestrator).apply(any());
+
+        useCase.execute(deployment.getId());
+
+        String env = java.nio.file.Files.readString(workspace.resolve(".env"));
+        assertTrue(env.contains("DATABASE_URL=postgres://app:secret@db:5432/app"));
+        assertTrue(env.contains("DOMAIN=app.example.com"));
+        assertTrue(running.getLogs().contains("envFrom: set DATABASE_URL")
+                || running.getStatus() == DeploymentStatus.SUCCEEDED);
+        // never leak the connection string into deploy logs
+        assertTrue(!running.getLogs().contains("postgres://app:secret"));
+    }
+
+    @Test
+    void upsertEnvLineReplacesExistingKey() {
+        String updated = ExecuteDeployServiceJobUseCase.upsertEnvLine("FOO=1\nBAR=2\n", "FOO", "x");
+        assertTrue(updated.contains("FOO=x"));
+        assertTrue(updated.contains("BAR=2"));
     }
 
     @Test

@@ -2,31 +2,29 @@
 
 ## Estado del último incremento (completado)
 
-**Billing/usage meters (v0.9 slice):**
+**Performance 5k + envFrom secrets inject (v0.9):**
 
-- Tabla `usage_records` (Flyway V21); domain `UsageRecord` + `PlanEntitlement`.
-- `BillingMeterPort` in-process; `deploy.count` al encolar deploy.
-- API `GET /billing/usage` + `GET /billing/entitlements` (ADMIN); UI `/billing` + export CSV.
-- Plan local `community` precio 0; soft limits; sin Stripe.
+- Deploy inyecta `envFrom.secretRef` (`runtime` + `services.*`) al `.env` del workspace (`db.url` → `DATABASE_URL`; override `env:`/`as:`). Sin filtrar valores en logs; secret ausente → warn+skip.
+- Índice `idx_projects_name_lower`; IT `ProjectsScaleIntegrationTest` seed JDBC 5k + smoke list/search < 2s.
 
-**Previo:** PUBLIC minify + TLS (v0.8.18 / ADR-0016); Host sync capabilities (v0.8.17); OpenAPI + sunset `/applications` (v0.8.16); UX Domains 403 scopes; Host capabilities DB; Pipeline `hostId` opcional; `migrateCommand`; RuntimeOrchestratorPort; Cloudflare scopes; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
+**Previo:** Billing/usage meters; PUBLIC minify + TLS (ADR-0016); Host sync capabilities; OpenAPI + sunset `/applications`; UX Domains 403; Host capabilities DB; Pipeline `hostId` opcional; `migrateCommand`; RuntimeOrchestratorPort; Cloudflare scopes; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
-**Docs (sin código de provisioning):** [ADR-0015](../decisions/ADR-0015-project-database-access.md) — acceso DB por Project (roles+schemas; secrets `db.url`); nota [project-database-access.md](../product/project-database-access.md).
+**Docs (provisioner pendiente):** [ADR-0015](../decisions/ADR-0015-project-database-access.md) — roles+schemas; entrega `db.url` vía envFrom **operable**; nota [project-database-access.md](../product/project-database-access.md).
 
 ## Recomendación única (siguiente)
 
-**Performance pass sintético (5k projects)** o **Project DB access — slice 1 (provisioner)** ([ADR-0015](../decisions/ADR-0015-project-database-access.md)). Alternativa: feature flags / plan local endurecido; adapter Podman solo si hay demanda.
+**Project DB access — slice 1 (provisioner)** ([ADR-0015](../decisions/ADR-0015-project-database-access.md)): CREATE ROLE/SCHEMA + grants `db.read` / `db.migrate`; UI metadata Project; **sin** SQL proxy. Alternativa: feature flags / plan local endurecido; adapter Podman solo si hay demanda.
 
 ## Por qué es el paso más rentable ahora
 
-1. Envelope comercial (meters/entitlements) listo; falta validar carga v0.9 o desbloquear DB apps.
-2. Soft limits no bloquean deploy; performance pass cierra criterio “carga objetivo”.
-3. Provisioner Postgres es incremento propio documentado; ya no bloqueado por billing.
+1. Envelope comercial + carga 5k + entrega secret→Compose listos; falta automatizar schema/rol Postgres.
+2. Operador ya puede pegar `db.url` a mano; provisioner cierra el loop ADR-0015.
+3. Soft limits / Stripe / Redis-Kafka siguen fuera de scope.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Performance: seed sintético ~5k projects + smoke list/search (criterio v0.9).
-2. O: provisioner CREATE ROLE/SCHEMA + grants `db.read` / `db.migrate`; UI metadata Project; **sin** SQL proxy.
+1. Provisioner CREATE ROLE/SCHEMA + grants `db.read` / `db.migrate`; UI metadata Project; **sin** SQL proxy.
+2. Persistir/rotar secret `db.url` tras provision.
 3. Tests + docs; sin Stripe / sin Redis-Kafka obligatorio.
 
 ## Secundario (si sobra capacidad)
@@ -37,15 +35,13 @@
 
 ## Cola (no es el siguiente obligatorio)
 
-**Project DB access — slice 1** si se elige performance primero, o al revés:
-
-1. Convención ya viva: secret `db.url` (+ `db.schema`) por project; schema `app_<slug>`.
-2. Build: provisioner CREATE ROLE/SCHEMA + grants; UI metadata; **sin** SQL proxy.
+1. Convención viva: secret `db.url` (+ `db.schema`); schema `app_<slug>`; envFrom → Compose ✅.
+2. **Build siguiente:** provisioner CREATE ROLE/SCHEMA + grants; UI metadata; **sin** SQL proxy.
 3. Luego: URLs/credenciales TTL (opción C). Proxy+RLS (B) diferido.
 
 ## Norte estratégico (no es el siguiente incremento)
 
-**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + capabilities DB + sync probe + OpenAPI + PUBLIC hardening hechas; Compose sigue adapter default. Podman/K8s = adapters futuros.
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + capabilities DB + sync probe + OpenAPI + PUBLIC hardening + envFrom inject hechas; Compose sigue adapter default. Podman/K8s = adapters futuros.
 
 ## Qué no hacer
 
@@ -58,4 +54,4 @@
 
 ## Definición de éxito (siguiente)
 
-> Carga objetivo validada (5k) **o** provisioner DB slice 1 operable; sin romper SSO/deploy compose.
+> Provisioner DB slice 1 operable (rol+schema+grants + UI metadata); sin romper SSO/deploy compose / envFrom.

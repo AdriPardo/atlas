@@ -18,6 +18,7 @@ import com.atlas.application.secret.ResolveSecretValueUseCase;
 import com.atlas.domain.deployment.Deployment;
 import com.atlas.domain.host.ConnectionType;
 import com.atlas.domain.host.Host;
+import com.atlas.domain.manifest.EnvFromSecretRef;
 import com.atlas.domain.networking.Domain;
 import com.atlas.domain.observability.AlertEventType;
 import com.atlas.domain.project.Project;
@@ -31,6 +32,7 @@ import com.atlas.domain.shared.NotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -173,6 +175,8 @@ public class ExecuteDeployServiceJobUseCase {
                     composePathResolver.resolve(workspace, loaded.service().getComposePath());
             logSink.accept("Using " + compose.describe());
 
+            injectEnvFromSecrets(
+                    workspace, loaded.project().getId(), compose.envFromSecrets(), logSink);
             ensureProductionBuildEnv(workspace, compose.minifyEnabled(), logSink);
             logPublicTlsPolicy(loaded.service(), compose.requireTlsEnabled(), logSink);
 
@@ -307,6 +311,58 @@ public class ExecuteDeployServiceJobUseCase {
         } catch (Exception ex) {
             throw new DomainException("Failed to seed .env for deploy: " + ex.getMessage());
         }
+    }
+
+    /**
+     * ADR-0015 delivery: materialize {@code envFrom.secretRef} into workspace {@code .env} so Compose
+     * sees {@code DATABASE_URL} (etc.). Never logs secret values. Missing secrets → warn + skip
+     * (deploy continues; operator can bind later).
+     */
+    private void injectEnvFromSecrets(
+            Path workspace, UUID projectId, List<EnvFromSecretRef> refs, Consumer<String> logSink) {
+        if (refs == null || refs.isEmpty()) {
+            return;
+        }
+        Path envFile = workspace.resolve(".env");
+        try {
+            String body = Files.exists(envFile) ? Files.readString(envFile) : "";
+            int injected = 0;
+            for (EnvFromSecretRef ref : refs) {
+                String envKey = ref.resolveEnvKey();
+                Optional<String> value = resolveSecretValue.forProject(projectId, ref.getSecretRef());
+                if (value.isEmpty()) {
+                    logSink.accept(
+                            "envFrom: secret '" + ref.getSecretRef() + "' not resolved — skip " + envKey);
+                    continue;
+                }
+                body = upsertEnvLine(body, envKey, value.get());
+                injected++;
+                logSink.accept("envFrom: set " + envKey + " from secret '" + ref.getSecretRef() + "'");
+            }
+            if (injected > 0) {
+                if (!body.isEmpty() && !body.endsWith("\n")) {
+                    body = body + "\n";
+                }
+                Files.writeString(envFile, body);
+            }
+        } catch (DomainException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new DomainException("Failed to inject envFrom secrets: " + ex.getMessage());
+        }
+    }
+
+    /** Upsert {@code KEY=value} in a dotenv body without touching other keys. */
+    static String upsertEnvLine(String body, String key, String value) {
+        String prefix = key + "=";
+        String escaped = value == null ? "" : value.replace("\n", "\\n").replace("\r", "");
+        if (body.lines().anyMatch(line -> line.startsWith(prefix))) {
+            return body.lines()
+                    .map(line -> line.startsWith(prefix) ? prefix + escaped : line)
+                    .collect(java.util.stream.Collectors.joining("\n", "", "\n"));
+        }
+        String suffix = body.isEmpty() || body.endsWith("\n") ? "" : "\n";
+        return body + suffix + prefix + escaped + "\n";
     }
 
     /**

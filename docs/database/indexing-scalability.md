@@ -10,7 +10,7 @@ Soportar **miles de projects**, decenas/cientos de usuarios, alto volumen de `de
 - `UNIQUE (organization_id, slug)`
 - `(organization_id, created_at DESC)`
 - `(organization_id, status)`
-- `LOWER(name)` search opcional vía `pg_trgm` si `q=` es frecuente
+- `lower(name)` — `idx_projects_name_lower` (v0.9; search `name=` / LIKE)
 
 ### services
 - `(project_id)`

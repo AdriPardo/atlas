@@ -1,11 +1,13 @@
 package com.atlas.domain.manifest;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 /**
  * Minimal project manifest (ADR-0014). Repo declares how to run; Compose is today's adapter.
  * PUBLIC hardening hints (ADR-0016): {@code build.minify}, {@code exposure.requireTls}.
+ * Secrets: {@code envFrom.secretRef} → workspace {@code .env} on deploy (ADR-0015 delivery).
  */
 public final class ProjectManifest {
 
@@ -19,6 +21,7 @@ public final class ProjectManifest {
     private final String migrateCommand;
     private final Boolean minify;
     private final Boolean requireTls;
+    private final List<EnvFromSecretRef> envFromSecrets;
     private final String sourceFileName;
 
     public static final String SYNTHESIZED_SOURCE = "(synthesized)";
@@ -30,7 +33,7 @@ public final class ProjectManifest {
             String composeFile,
             String migrateCommand,
             String sourceFileName) {
-        this(apiVersion, kind, runtimeKind, composeFile, migrateCommand, null, null, sourceFileName);
+        this(apiVersion, kind, runtimeKind, composeFile, migrateCommand, null, null, List.of(), sourceFileName);
     }
 
     public ProjectManifest(
@@ -42,6 +45,19 @@ public final class ProjectManifest {
             Boolean minify,
             Boolean requireTls,
             String sourceFileName) {
+        this(apiVersion, kind, runtimeKind, composeFile, migrateCommand, minify, requireTls, List.of(), sourceFileName);
+    }
+
+    public ProjectManifest(
+            String apiVersion,
+            String kind,
+            String runtimeKind,
+            String composeFile,
+            String migrateCommand,
+            Boolean minify,
+            Boolean requireTls,
+            List<EnvFromSecretRef> envFromSecrets,
+            String sourceFileName) {
         this.apiVersion = requireText(apiVersion, "apiVersion");
         this.kind = requireText(kind, "kind");
         this.runtimeKind = blankToNull(runtimeKind);
@@ -49,6 +65,9 @@ public final class ProjectManifest {
         this.migrateCommand = blankToNull(migrateCommand);
         this.minify = minify;
         this.requireTls = requireTls;
+        this.envFromSecrets = envFromSecrets == null || envFromSecrets.isEmpty()
+                ? List.of()
+                : List.copyOf(envFromSecrets);
         this.sourceFileName = requireText(sourceFileName, "sourceFileName");
     }
 
@@ -58,7 +77,8 @@ public final class ProjectManifest {
      */
     public static ProjectManifest synthesizeFromComposePath(String composePath) {
         String path = requireText(composePath, "composePath");
-        return new ProjectManifest(API_VERSION_V1_ALPHA1, KIND_PROJECT, "compose", path, null, null, null, SYNTHESIZED_SOURCE);
+        return new ProjectManifest(
+                API_VERSION_V1_ALPHA1, KIND_PROJECT, "compose", path, null, null, null, List.of(), SYNTHESIZED_SOURCE);
     }
 
     public boolean isSynthesized() {
@@ -111,6 +131,14 @@ public final class ProjectManifest {
     /** ADR-0016: PUBLIC edge must use TLS unless explicitly disabled. */
     public boolean isRequireTlsEnabled() {
         return requireTls == null || requireTls;
+    }
+
+    /**
+     * Logical secrets to inject into workspace {@code .env} before compose apply.
+     * Empty when omitted or synthesized.
+     */
+    public List<EnvFromSecretRef> getEnvFromSecrets() {
+        return envFromSecrets;
     }
 
     public String getSourceFileName() {

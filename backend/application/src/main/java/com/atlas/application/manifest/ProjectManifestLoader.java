@@ -1,11 +1,14 @@
 package com.atlas.application.manifest;
 
+import com.atlas.domain.manifest.EnvFromSecretRef;
 import com.atlas.domain.manifest.ProjectManifest;
 import com.atlas.domain.shared.DomainException;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -67,11 +70,13 @@ public final class ProjectManifestLoader {
             String runtimeKind = null;
             String composeFile = null;
             String migrateCommand = null;
+            List<EnvFromSecretRef> runtimeEnvFrom = List.of();
             Object runtimeNode = root.get("runtime");
             if (runtimeNode instanceof Map<?, ?> runtime) {
                 runtimeKind = stringField(runtime, "kind");
                 composeFile = stringField(runtime, "composeFile");
                 migrateCommand = stringField(runtime, "migrateCommand");
+                runtimeEnvFrom = parseEnvFromList(runtime.get("envFrom"), fileName + " runtime.envFrom");
             } else if (runtimeNode != null) {
                 throw new DomainException("Invalid " + fileName + ": runtime must be a mapping");
             }
@@ -92,8 +97,19 @@ public final class ProjectManifestLoader {
                 throw new DomainException("Invalid " + fileName + ": exposure must be a mapping");
             }
 
+            List<EnvFromSecretRef> serviceEnvFrom = parseServicesEnvFrom(root.get("services"), fileName);
+            List<EnvFromSecretRef> envFromSecrets = mergeEnvFrom(runtimeEnvFrom, serviceEnvFrom);
+
             return new ProjectManifest(
-                    apiVersion, kind, runtimeKind, composeFile, migrateCommand, minify, requireTls, fileName);
+                    apiVersion,
+                    kind,
+                    runtimeKind,
+                    composeFile,
+                    migrateCommand,
+                    minify,
+                    requireTls,
+                    envFromSecrets,
+                    fileName);
         } catch (DomainException | IllegalArgumentException ex) {
             throw ex instanceof DomainException domain
                     ? domain
@@ -103,6 +119,71 @@ public final class ProjectManifestLoader {
         } catch (Exception ex) {
             throw new DomainException("Failed to parse " + fileName + ": " + ex.getMessage());
         }
+    }
+
+    /**
+     * Union of {@code runtime.envFrom} then {@code services.*.envFrom}. First declaration of an env
+     * key wins (runtime preferred over services).
+     */
+    private static List<EnvFromSecretRef> mergeEnvFrom(
+            List<EnvFromSecretRef> runtime, List<EnvFromSecretRef> services) {
+        Map<String, EnvFromSecretRef> byEnvKey = new LinkedHashMap<>();
+        for (EnvFromSecretRef ref : runtime) {
+            byEnvKey.putIfAbsent(ref.resolveEnvKey(), ref);
+        }
+        for (EnvFromSecretRef ref : services) {
+            byEnvKey.putIfAbsent(ref.resolveEnvKey(), ref);
+        }
+        return List.copyOf(byEnvKey.values());
+    }
+
+    private static List<EnvFromSecretRef> parseServicesEnvFrom(Object servicesNode, String fileName) {
+        if (servicesNode == null) {
+            return List.of();
+        }
+        if (!(servicesNode instanceof Map<?, ?> services)) {
+            throw new DomainException("Invalid " + fileName + ": services must be a mapping");
+        }
+        List<EnvFromSecretRef> collected = new ArrayList<>();
+        for (Map.Entry<?, ?> entry : services.entrySet()) {
+            if (!(entry.getValue() instanceof Map<?, ?> service)) {
+                continue;
+            }
+            String serviceName = String.valueOf(entry.getKey());
+            collected.addAll(
+                    parseEnvFromList(service.get("envFrom"), fileName + " services." + serviceName + ".envFrom"));
+        }
+        return collected;
+    }
+
+    private static List<EnvFromSecretRef> parseEnvFromList(Object envFromNode, String context) {
+        if (envFromNode == null) {
+            return List.of();
+        }
+        if (!(envFromNode instanceof List<?> list)) {
+            throw new DomainException("Invalid " + context + ": expected a list");
+        }
+        List<EnvFromSecretRef> refs = new ArrayList<>();
+        for (Object item : list) {
+            if (!(item instanceof Map<?, ?> entry)) {
+                throw new DomainException("Invalid " + context + ": each item must be a mapping");
+            }
+            String secretRef = stringField(entry, "secretRef");
+            if (secretRef == null || secretRef.isBlank()) {
+                // configKey and other non-secret entries are ignored for inject
+                continue;
+            }
+            String env = stringField(entry, "env");
+            if (env == null || env.isBlank()) {
+                env = stringField(entry, "as");
+            }
+            try {
+                refs.add(new EnvFromSecretRef(secretRef, env));
+            } catch (IllegalArgumentException ex) {
+                throw new DomainException("Invalid " + context + ": " + ex.getMessage());
+            }
+        }
+        return refs;
     }
 
     private static String stringField(Map<?, ?> map, String key) {

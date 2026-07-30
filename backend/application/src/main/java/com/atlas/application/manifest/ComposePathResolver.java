@@ -1,14 +1,17 @@
 package com.atlas.application.manifest;
 
+import com.atlas.domain.manifest.EnvFromSecretRef;
 import com.atlas.domain.manifest.ProjectManifest;
 import com.atlas.domain.shared.DomainException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * Resolves the Compose file for deploy: {@code atlas.yml} {@code runtime.composeFile} when present,
  * else legacy {@code Service.composePath} via an in-memory synthesized manifest (ADR-0014 phase C).
- * Also surfaces optional {@code runtime.migrateCommand} and PUBLIC hardening flags (ADR-0016).
+ * Also surfaces optional {@code runtime.migrateCommand}, PUBLIC hardening flags (ADR-0016), and
+ * {@code envFrom.secretRef} for {@code .env} injection (ADR-0015).
  */
 public final class ComposePathResolver {
 
@@ -23,7 +26,8 @@ public final class ComposePathResolver {
             Optional<String> manifestFileName,
             Optional<String> migrateCommand,
             boolean minifyEnabled,
-            boolean requireTlsEnabled) {
+            boolean requireTlsEnabled,
+            List<EnvFromSecretRef> envFromSecrets) {
 
         public Resolution {
             if (manifestFileName == null) {
@@ -31,6 +35,11 @@ public final class ComposePathResolver {
             }
             if (migrateCommand == null) {
                 migrateCommand = Optional.empty();
+            }
+            if (envFromSecrets == null) {
+                envFromSecrets = List.of();
+            } else {
+                envFromSecrets = List.copyOf(envFromSecrets);
             }
         }
 
@@ -71,6 +80,7 @@ public final class ComposePathResolver {
             }
 
             Optional<String> migrate = manifest.getMigrateCommand();
+            List<EnvFromSecretRef> envFrom = manifest.getEnvFromSecrets();
             Optional<String> fromManifest = manifest.getComposeFile();
             if (fromManifest.isPresent()) {
                 return new Resolution(
@@ -79,7 +89,8 @@ public final class ComposePathResolver {
                         Optional.of(manifest.getSourceFileName()),
                         migrate,
                         manifest.isMinifyEnabled(),
-                        manifest.isRequireTlsEnabled());
+                        manifest.isRequireTlsEnabled(),
+                        envFrom);
             }
             if (fallback != null) {
                 return new Resolution(
@@ -88,7 +99,8 @@ public final class ComposePathResolver {
                         Optional.of(manifest.getSourceFileName()),
                         migrate,
                         manifest.isMinifyEnabled(),
-                        manifest.isRequireTlsEnabled());
+                        manifest.isRequireTlsEnabled(),
+                        envFrom);
             }
             throw new DomainException(
                     MISSING_COMPOSE_MSG
@@ -105,7 +117,8 @@ public final class ComposePathResolver {
                     Optional.empty(),
                     Optional.empty(),
                     synthesized.isMinifyEnabled(),
-                    synthesized.isRequireTlsEnabled());
+                    synthesized.isRequireTlsEnabled(),
+                    List.of());
         }
 
         throw new DomainException(MISSING_COMPOSE_MSG);

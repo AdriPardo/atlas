@@ -327,11 +327,13 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 ## v0.9 — Commercial envelope
 
 - **Hecho (slice meters):** usage_records + `BillingMeterPort`; `GET /billing/usage` + `/entitlements`; UI `/billing` + CSV; plan `community` precio 0; meter `deploy.count` en enqueue.
+- **Hecho (envFrom inject):** manifiesto `envFrom.secretRef` → `.env` en deploy (`db.url` → `DATABASE_URL`); ADR-0015 delivery sin provisioner.
+- **Hecho (performance 5k):** índice `lower(name)`; IT seed 5k + smoke list/search.
 - Feature flags / plan local (pendiente endurecer).
 - OpenAPI published; deprecations `/applications` removed if sunset elapsed.
-- Performance pass (5k projects synthetic) — **siguiente recomendado**.
+- Project DB provisioner (ADR-0015 slice 1) — **siguiente recomendado**.
 
-**Criterio done:** informe de usage exportable ✅; carga objetivo validada (pendiente).
+**Criterio done:** informe de usage exportable ✅; carga objetivo validada ✅; entrega secret→Compose ✅.
 
 ---
 

@@ -1,6 +1,6 @@
 # ADR-0015 — Acceso a base de datos por Project (aislamiento)
 
-- **Estado:** Accepted (contrato + slice docs; provisioning Postgres pendiente)
+- **Estado:** Accepted (contrato + entrega envFrom; provisioning Postgres pendiente)
 - **Fecha:** 2026-07-30
 
 ## Contexto
@@ -50,7 +50,7 @@ Falta un contrato de producto: cómo un project obtiene acceso DB **solo** a sus
 
 ## Fuera de alcance (este ADR)
 
-- Provisioner automático de roles/schemas en Postgres (siguiente incremento de implementación tras contrato).
+- Provisioner automático de roles/schemas en Postgres (siguiente incremento de implementación; entrega `db.url` vía `envFrom` ya operable en deploy).
 - SQL console / proxy (opción B).
 - Backup/restore de DBs de customer apps (extender jobs más adelante; no mezclar con dump de Atlas).
 - Cambiar Reelpath ni su login; otro agente puede estar en eso.
@@ -59,7 +59,8 @@ Falta un contrato de producto: cómo un project obtiene acceso DB **solo** a sus
 
 - (+) Encaja install single-tenant con muchos projects; aislamiento real sin multi-tenant SaaS en Atlas.
 - (+) Reusa secrets + ADR-0014; cero dependencia de Prisma.
+- (+) Deploy materializa `envFrom.secretRef` en `.env` (`db.url` → `DATABASE_URL`) sin loguear valores.
 - (+) Menor riesgo ops que B: Postgres enforce isolation; Atlas no proxya queries.
 - (−) Hasta el provisioner, el operador crea schema/rol a mano y pega `db.url` en Project secrets.
 - (−) C (URLs TTL) espera A estable + API de emisión.
-- → Producto: [project-database-access.md](../product/project-database-access.md). Roadmap: tras billing/usage (v0.9), no antes.
+- → Producto: [project-database-access.md](../product/project-database-access.md). Roadmap: provisioner = siguiente tras meters + 5k + envFrom.

@@ -32,12 +32,27 @@ Ejemplos válidos (Atlas no interpreta el contenido):
 
 1. `git clone/update`
 2. Seed `.env` (si no existe)
-3. Resolver `runtime.composeFile`
-4. `compose up` (DB y servicios)
-5. **Si** hay `runtime.migrateCommand` → ejecutarlo en el workspace (LOCAL o SSH)
-6. Tunnel / DNS Autopilot
+3. Resolver `runtime.composeFile` + `envFrom.secretRef`
+4. Inyectar secrets declarados en `.env` (`db.url` → `DATABASE_URL`; no loguea valores)
+5. `compose up` (DB y servicios)
+6. **Si** hay `runtime.migrateCommand` → ejecutarlo en el workspace (LOCAL o SSH)
+7. Tunnel / DNS Autopilot
 
 DB del stack ya está arriba antes del hook (healthchecks Compose suelen bastar). El comando debe poder alcanzar la DB (hostname de red Docker, `docker compose exec`, etc.).
+
+### `envFrom.secretRef`
+
+```yaml
+runtime:
+  composeFile: docker-compose.atlas.yml
+  envFrom:
+    - secretRef: db.url          # → DATABASE_URL
+    - secretRef: db.schema       # → DB_SCHEMA
+    - secretRef: custom.token
+      env: MY_TOKEN              # override key
+```
+
+También se leen `services.*.envFrom` (unión; `runtime` gana si choca la misma env key). Secret ausente → warn + skip (deploy no falla).
 
 ## Evitar doble migrate
 

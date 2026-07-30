@@ -90,6 +90,35 @@ class ProjectManifestLoaderTest {
     }
 
     @Test
+    void loadsEnvFromSecretRefsFromRuntimeAndServices() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  composeFile: docker-compose.atlas.yml
+                  envFrom:
+                    - secretRef: db.url
+                services:
+                  api:
+                    envFrom:
+                      - secretRef: db.schema
+                      - secretRef: db.url
+                        env: CUSTOM_DB
+                      - configKey: DOMAIN
+                """);
+
+        ProjectManifest manifest = loader.load(workspace).orElseThrow();
+        assertEquals(3, manifest.getEnvFromSecrets().size());
+        assertEquals("db.url", manifest.getEnvFromSecrets().get(0).getSecretRef());
+        assertEquals("DATABASE_URL", manifest.getEnvFromSecrets().get(0).resolveEnvKey());
+        assertEquals("db.schema", manifest.getEnvFromSecrets().get(1).getSecretRef());
+        assertEquals("DB_SCHEMA", manifest.getEnvFromSecrets().get(1).resolveEnvKey());
+        assertEquals("CUSTOM_DB", manifest.getEnvFromSecrets().get(2).resolveEnvKey());
+    }
+
+    @Test
     void prefersAtlasYmlOverAlias() throws Exception {
         Files.writeString(
                 workspace.resolve("atlas.yml"),
