@@ -91,6 +91,11 @@ atlas:
     cloudflare-zone-id: ${ATLAS_CF_ZONE_ID:}
     cloudflare-tunnel-origin: ${ATLAS_CF_TUNNEL_ORIGIN:https://traefik:443}
     cloudflare-tunnel-no-tls-verify: ${ATLAS_CF_TUNNEL_NO_TLS_VERIFY:true}
+  # ADR-0015: customer schemas/roles. Must NOT be the control-plane database "atlas".
+  app-database:
+    jdbc-url: ${ATLAS_APP_DB_URL:}
+    username: ${ATLAS_APP_DB_USERNAME:}
+    password: ${ATLAS_APP_DB_PASSWORD:}
   proxmox:
     # Autopilot ISOLATED placement (optional). Secret proxmox.api.token via Secrets UI.
     api-url: ${ATLAS_PROXMOX_API_URL:}

@@ -25,6 +25,8 @@ import type {
   Project,
   ProjectMembership,
   ProjectSecretEntry,
+  ProjectDatabaseStatus,
+  ProjectDatabaseProvisionResult,
   SecretMeta,
   Service,
   ServiceExposure,
@@ -275,4 +277,13 @@ export const projectSecretsApi = {
     api.delete(`/projects/${projectId}/secrets/bindings/${bindingId}`),
   removeOwned: (projectId: string, secretId: string) =>
     api.delete(`/projects/${projectId}/secrets/${secretId}`),
+}
+
+export const projectDatabaseApi = {
+  status: (projectId: string) =>
+    api.get<ProjectDatabaseStatus>(`/projects/${projectId}/database`).then((r) => r.data),
+  provision: (projectId: string) =>
+    api
+      .post<ProjectDatabaseProvisionResult>(`/projects/${projectId}/database/provision`)
+      .then((r) => r.data),
 }

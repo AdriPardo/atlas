@@ -1506,6 +1506,34 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/database/provision" : {
+      "post" : {
+        "tags" : [ "Project database" ],
+        "summary" : "Provision schema + migrator role; store db.url / db.schema secrets",
+        "operationId" : "provision",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectDatabaseProvisionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pipelines" : {
       "get" : {
         "tags" : [ "pipeline-controller" ],
@@ -2570,6 +2598,34 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/PageResponseServiceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/database" : {
+      "get" : {
+        "tags" : [ "Project database" ],
+        "summary" : "Project DB status (schema metadata; never returns credentials)",
+        "operationId" : "status",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectDatabaseResponse"
                 }
               }
             }
@@ -4008,6 +4064,26 @@
         },
         "required" : [ "hostname" ]
       },
+      "ProjectDatabaseProvisionResponse" : {
+        "type" : "object",
+        "properties" : {
+          "schema" : {
+            "type" : "string"
+          },
+          "role" : {
+            "type" : "string"
+          },
+          "databaseName" : {
+            "type" : "string"
+          },
+          "profile" : {
+            "type" : "string"
+          },
+          "rotated" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "CreatePipelineRequest" : {
         "type" : "object",
         "properties" : {
@@ -4531,6 +4607,32 @@
             "format" : "int32"
           },
           "sort" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ProjectDatabaseResponse" : {
+        "type" : "object",
+        "properties" : {
+          "provisionerConfigured" : {
+            "type" : "boolean"
+          },
+          "provisioned" : {
+            "type" : "boolean"
+          },
+          "schema" : {
+            "type" : "string"
+          },
+          "role" : {
+            "type" : "string"
+          },
+          "databaseName" : {
+            "type" : "string"
+          },
+          "profile" : {
+            "type" : "string"
+          },
+          "message" : {
             "type" : "string"
           }
         }

@@ -2,30 +2,28 @@
 
 ## Estado del último incremento (completado)
 
-**Performance 5k + envFrom secrets inject (v0.9):**
+**Project DB provisioner slice 1 (ADR-0015):**
 
-- Deploy inyecta `envFrom.secretRef` (`runtime` + `services.*`) al `.env` del workspace (`db.url` → `DATABASE_URL`; override `env:`/`as:`). Sin filtrar valores en logs; secret ausente → warn+skip.
-- Índice `idx_projects_name_lower`; IT `ProjectsScaleIntegrationTest` seed JDBC 5k + smoke list/search < 2s.
+- `ProjectDatabaseProvisionerPort` + Postgres adapter: `CREATE ROLE` / `CREATE SCHEMA` + grants `db.migrate` en DB dedicada `apps` (nunca control-plane `atlas`).
+- API `GET/POST /projects/{id}/database[/provision]`; secrets `db.url` + `db.schema`; UI panel Database en Project detail.
+- Config `ATLAS_APP_DB_URL` / `USERNAME` / `PASSWORD`; docker init `CREATE DATABASE apps`.
 
-**Previo:** Billing/usage meters; PUBLIC minify + TLS (ADR-0016); Host sync capabilities; OpenAPI + sunset `/applications`; UX Domains 403; Host capabilities DB; Pipeline `hostId` opcional; `migrateCommand`; RuntimeOrchestratorPort; Cloudflare scopes; Auto-deploy; stale RUNNING; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
-
-**Docs (provisioner pendiente):** [ADR-0015](../decisions/ADR-0015-project-database-access.md) — roles+schemas; entrega `db.url` vía envFrom **operable**; nota [project-database-access.md](../product/project-database-access.md).
+**Previo:** envFrom secrets inject; índice `idx_projects_name_lower` + IT 5k; Billing/usage; PUBLIC minify + TLS; Host sync capabilities; OpenAPI + sunset `/applications`; UX Domains 403; Pipeline `hostId`; `migrateCommand`; Cloudflare scopes; Auto-deploy; Proxmox REUSED; DNS CNAME; Tunnel PUBLIC.
 
 ## Recomendación única (siguiente)
 
-**Project DB access — slice 1 (provisioner)** ([ADR-0015](../decisions/ADR-0015-project-database-access.md)): CREATE ROLE/SCHEMA + grants `db.read` / `db.migrate`; UI metadata Project; **sin** SQL proxy. Alternativa: feature flags / plan local endurecido; adapter Podman solo si hay demanda.
+**Credenciales TTL / URLs de corta vida (opción C sobre A)** ([ADR-0015](../decisions/ADR-0015-project-database-access.md)): emitir `db.read` temporal para consola local. Alternativa: feature flags / plan local; adapter Podman solo si hay demanda.
 
 ## Por qué es el paso más rentable ahora
 
-1. Envelope comercial + carga 5k + entrega secret→Compose listos; falta automatizar schema/rol Postgres.
-2. Operador ya puede pegar `db.url` a mano; provisioner cierra el loop ADR-0015.
-3. Soft limits / Stripe / Redis-Kafka siguen fuera de scope.
+1. Provisioner cierra aislamiento schema/rol; falta UX “click → connect” sin pegar password eterna.
+2. Soft limits / Stripe / Redis-Kafka siguen fuera de scope.
+3. SQL proxy+RLS (opción B) sigue diferido.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Provisioner CREATE ROLE/SCHEMA + grants `db.read` / `db.migrate`; UI metadata Project; **sin** SQL proxy.
-2. Persistir/rotar secret `db.url` tras provision.
-3. Tests + docs; sin Stripe / sin Redis-Kafka obligatorio.
+1. Emitir credenciales / URLs TTL (`db.read` default humano; `db.migrate` ya es el rol app).
+2. Tests + docs; sin Stripe / sin Redis-Kafka obligatorio / sin SQL console proxy.
 
 ## Secundario (si sobra capacidad)
 
@@ -36,8 +34,9 @@
 ## Cola (no es el siguiente obligatorio)
 
 1. Convención viva: secret `db.url` (+ `db.schema`); schema `app_<slug>`; envFrom → Compose ✅.
-2. **Build siguiente:** provisioner CREATE ROLE/SCHEMA + grants; UI metadata; **sin** SQL proxy.
-3. Luego: URLs/credenciales TTL (opción C). Proxy+RLS (B) diferido.
+2. Provisioner CREATE ROLE/SCHEMA + grants + UI metadata ✅.
+3. **Build siguiente:** URLs/credenciales TTL (opción C).
+4. Proxy+RLS (B) diferido.
 
 ## Norte estratégico (no es el siguiente incremento)
 
@@ -49,9 +48,10 @@
 - No eliminar `composePath` de DB antes de migrar callers restantes.
 - No `compose down -v` ni tocar `.env` en runbooks de deploy.
 - No retirar `/applications` antes de Sunset 2027-08-01.
-- No SQL console / proxy RLS antes de cerrar provisioner slice 1.
+- No SQL console / proxy RLS antes de TTL credentials.
 - No interferir con fixes de login Reelpath en paralelo.
+- No apuntar `ATLAS_APP_DB_URL` a la DB `atlas`.
 
 ## Definición de éxito (siguiente)
 
-> Provisioner DB slice 1 operable (rol+schema+grants + UI metadata); sin romper SSO/deploy compose / envFrom.
+> Emisión de credenciales TTL operable (read vs migrate) sobre roles provisionados; sin romper SSO/deploy/envFrom/provisioner.

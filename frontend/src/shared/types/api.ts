@@ -161,6 +161,24 @@ export interface ProjectSecretEntry {
   updatedAt: string
 }
 
+export interface ProjectDatabaseStatus {
+  provisionerConfigured: boolean
+  provisioned: boolean
+  schema: string
+  role: string
+  databaseName: string | null
+  profile: string
+  message: string
+}
+
+export interface ProjectDatabaseProvisionResult {
+  schema: string
+  role: string
+  databaseName: string
+  profile: string
+  rotated: boolean
+}
+
 export interface DeployResponse {
   deploymentId: string
   jobId: string

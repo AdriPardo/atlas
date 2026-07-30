@@ -29,6 +29,7 @@ import { StatusChip } from '../../shared/components/StatusChip'
 import { ProjectMembersPanel } from './ProjectMembersPanel'
 import { ProjectDomainsPanel } from './ProjectDomainsPanel'
 import { ProjectSecretsPanel } from './ProjectSecretsPanel'
+import { ProjectDatabasePanel } from './ProjectDatabasePanel'
 import { ProjectAutoDeployPanel } from './ProjectAutoDeployPanel'
 
 export function ProjectDetailPage() {
@@ -153,6 +154,8 @@ export function ProjectDetailPage() {
               projectId={id}
               services={servicesQuery.data?.content ?? []}
             />
+
+            <ProjectDatabasePanel projectId={id} />
 
             <ProjectSecretsPanel projectId={id} />
 

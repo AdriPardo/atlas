@@ -51,8 +51,12 @@ Override: `env:` o `as:` en el item. Valores **nunca** van a logs de deploy. Sec
 | POST | `/projects/{id}/secrets/bindings` | Link global → alias |
 | DELETE | `/projects/{id}/secrets/bindings/{bindingId}` | Unlink |
 | DELETE | `/projects/{id}/secrets/{secretId}` | Delete owned |
+| GET | `/projects/{id}/database` | Metadata schema/status (sin credenciales) |
+| POST | `/projects/{id}/database/provision` | CREATE ROLE/SCHEMA + upsert `db.url` / `db.schema` |
 
-UI: panel **Secrets** en Project detail; página sidebar **Org secrets** (`/secrets`) para el almacén compartido.
+UI: panel **Database** + **Secrets** en Project detail; página sidebar **Org secrets** (`/secrets`) para el almacén compartido.
+
+Provisioner (ADR-0015): `ATLAS_APP_DB_URL` / `ATLAS_APP_DB_USERNAME` / `ATLAS_APP_DB_PASSWORD` → DB compartida de apps (p. ej. `apps`). Rechaza database name `atlas`. Docker Compose crea `apps` en init.
 
 Nombres lógicos conocidos (hints en UI):
 

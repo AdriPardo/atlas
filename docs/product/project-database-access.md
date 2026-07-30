@@ -28,7 +28,7 @@ Install Atlas = una org ([ADR-0002](../decisions/ADR-0002-single-tenant-install.
 ## Opciones de acceso (producto)
 
 1. **Hoy:** operador crea schema/rol fuera de Atlas; guarda connection string como secret project `db.url`; Compose/`atlas.yml` `envFrom.secretRef: db.url` → deploy escribe `DATABASE_URL` en `.env`.
-2. **Siguiente build:** provisioner Atlas (CREATE ROLE/SCHEMA + grants) + UI “Database” en Project detail (metadata + link secret).
+2. **Hoy (slice 1):** provisioner Atlas (`POST /projects/{id}/database/provision`) CREATE ROLE/SCHEMA + grants + UI “Database” en Project detail (metadata + secrets `db.url` / `db.schema`). Requiere `ATLAS_APP_DB_URL` apuntando a DB dedicada (p. ej. `apps`), **nunca** `atlas`.
 3. **Después:** emitir credenciales / URLs con TTL (opción C del ADR) para consola local (`psql`, GUI).
 4. **Diferido:** SQL console proxy con RLS (opción B) — alto riesgo ops.
 

@@ -1,6 +1,6 @@
 # ADR-0015 — Acceso a base de datos por Project (aislamiento)
 
-- **Estado:** Accepted (contrato + entrega envFrom; provisioning Postgres pendiente)
+- **Estado:** Accepted (contrato + entrega envFrom + provisioner slice 1)
 - **Fecha:** 2026-07-30
 
 ## Contexto
@@ -50,10 +50,11 @@ Falta un contrato de producto: cómo un project obtiene acceso DB **solo** a sus
 
 ## Fuera de alcance (este ADR)
 
-- Provisioner automático de roles/schemas en Postgres (siguiente incremento de implementación; entrega `db.url` vía `envFrom` ya operable en deploy).
+- ~~Provisioner automático de roles/schemas en Postgres~~ — **hecho (slice 1):** `ATLAS_APP_DB_*` + `POST /projects/{id}/database/provision`.
 - SQL console / proxy (opción B).
 - Backup/restore de DBs de customer apps (extender jobs más adelante; no mezclar con dump de Atlas).
 - Cambiar Reelpath ni su login; otro agente puede estar en eso.
+- Credenciales / URLs TTL (opción C) — siguiente incremento.
 
 ## Consecuencias
 
@@ -61,6 +62,6 @@ Falta un contrato de producto: cómo un project obtiene acceso DB **solo** a sus
 - (+) Reusa secrets + ADR-0014; cero dependencia de Prisma.
 - (+) Deploy materializa `envFrom.secretRef` en `.env` (`db.url` → `DATABASE_URL`) sin loguear valores.
 - (+) Menor riesgo ops que B: Postgres enforce isolation; Atlas no proxya queries.
-- (−) Hasta el provisioner, el operador crea schema/rol a mano y pega `db.url` en Project secrets.
+- (−) ~~Hasta el provisioner, el operador crea schema/rol a mano y pega `db.url` en Project secrets.~~ Provisioner slice 1 operable; manual sigue válido si `ATLAS_APP_DB_*` no está.
 - (−) C (URLs TTL) espera A estable + API de emisión.
-- → Producto: [project-database-access.md](../product/project-database-access.md). Roadmap: provisioner = siguiente tras meters + 5k + envFrom.
+- → Producto: [project-database-access.md](../product/project-database-access.md). Roadmap: TTL credentials = siguiente tras provisioner.

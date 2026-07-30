@@ -15,6 +15,7 @@ public class AtlasProperties {
     private final Backup backup = new Backup();
     private final Networking networking = new Networking();
     private final Proxmox proxmox = new Proxmox();
+    private final AppDatabase appDatabase = new AppDatabase();
 
     public Worker getWorker() {
         return worker;
@@ -54,6 +55,44 @@ public class AtlasProperties {
 
     public Proxmox getProxmox() {
         return proxmox;
+    }
+
+    public AppDatabase getAppDatabase() {
+        return appDatabase;
+    }
+
+    /**
+     * Shared Postgres for customer project schemas (ADR-0015). Must not point at control-plane DB
+     * {@code atlas}.
+     */
+    public static class AppDatabase {
+        private String jdbcUrl = "";
+        private String username = "";
+        private String password = "";
+
+        public String getJdbcUrl() {
+            return jdbcUrl;
+        }
+
+        public void setJdbcUrl(String jdbcUrl) {
+            this.jdbcUrl = jdbcUrl;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
     }
 
     public static class Worker {
