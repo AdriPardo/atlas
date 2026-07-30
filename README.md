@@ -58,6 +58,12 @@ Con `ATLAS_AUTHENTIK_ENABLED=false` (perfil `local` por defecto) o sin cabeceras
 - Java 21+
 - Node.js 22+
 - Docker / Docker Compose
+- (opcional) Python 3.10+ + [Graphify](https://github.com/Graphify-Labs/graphify) (`uv tool install graphifyy`) para knowledge graph / Obsidian
+
+## Documentación / Obsidian / Graphify
+
+- Diseño de producto: [`docs/`](docs/) — abrir esa carpeta como **vault Obsidian**.
+- Knowledge graph del código: [`docs/tooling/graphify-obsidian.md`](docs/tooling/graphify-obsidian.md); setup `./scripts/setup-graphify.sh`.
 
 ## Arranque rápido (Docker Compose)
 

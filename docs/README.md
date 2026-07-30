@@ -18,6 +18,11 @@ Esta carpeta describe el **diseño objetivo** y la evolución desde el MVP actua
 | 8 | [roadmap/next-step.md](roadmap/next-step.md) | Siguiente paso de implementación |
 | — | [decisions/](decisions/) | ADRs (decisiones vinculantes) |
 | — | [product/project-database-access.md](product/project-database-access.md) | Acceso DB por Project (ADR-0015) |
+| — | [tooling/graphify-obsidian.md](tooling/graphify-obsidian.md) | Knowledge graph (Graphify) + vault Obsidian |
+
+## Obsidian
+
+Abrir **esta carpeta** (`docs/`) como vault en Obsidian (*Open folder as vault*). Config mínima en `.obsidian/`. Knowledge graph del código: ver [tooling/graphify-obsidian.md](tooling/graphify-obsidian.md).
 
 ## Estado del producto (hoy)
 

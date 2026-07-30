@@ -16,3 +16,19 @@ frontend/dist/
 # Production-only compose (VM); never commit
 docker-compose.prod.yml
 docker-compose.override.yml
+
+# Graphify (keep GRAPH_REPORT.md / graph.json when generated; skip local noise)
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/cost.json
+graphify-out/.graphify_*
+graphify-out/transcripts/
+
+# Obsidian — UI state local; keep shared app/graph settings
+docs/.obsidian/workspace.json
+docs/.obsidian/workspace-mobile.json
+docs/.obsidian/cache
+docs/graphify/**
+!docs/graphify/README.md
+docs/attachments/
+docs/notes/

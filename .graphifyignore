@@ -1,0 +1,29 @@
+# Heavy / generated — keep graph focused on product code + docs
+node_modules/
+frontend/dist/
+frontend/node_modules/
+.gradle/
+**/build/
+**/bin/
+**/out/
+.idea/
+.vscode/
+.git/
+.cursor/skills/impeccable/
+.skills/
+graphify-out/
+docs/graphify/
+docs/tooling/graphify-obsidian.md
+docs/api/openapi.json
+*.log
+.env
+.env.*
+docker-compose.prod.yml
+docker-compose.override.yml
+
+# Install / agent instruction noise (official graphify recommendation)
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.gemini/
+.opencode/
