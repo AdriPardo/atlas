@@ -95,7 +95,7 @@ public class ManageProjectSecretsUseCase {
     }
 
     /**
-     * Idempotent create-or-replace for project-owned secrets (ops seed / rotate).
+     * Idempotent create-or-replace for project-owned secrets (UI rotate / seed).
      * Fails if the name is already a linked org-secret alias — unlink first.
      */
     @Transactional

@@ -1,71 +1,74 @@
-# ADR-0017 — AI provista por la plataforma (no BYOK end-user)
+# ADR-0017 — Secretos de usuario para apps (almacén + inject)
 
-- **Estado:** Accepted (contrato + mapeos envFrom; migración apps diferida)
+- **Estado:** Accepted (almacén + UI + envFrom; cutover apps opcional)
 - **Fecha:** 2026-07-31
+- **Aclaración:** este ADR **no** dice que Atlas sea proveedor de IA. Atlas **guarda e inyecta** secrets que el usuario/ops crea para sus aplicaciones (Reelpath, etc.).
 
 ## Contexto
 
-Apps en Atlas (p. ej. Reelpath) usan proveedores de IA (OpenAI, DeepSeek, ElevenLabs, …). Hoy Reelpath guarda esas keys en **Secretos de plataforma** de la app (`PlatformSecret` en DB de la app) — UI orientada a usuario/org de producto, no a ops Atlas.
+Apps desplegadas en Atlas necesitan credenciales en runtime (API keys de terceros, tokens, connection strings, …). Sin un almacén en plataforma, esas keys viven en Compose `.env` ad-hoc, en UI de la app, o en git — malo para rotación, audit y multi-proyecto.
 
-Eso choca con el modelo de producto:
+Atlas ya tiene:
 
-- Atlas = plano de ops ([ADR-0002](ADR-0002-single-tenant-install.md)): **nosotros** proveemos infra y capacidades.
-- End-user no debe pegar API keys de OpenAI/ElevenLabs; no es su responsabilidad ni su contrato.
-- Mañana el proveedor puede ser un **modelo local** (OpenAI-compatible) sin que el usuario cambie nada: Autopilot / `atlas.yml` / secrets de Atlas poseen el swap.
+- Secrets cifrados (org/global + project-owned) + bindings ([config-security.md](../modules/config-security.md))
+- `envFrom.secretRef` en `atlas.yml` → worker escribe `.env` antes de `compose up` ([ADR-0014](ADR-0014-project-manifest-runtime.md), [ADR-0015](ADR-0015-project-database-access.md))
 
-Secrets + `envFrom` ya existen ([ADR-0014](ADR-0014-project-manifest-runtime.md), [ADR-0015](ADR-0015-project-database-access.md), [config-security.md](../modules/config-security.md)). Falta el contrato de producto para AI.
+Falta el contrato de producto claro: **quién crea** los secrets y **cómo llegan** a la app.
 
 ### Opciones evaluadas
 
 | | Enfoque | Pros | Contras |
 |---|---------|------|---------|
-| **A** | BYOK end-user (status quo Reelpath PlatformSecret) | Flexibilidad por cliente | UX mala; coste/riesgo en usuario; swap local imposible sin reconfigurar cada tenant |
-| **B** | Keys solo en host / Compose `.env` sin Atlas | Simple ops ad-hoc | Sin UI Atlas; sin resolución org→project; difícil rotación central |
-| **C** | Secrets Atlas (org/project) + `envFrom` en `atlas.yml` | Reusa almacén; inject en deploy; swap provider sin tocar UI app | Apps deben leer env; UI BYOK a retirar/ocultar |
+| **A** | Solo keys en UI de cada app (p. ej. Reelpath `PlatformSecret`) | Familiar por app | Duplicado; sin resolución org→project; rotación ops débil |
+| **B** | Solo `.env` en host / Compose sin Atlas | Simple ad-hoc | Sin UI; sin bindings; difícil audit |
+| **C** | Secrets Atlas (org/project) + `envFrom` | UI create/rotate; inject en deploy; share vía binding | App debe leer env |
 
 ## Decisión
 
-1. **AI es capacidad de plataforma**, no BYOK para end-users de apps hospedadas. Operadores Atlas (ADMIN/OPERATOR) gestionan keys; usuarios de Reelpath (y apps similares) **no** ven formularios de OpenAI/ElevenLabs/DeepSeek.
-2. **Cómo se guardan las keys (ops):** **script idempotente**, no pegar en UI de la app ni (preferido) en UI Atlas como flujo normal. `scripts/seed-project-secrets.sh` lee `.env.secrets` (gitignored) o env de VM → `PUT /api/v1/secrets` (org) o `PUT /api/v1/projects/{id}/secrets` (project). Rotación = re-ejecutar script. Valores **nunca** se commitean.
-3. **Dónde viven las keys:** almacén de secrets Atlas — preferido **org/global** (una key compartida por install) o **project-owned** / binding si un project necesita override. Alternativa ops: env a nivel host (Compose del host) sin pasar por UI app; sigue siendo ops, no end-user.
-4. **Entrega al runtime:** `atlas.yml` `runtime.envFrom` / `services.*.envFrom` → worker escribe `.env` antes de `compose up` (mismo path que `db.url`).
-5. **Nombres lógicos (convención):**
+1. **Atlas es almacén + injector de secrets para apps**, no un gateway LLM ni un “AI provider”. El usuario (ADMIN/OPERATOR del project) crea secrets en la UI Atlas (o via API/script) y los referencia desde el repo.
+2. **Flujo canónico:**
+   1. Crear secret en **Project secrets** (o org + link).
+   2. Declarar `runtime.envFrom` / `services.*.envFrom` en `atlas.yml`.
+   3. Deploy materializa valores en `.env` del workspace → Compose / app.
+3. **Quién gestiona:** OPERATOR+ en project-owned; ADMIN en org/global. Valores **nunca** se listan en claro ni van a logs de deploy.
+4. **Nombres:** libres. Convenciones conocidas (`git.token`, `db.url`, `ai.openai`, …) tienen mapeo env por defecto; cualquier otro nombre → `SCREAMING_SNAKE`. Override con `env:` / `as:`.
+5. **Resolución:** binding alias → project-owned → org/global (igual que Git/DB).
+6. **Rotación:** UI “Rotate value” / `PUT` upsert / script seed. Redeploy para materializar.
+7. **Apps con almacén propio (Reelpath):** no borrar datos existentes. Preferir env Atlas cuando esté presente; fallback al almacén de la app solo durante migración.
+8. **Atlas no proxya ni factura tokens de IA** en este ADR. Si una app usa OpenAI/ElevenLabs, esas keys son **secrets del usuario** (o compartidos ops) inyectados como cualquier otro.
 
-   | Secret lógico | Env default | Uso |
-   |---------------|-------------|-----|
-   | `ai.openai` | `OPENAI_API_KEY` | Chat / embeddings OpenAI o compatible |
-   | `ai.openai.base_url` | `OPENAI_BASE_URL` | Endpoint OpenAI-compatible (local / proxy) |
-   | `ai.elevenlabs` | `ELEVENLABS_API_KEY` | TTS / voice |
-   | `ai.deepseek` | `DEEPSEEK_API_KEY` | Provider DeepSeek (si la app lo usa aparte) |
-   | `ai.provider` | `AI_PROVIDER` | Selector lógico (`openai` \| `deepseek` \| `local` \| …) |
-   | `ai.api_key` | `AI_API_KEY` | Key genérica cuando la app abstrae un solo cliente |
-   | `ai.base_url` | `AI_BASE_URL` | Base URL genérica (local / gateway) |
+### Convención opcional `ai.*` (solo nombres lógicos)
 
-   **Multi-capability hoy (Reelpath):** preferir keys por vendor (`ai.openai` + `ai.elevenlabs` [+ `ai.deepseek`]).  
-   **Single-client / swap futuro:** `ai.provider` + `ai.api_key` + opcional `ai.base_url` — Autopilot o ops cambian valores; la app no pide nada al usuario.
-6. **Resolución:** binding alias → project-owned → org/global (igual que `git.token` / `db.url`).
-7. **Apps existentes (Reelpath):** no borrar `PlatformSecret` en DB. Precedencia runtime: **env inyectado por Atlas gana** si está presente; fallback a PlatformSecret solo durante migración. El mismo seed script puede opcionalmente upsert `PlatformSecret` (`REELPATH_SEED_PLATFORM=1`) hasta cutover. UI de keys end-user: **ocultar detrás de flag ops** o retirar de pantallas de usuario; panel ops-only opcional hasta cutover.
-8. **Atlas no es un LLM gateway** en este ADR: no proxya tokens ni factura AI por request. Solo posee secrets + inject. Metering AI = cola futura si billing lo pide.
+| Secret lógico | Env default |
+|---------------|-------------|
+| `ai.openai` | `OPENAI_API_KEY` |
+| `ai.openai.base_url` | `OPENAI_BASE_URL` |
+| `ai.elevenlabs` | `ELEVENLABS_API_KEY` |
+| `ai.deepseek` | `DEEPSEEK_API_KEY` |
+| `ai.provider` | `AI_PROVIDER` |
+| `ai.api_key` | `AI_API_KEY` |
+| `ai.base_url` | `AI_BASE_URL` |
+
+No implica que Atlas pague o opere el proveedor: son labels convenientes para keys que **el usuario** guarda en Atlas.
 
 ## Fuera de alcance (ahora)
 
-- Implementar gateway / rate-limit / quota de tokens en Atlas.
-- Cambiar código Reelpath en este repo (repo app separado; ver nota de producto).
-- Forzar un único vendor; apps multi-modelo siguen válidas vía secrets por vendor.
-- UI “AI marketplace” o catálogo de modelos en Atlas.
+- Gateway / rate-limit / quota de tokens en Atlas.
+- Forzar un vendor de IA.
+- UI “AI marketplace”.
+- Cambiar código Reelpath en este repo (repo app separado).
 
 ## Consecuencias
 
-- (+) Contrato claro: plataforma paga / opera AI; usuario consume feature, no keys.
-- (+) Swap a local = cambiar `ai.openai.base_url` / `ai.base_url` (+ key dummy si hace falta) sin redeploy de UI ni touch de tenants.
-- (+) Reusa secrets + envFrom; cero nuevo almacén.
-- (+) Seed/rotate vía script → audit trail ops; sin keys en git ni en manos de end-user.
-- (−) Apps deben preferir `process.env` / config sobre PlatformSecret UI.
-- (−) Migración Reelpath es trabajo en repo de la app + ops corre seed script.
+- (+) Un flujo: UI Atlas → `envFrom` → runtime app.
+- (+) Reusa almacén + bindings; cero nuevo storage.
+- (+) Script seed sigue útil para bulk/ops; UI es el camino principal para secrets de app.
+- (−) Apps deben leer `process.env` / config desde env inyectado.
+- (−) Migración desde almacenes in-app es trabajo en el repo de la app.
 
 ## Referencias
 
-- Producto: [platform-provided-ai.md](../product/platform-provided-ai.md)
+- Producto: [secrets-for-apps.md](../product/secrets-for-apps.md) (sustituye el framing “platform-provided AI”)
 - Secrets / envFrom: [config-security.md](../modules/config-security.md)
-- Seed ops: [seed-project-secrets.sh](../../scripts/seed-project-secrets.sh) + [env.secrets.example](../../scripts/env.secrets.example)
+- Seed opcional: [seed-project-secrets.sh](../../scripts/seed-project-secrets.sh) + [env.secrets.example](../../scripts/env.secrets.example)
 - Manifiesto ejemplo: [atlas.project.example.yml](../schemas/atlas.project.example.yml)

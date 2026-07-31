@@ -48,13 +48,13 @@ runtime:
   envFrom:
     - secretRef: db.url          # → DATABASE_URL
     - secretRef: db.schema       # → DB_SCHEMA
-    - secretRef: ai.openai       # → OPENAI_API_KEY (ADR-0017; ops-owned)
+    - secretRef: ai.openai       # → OPENAI_API_KEY (user secret in Atlas; ADR-0017)
     - secretRef: ai.elevenlabs   # → ELEVENLABS_API_KEY
     - secretRef: custom.token
       env: MY_TOKEN              # override key
 ```
 
-También se leen `services.*.envFrom` (unión; `runtime` gana si choca la misma env key). Secret ausente → warn + skip (deploy no falla). AI de plataforma: [platform-provided-ai.md](../product/platform-provided-ai.md).
+También se leen `services.*.envFrom` (unión; `runtime` gana si choca la misma env key). Secret ausente → warn + skip (deploy no falla). Flujo secrets→apps: [secrets-for-apps.md](../product/secrets-for-apps.md).
 
 ## Evitar doble migrate
 

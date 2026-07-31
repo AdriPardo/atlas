@@ -34,7 +34,7 @@ public class CreateSecretUseCase {
     }
 
     /**
-     * Idempotent create-or-replace for org/global secrets (ops seed / rotate). ADMIN only.
+     * Idempotent create-or-replace for org/global secrets (UI rotate / seed). ADMIN only.
      * Does not log or return plaintext.
      */
     @Transactional

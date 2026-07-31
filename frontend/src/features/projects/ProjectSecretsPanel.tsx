@@ -2,6 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   MenuItem,
   Stack,
   Table,
@@ -29,10 +33,12 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
   const { user } = useAuth()
   const isAdmin = user?.role === 'ADMIN'
 
-  const [name, setName] = useState('git.token')
+  const [name, setName] = useState('')
   const [value, setValue] = useState('')
   const [linkSecretId, setLinkSecretId] = useState('')
-  const [alias, setAlias] = useState('git.token')
+  const [alias, setAlias] = useState('')
+  const [rotateName, setRotateName] = useState<string | null>(null)
+  const [rotateValue, setRotateValue] = useState('')
 
   const secretsQuery = useQuery({
     queryKey: ['projects', projectId, 'secrets'],
@@ -46,10 +52,20 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
     enabled: !!projectId,
   })
 
-  const createMutation = useMutation({
-    mutationFn: () => projectSecretsApi.create(projectId, { name: name.trim(), value }),
+  const saveMutation = useMutation({
+    mutationFn: () => projectSecretsApi.upsert(projectId, { name: name.trim(), value }),
     onSuccess: async () => {
       setValue('')
+      await queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'secrets'] })
+    },
+  })
+
+  const rotateMutation = useMutation({
+    mutationFn: () =>
+      projectSecretsApi.upsert(projectId, { name: rotateName!.trim(), value: rotateValue }),
+    onSuccess: async () => {
+      setRotateName(null)
+      setRotateValue('')
       await queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'secrets'] })
     },
   })
@@ -91,12 +107,20 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
         Secrets
       </Typography>
       <Alert severity="info" variant="outlined">
-        Deploy resolves{' '}
+        Create secrets here (your API keys, tokens, …). Reference them in the project{' '}
         <Typography component="span" className="atlas-mono" sx={{ fontSize: '0.85em' }}>
-          git.token
+          atlas.yml
         </Typography>{' '}
-        in order: project binding alias → project-owned name → organization secret. OPERATOR+ can
-        manage project secrets; organization secrets are ADMIN-only.
+        via{' '}
+        <Typography component="span" className="atlas-mono" sx={{ fontSize: '0.85em' }}>
+          envFrom.secretRef
+        </Typography>
+        ; deploy writes them into the workspace{' '}
+        <Typography component="span" className="atlas-mono" sx={{ fontSize: '0.85em' }}>
+          .env
+        </Typography>{' '}
+        for your app. Resolution: binding alias → project-owned → organization. OPERATOR+ can manage
+        project secrets; organization secrets are ADMIN-only.
       </Alert>
       <CloudflareTokenScopesHint />
 
@@ -108,6 +132,7 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
           onChange={(e) => setName(e.target.value)}
           sx={{ minWidth: 140 }}
           helperText={secretNameHelperText(name)}
+          placeholder="openai.api_key"
         />
         <TextField
           label="Value"
@@ -119,16 +144,16 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
         />
         <Button
           variant="contained"
-          disabled={!name.trim() || !value || createMutation.isPending}
-          onClick={() => createMutation.mutate()}
+          disabled={!name.trim() || !value || saveMutation.isPending}
+          onClick={() => saveMutation.mutate()}
           sx={{ whiteSpace: 'nowrap' }}
         >
-          Create
+          Save
         </Button>
       </Stack>
-      {createMutation.isError && (
+      {saveMutation.isError && (
         <Alert severity="error" variant="outlined">
-          Unable to create project secret (need OPERATOR membership, or name already used)
+          Unable to save project secret (need OPERATOR membership, or name is a linked org alias)
         </Alert>
       )}
 
@@ -165,7 +190,7 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
             value={alias}
             onChange={(e) => setAlias(e.target.value)}
             sx={{ minWidth: 140 }}
-            helperText={secretNameHelperText(alias, 'Logical name for deploy')}
+            helperText={secretNameHelperText(alias, 'Logical name for deploy / envFrom')}
           />
           <Button
             variant="outlined"
@@ -197,7 +222,7 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
           {rows.length === 0 ? (
             <EmptyState
               title="No project secrets"
-              description="Create git.token or cloudflare.api.token here, or link an organization secret."
+              description="Save an API key or token here, then declare envFrom.secretRef in atlas.yml so deploy injects it into your app."
             />
           ) : (
             <Table size="small">
@@ -232,6 +257,14 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
                           row.kind === 'OWNED'
                             ? [
                                 {
+                                  label: 'Rotate value',
+                                  disabled: rotateMutation.isPending,
+                                  onClick: () => {
+                                    setRotateName(row.name)
+                                    setRotateValue('')
+                                  },
+                                },
+                                {
                                   label: 'Delete',
                                   destructive: true,
                                   disabled: removeOwnedMutation.isPending,
@@ -256,6 +289,55 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
           )}
         </QueryState>
       </DataTableFrame>
+
+      <Dialog
+        open={!!rotateName}
+        onClose={() => {
+          setRotateName(null)
+          setRotateValue('')
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Rotate secret value</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            {rotateMutation.isError && (
+              <Alert severity="error" variant="outlined">
+                Unable to rotate secret
+              </Alert>
+            )}
+            <TextField label="Name" value={rotateName ?? ''} fullWidth disabled className="atlas-mono" />
+            <TextField
+              label="New value"
+              value={rotateValue}
+              onChange={(e) => setRotateValue(e.target.value)}
+              type="password"
+              fullWidth
+              autoFocus
+              multiline
+              minRows={2}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setRotateName(null)
+              setRotateValue('')
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!rotateValue || rotateMutation.isPending}
+            onClick={() => rotateMutation.mutate()}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   )
 }

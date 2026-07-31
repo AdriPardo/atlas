@@ -44,7 +44,7 @@ public final class EnvFromSecretRef {
             case "db.url" -> "DATABASE_URL";
             case "db.schema" -> "DB_SCHEMA";
             case "db.password" -> "DB_PASSWORD";
-            // ADR-0017 — platform-provided AI (not end-user BYOK)
+            // Known app-secret mappings (user-owned in Atlas → env via envFrom)
             case "ai.openai" -> "OPENAI_API_KEY";
             case "ai.openai.base_url" -> "OPENAI_BASE_URL";
             case "ai.elevenlabs" -> "ELEVENLABS_API_KEY";

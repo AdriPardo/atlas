@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Ops-only: upsert platform AI (and related) secrets into Atlas from env / .env.secrets.
-# End-users never paste keys in app UI (ADR-0017). Idempotent. Never prints secret values.
+# Optional bulk upsert of user/app secrets into Atlas from env / .env.secrets.
+# Prefer UI (Project → Secrets / Org secrets) for day-to-day. Idempotent. Never prints values.
 #
 # Usage:
 #   cp scripts/env.secrets.example .env.secrets   # fill values; file is gitignored
@@ -14,8 +14,12 @@
 #   ATLAS_SECRETS_FILE=.env.secrets  (optional; also reads process env)
 #   ATLAS_TOKEN=<jwt>                (optional; skips login if set)
 #
+# Extra logical names (comma-separated). Each needs an env var with the same name
+# uppercased, dots/hyphens → underscores (e.g. stripe.secret → STRIPE_SECRET):
+#   ATLAS_EXTRA_SECRETS=stripe.secret,pexels.api_key
+#
 # Optional Reelpath bridge (migration): after Atlas upsert, also upsert PlatformSecret
-# in the app DB via docker exec (Reelpath still reads PlatformSecret until env-first cutover):
+# in the app DB via docker exec:
 #   REELPATH_SEED_PLATFORM=1
 #   REELPATH_API_CONTAINER=reelpath-api-1
 #
@@ -47,7 +51,7 @@ elif [[ -f ".env.secrets" && "$SECRETS_FILE" != ".env.secrets" ]]; then
   set +a
 fi
 
-# Env var → Atlas logical secret name (ADR-0017)
+# Env var → Atlas logical secret name (known conventions)
 # Format: ENV_VAR|atlas.logical.name
 MAPPINGS=(
   "OPENAI_API_KEY|ai.openai"
@@ -57,10 +61,19 @@ MAPPINGS=(
   "AI_PROVIDER|ai.provider"
   "AI_API_KEY|ai.api_key"
   "AI_BASE_URL|ai.base_url"
+  "GIT_TOKEN|git.token"
+  "CLOUDFLARE_API_TOKEN|cloudflare.api.token"
+  "DB_URL|db.url"
+  "STRIPE_SECRET_KEY|stripe.secret"
 )
 
 json_escape() {
   python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()), end="")' <<<"$1"
+}
+
+logical_to_env() {
+  # stripe.secret → STRIPE_SECRET
+  echo "$1" | tr '.-' '__' | tr '[:lower:]' '[:upper:]'
 }
 
 login() {
@@ -132,14 +145,34 @@ seed_atlas() {
     upsert_one "$logical" "$val"
     count=$((count + 1))
   done
+
+  # Free-form extras: ATLAS_EXTRA_SECRETS=name1,name2 — value from SCREAMING_SNAKE env
+  if [[ -n "${ATLAS_EXTRA_SECRETS:-}" ]]; then
+    local IFS=','
+    # shellcheck disable=SC2086
+    set -- ${ATLAS_EXTRA_SECRETS}
+    for logical in "$@"; do
+      logical="$(echo "$logical" | xargs)"
+      [[ -n "$logical" ]] || continue
+      local env_key
+      env_key="$(logical_to_env "$logical")"
+      local val="${!env_key:-}"
+      if [[ -z "$val" ]]; then
+        log "skip extra $logical (env $env_key empty)"
+        continue
+      fi
+      upsert_one "$logical" "$val"
+      count=$((count + 1))
+    done
+  fi
+
   if [[ "$count" -eq 0 ]]; then
-    die "no AI secret env vars set (OPENAI_API_KEY, ELEVENLABS_API_KEY, …). Fill $SECRETS_FILE or export them."
+    die "no secret env vars set. Fill $SECRETS_FILE or export mapped vars / ATLAS_EXTRA_SECRETS."
   fi
   log "Atlas upserted $count secret(s) → scope=$SCOPE"
 }
 
-# Bridge: upsert Reelpath PlatformSecret (openai/deepseek/elevenlabs) from same env.
-# Requires app container with @autotube/database and CREDENTIALS_ENCRYPTION_KEY already set.
+# Bridge: upsert Reelpath PlatformSecret from same env (migration only).
 seed_reelpath_platform() {
   local container="${REELPATH_API_CONTAINER:-reelpath-api-1}"
   command -v docker >/dev/null || die "docker required for REELPATH_SEED_PLATFORM=1"
@@ -147,7 +180,6 @@ seed_reelpath_platform() {
 
   log "Reelpath PlatformSecret upsert via $container (names only logged)"
 
-  # Pass values as env to docker exec — do not print them.
   docker exec \
     -e OPENAI_API_KEY="${OPENAI_API_KEY:-}" \
     -e DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-}" \
@@ -170,7 +202,7 @@ await mod.loadPlatformSecretsOverrides();
 console.log(JSON.stringify({ upserted }));
 await mod.prisma.$disconnect();
 '
-  log "Reelpath PlatformSecret done (migration bridge; prefer Atlas envFrom long-term)"
+  log "Reelpath PlatformSecret done (migration bridge; prefer Atlas envFrom)"
 }
 
 main() {

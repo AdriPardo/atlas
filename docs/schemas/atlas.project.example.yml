@@ -19,17 +19,18 @@ runtime:
   # See docs/deployment/app-migrations.md
   migrateCommand: npm run db:migrate:deploy
   # Optional. Inject project secrets into workspace .env before compose (ADR-0015 / ADR-0017).
-  # db.url → DATABASE_URL; ai.* → OPENAI_API_KEY / ELEVENLABS_API_KEY / … (platform-owned AI, not end-user BYOK)
+  # Create secrets in Atlas UI (Project → Secrets); reference them here. Redeploy to materialize.
+  # db.url → DATABASE_URL; ai.openai → OPENAI_API_KEY; other names → SCREAMING_SNAKE.
   # Override with env: / as:
   envFrom:
     - secretRef: db.url
-    # ADR-0017 — platform AI via ops seed script (not end-user BYOK)
+    # User-owned app keys (examples — create matching secrets in Atlas first):
     - secretRef: ai.openai            # → OPENAI_API_KEY
     - secretRef: ai.elevenlabs        # → ELEVENLABS_API_KEY
-    # - secretRef: ai.openai.base_url # → OPENAI_BASE_URL (local / proxy)
-    # - secretRef: ai.provider        # single-client abstraction
-    # - secretRef: ai.api_key
-    # - secretRef: ai.base_url
+    # - secretRef: stripe.secret      # → STRIPE_SECRET
+    # - secretRef: ai.openai.base_url # → OPENAI_BASE_URL
+    # - secretRef: custom.key
+    #   env: MY_CUSTOM_ENV
 
 services:
   api:

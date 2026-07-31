@@ -46,8 +46,10 @@ Leyenda versión: **MVP** | **v0.2+** | **v0.4+** | **v0.5+** | **v0.6+** | **v0
 | Método | Path | Versión |
 |--------|------|---------|
 | CRUD | `/variables` | v0.4 |
-| CRUD | `/secrets` | Org/global (ADMIN create); v0.4+ |
-| GET/POST | `/projects/{id}/secrets` | Project-owned + list linked; v0.8+ |
+| CRUD | `/secrets` | Org/global (ADMIN create/upsert/delete); v0.4+ |
+| PUT | `/secrets` | Org upsert (rotate); ADMIN |
+| DELETE | `/secrets/{id}` | Org delete; ADMIN |
+| GET/POST/PUT | `/projects/{id}/secrets` | Project-owned list/create/upsert; v0.8+ |
 | POST/DELETE | `/projects/{id}/secrets/bindings` | Link/unlink global secret; v0.8+ |
 | POST | `/secrets/{id}/reveal` | v0.4 (planned) |
 

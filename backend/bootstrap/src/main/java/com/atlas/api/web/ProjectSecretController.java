@@ -44,7 +44,7 @@ public class ProjectSecretController {
                 .body(apiMapper.toSecretResponse(secret));
     }
 
-    /** Idempotent project-owned upsert (ops seed / rotate). */
+    /** Idempotent project-owned upsert (UI rotate / seed). */
     @PutMapping("/api/v1/projects/{projectId}/secrets")
     public ResponseEntity<SecretResponse> upsertOwned(
             @PathVariable UUID projectId, @Valid @RequestBody CreateSecretRequest request) {

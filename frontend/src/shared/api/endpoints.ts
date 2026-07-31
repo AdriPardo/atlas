@@ -267,6 +267,9 @@ export const secretsApi = {
   list: () => api.get<SecretMeta[]>('/secrets').then((r) => r.data),
   create: (body: { name: string; value: string }) =>
     api.post<SecretMeta>('/secrets', body).then((r) => r.data),
+  upsert: (body: { name: string; value: string }) =>
+    api.put<SecretMeta>('/secrets', body).then((r) => r.data),
+  remove: (secretId: string) => api.delete(`/secrets/${secretId}`),
 }
 
 export const projectSecretsApi = {
@@ -274,6 +277,8 @@ export const projectSecretsApi = {
     api.get<ProjectSecretEntry[]>(`/projects/${projectId}/secrets`).then((r) => r.data),
   create: (projectId: string, body: { name: string; value: string }) =>
     api.post<SecretMeta>(`/projects/${projectId}/secrets`, body).then((r) => r.data),
+  upsert: (projectId: string, body: { name: string; value: string }) =>
+    api.put<SecretMeta>(`/projects/${projectId}/secrets`, body).then((r) => r.data),
   link: (projectId: string, body: { secretId: string; alias?: string }) =>
     api
       .post<ProjectSecretEntry>(`/projects/${projectId}/secrets/bindings`, body)

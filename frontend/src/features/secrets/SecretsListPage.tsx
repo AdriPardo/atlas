@@ -26,6 +26,7 @@ import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
+import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { CloudflareTokenScopesHint } from './CloudflareTokenScopesHint'
 import { secretNameHelperText } from './knownSecretHints'
 
@@ -34,18 +35,36 @@ export function SecretsListPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [name, setName] = useState('')
   const [value, setValue] = useState('')
+  const [rotateName, setRotateName] = useState<string | null>(null)
+  const [rotateValue, setRotateValue] = useState('')
 
   const query = useQuery({
     queryKey: ['secrets'],
     queryFn: () => secretsApi.list(),
   })
 
-  const createMutation = useMutation({
-    mutationFn: () => secretsApi.create({ name: name.trim(), value }),
+  const saveMutation = useMutation({
+    mutationFn: () => secretsApi.upsert({ name: name.trim(), value }),
     onSuccess: async () => {
       setCreateOpen(false)
       setName('')
       setValue('')
+      await queryClient.invalidateQueries({ queryKey: ['secrets'] })
+    },
+  })
+
+  const rotateMutation = useMutation({
+    mutationFn: () => secretsApi.upsert({ name: rotateName!.trim(), value: rotateValue }),
+    onSuccess: async () => {
+      setRotateName(null)
+      setRotateValue('')
+      await queryClient.invalidateQueries({ queryKey: ['secrets'] })
+    },
+  })
+
+  const removeMutation = useMutation({
+    mutationFn: (secretId: string) => secretsApi.remove(secretId),
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['secrets'] })
     },
   })
@@ -56,7 +75,7 @@ export function SecretsListPage() {
     <PageShell>
       <PageHeader
         title="Organization secrets"
-        description="Shared encrypted credentials (ADMIN). Prefer project secrets on each Project detail; link these when several projects share the same PAT or key."
+        description="Shared encrypted credentials (ADMIN). Prefer project secrets on each Project for app-specific keys; link these when several projects share the same value."
         actions={
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreateOpen(true)}>
             New org secret
@@ -66,8 +85,11 @@ export function SecretsListPage() {
 
       <Stack spacing={1.5} sx={{ mb: 2 }}>
         <Alert severity="info" variant="outlined">
-          Deploy resolves <Box component="code">git.token</Box> as: project binding alias → project-owned
-          name → organization secret. Create project-scoped secrets under{' '}
+          Secrets you store in Atlas (org or project) are injected into customer apps at deploy when
+          the repo declares{' '}
+          <Box component="code">envFrom.secretRef</Box> in <Box component="code">atlas.yml</Box>.
+          Resolution order: project binding alias → project-owned name → organization secret. Prefer
+          project-scoped secrets under{' '}
           <Button
             component={RouterLink}
             to="/projects"
@@ -76,7 +98,7 @@ export function SecretsListPage() {
           >
             Projects
           </Button>
-          , or link an org secret into a project with alias <Box component="code">git.token</Box>.
+          .
         </Alert>
         <CloudflareTokenScopesHint
           footer={
@@ -95,7 +117,7 @@ export function SecretsListPage() {
               <EmptyState
                 icon={<VpnKeyOutlinedIcon />}
                 title="No organization secrets"
-                description="Create a shared PAT or SSH key here, then link it from a project — or create secrets directly on the project."
+                description="Create a shared PAT, API key, or SSH material here, then link it from a project — or create secrets directly on the project for that app."
                 actionLabel="New org secret"
                 onAction={() => setCreateOpen(true)}
               />
@@ -108,6 +130,7 @@ export function SecretsListPage() {
                   <TableCell>Scope</TableCell>
                   <TableCell>Created</TableCell>
                   <TableCell>Updated</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -133,6 +156,27 @@ export function SecretsListPage() {
                         {new Date(secret.updatedAt).toLocaleString()}
                       </Typography>
                     </TableCell>
+                    <TableCell align="right">
+                      <RowOverflowMenu
+                        aria-label={`Actions for ${secret.name}`}
+                        items={[
+                          {
+                            label: 'Rotate value',
+                            disabled: rotateMutation.isPending,
+                            onClick: () => {
+                              setRotateName(secret.name)
+                              setRotateValue('')
+                            },
+                          },
+                          {
+                            label: 'Delete',
+                            destructive: true,
+                            disabled: removeMutation.isPending,
+                            onClick: () => removeMutation.mutate(secret.id),
+                          },
+                        ]}
+                      />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -142,12 +186,12 @@ export function SecretsListPage() {
       </DataTableFrame>
 
       <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Create organization secret</DialogTitle>
+        <DialogTitle>Save organization secret</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
-            {createMutation.isError && (
+            {saveMutation.isError && (
               <Alert severity="error" variant="outlined">
-                Unable to create secret (ADMIN only; name may already exist)
+                Unable to save secret (ADMIN only)
               </Alert>
             )}
             <TextField
@@ -156,7 +200,7 @@ export function SecretsListPage() {
               onChange={(e) => setName(e.target.value)}
               helperText={secretNameHelperText(
                 name,
-                'e.g. cloudflare.api.token, db.url, ai.openai, or shared-github-pat (link as git.token)',
+                'e.g. cloudflare.api.token, shared-github-pat, stripe.secret',
               )}
               fullWidth
               autoFocus
@@ -176,8 +220,57 @@ export function SecretsListPage() {
           <Button onClick={() => setCreateOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={!name.trim() || !value || createMutation.isPending}
-            onClick={() => createMutation.mutate()}
+            disabled={!name.trim() || !value || saveMutation.isPending}
+            onClick={() => saveMutation.mutate()}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={!!rotateName}
+        onClose={() => {
+          setRotateName(null)
+          setRotateValue('')
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Rotate secret value</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            {rotateMutation.isError && (
+              <Alert severity="error" variant="outlined">
+                Unable to rotate secret
+              </Alert>
+            )}
+            <TextField label="Name" value={rotateName ?? ''} fullWidth disabled />
+            <TextField
+              label="New value"
+              value={rotateValue}
+              onChange={(e) => setRotateValue(e.target.value)}
+              type="password"
+              fullWidth
+              autoFocus
+              multiline
+              minRows={2}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setRotateName(null)
+              setRotateValue('')
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!rotateValue || rotateMutation.isPending}
+            onClick={() => rotateMutation.mutate()}
           >
             Save
           </Button>

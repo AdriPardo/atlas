@@ -54,9 +54,10 @@ Override: `env:` o `as:` en el item. Valores **nunca** van a logs de deploy. Sec
 | Método | Ruta | Notas |
 |--------|------|-------|
 | GET/POST | `/secrets` | Org/global; POST = ADMIN |
-| PUT | `/secrets` | Org/global **upsert** (ops seed/rotate); ADMIN |
+| PUT | `/secrets` | Org/global **upsert** (UI rotate / seed) |
+| DELETE | `/secrets/{id}` | Org/global delete; ADMIN (cascades bindings) |
 | GET/POST | `/projects/{id}/secrets` | List (owned+linked) / create owned |
-| PUT | `/projects/{id}/secrets` | Project-owned **upsert** (ops seed/rotate) |
+| PUT | `/projects/{id}/secrets` | Project-owned **upsert** (UI rotate / seed) |
 | POST | `/projects/{id}/secrets/bindings` | Link global → alias |
 | DELETE | `/projects/{id}/secrets/bindings/{bindingId}` | Unlink |
 | DELETE | `/projects/{id}/secrets/{secretId}` | Delete owned |
@@ -78,15 +79,15 @@ Nombres lógicos conocidos (hints en UI):
 | `db.url` | Connection string de la DB del project (p. ej. `DATABASE_URL` en Compose) | Preferido. Aislamiento: schema/rol propios — [ADR-0015](../decisions/ADR-0015-project-database-access.md) |
 | `db.schema` | Nombre de schema canónico (`app_<project_slug>`) | Metadata / binding; no sustituye `db.url` |
 | `db.password` | Password suelta si el repo no usa URL única | Legacy; preferir `db.url` |
-| `ai.openai` | API key OpenAI / compatible → `OPENAI_API_KEY` | **Ops-owned** — [ADR-0017](../decisions/ADR-0017-platform-provided-ai.md); no BYOK end-user |
+| `ai.openai` | API key OpenAI / compatible → `OPENAI_API_KEY` | Usuario/ops en Atlas — [ADR-0017](../decisions/ADR-0017-platform-provided-ai.md) |
 | `ai.openai.base_url` | Base URL OpenAI-compatible → `OPENAI_BASE_URL` | Local LLM / proxy; pair con `ai.openai` |
-| `ai.elevenlabs` | API key ElevenLabs → `ELEVENLABS_API_KEY` | Ops-owned (ADR-0017) |
-| `ai.deepseek` | API key DeepSeek → `DEEPSEEK_API_KEY` | Ops-owned (ADR-0017) |
+| `ai.elevenlabs` | API key ElevenLabs → `ELEVENLABS_API_KEY` | Usuario/ops (ADR-0017) |
+| `ai.deepseek` | API key DeepSeek → `DEEPSEEK_API_KEY` | Usuario/ops (ADR-0017) |
 | `ai.provider` | Selector lógico → `AI_PROVIDER` | `openai` \| `deepseek` \| `local` \| … |
 | `ai.api_key` | Key genérica → `AI_API_KEY` | Single-client abstraction |
 | `ai.base_url` | Base URL genérica → `AI_BASE_URL` | Local / gateway |
 
-Rotación: **re-ejecutar** [`scripts/seed-project-secrets.sh`](../../scripts/seed-project-secrets.sh) (PUT upsert desde `.env.secrets`) o reemplazar valor en UI break-glass; deploys siguientes usan latest. End-users **nunca** pegan keys en UI de la app.
+Rotación: UI **Rotate value** / `PUT` upsert / [`scripts/seed-project-secrets.sh`](../../scripts/seed-project-secrets.sh) (bulk opcional desde `.env.secrets`). Deploys siguientes usan latest. Cualquier nombre lógico funciona; `ai.*` es solo convención de mapeo env.
 
 Acceso DB por project (producto): [project-database-access.md](../product/project-database-access.md).
-AI de plataforma (producto): [platform-provided-ai.md](../product/platform-provided-ai.md).
+Secretos para apps (producto): [secrets-for-apps.md](../product/secrets-for-apps.md).
