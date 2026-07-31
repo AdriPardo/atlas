@@ -44,6 +44,14 @@ public final class EnvFromSecretRef {
             case "db.url" -> "DATABASE_URL";
             case "db.schema" -> "DB_SCHEMA";
             case "db.password" -> "DB_PASSWORD";
+            // ADR-0017 — platform-provided AI (not end-user BYOK)
+            case "ai.openai" -> "OPENAI_API_KEY";
+            case "ai.openai.base_url" -> "OPENAI_BASE_URL";
+            case "ai.elevenlabs" -> "ELEVENLABS_API_KEY";
+            case "ai.deepseek" -> "DEEPSEEK_API_KEY";
+            case "ai.provider" -> "AI_PROVIDER";
+            case "ai.api_key" -> "AI_API_KEY";
+            case "ai.base_url" -> "AI_BASE_URL";
             default -> secretRef.replace('.', '_').replace('-', '_').toUpperCase(Locale.ROOT);
         };
     }

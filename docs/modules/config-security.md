@@ -38,6 +38,13 @@ Si el manifiesto declara `envFrom.secretRef` (`runtime.envFrom` y/o `services.*.
 | `db.url` | `DATABASE_URL` |
 | `db.schema` | `DB_SCHEMA` |
 | `db.password` | `DB_PASSWORD` |
+| `ai.openai` | `OPENAI_API_KEY` |
+| `ai.openai.base_url` | `OPENAI_BASE_URL` |
+| `ai.elevenlabs` | `ELEVENLABS_API_KEY` |
+| `ai.deepseek` | `DEEPSEEK_API_KEY` |
+| `ai.provider` | `AI_PROVIDER` |
+| `ai.api_key` | `AI_API_KEY` |
+| `ai.base_url` | `AI_BASE_URL` |
 | otro | `SCREAMING_SNAKE` (`.`/`-` → `_`) |
 
 Override: `env:` o `as:` en el item. Valores **nunca** van a logs de deploy. Secret no resuelto → warn + skip.
@@ -69,7 +76,15 @@ Nombres lógicos conocidos (hints en UI):
 | `db.url` | Connection string de la DB del project (p. ej. `DATABASE_URL` en Compose) | Preferido. Aislamiento: schema/rol propios — [ADR-0015](../decisions/ADR-0015-project-database-access.md) |
 | `db.schema` | Nombre de schema canónico (`app_<project_slug>`) | Metadata / binding; no sustituye `db.url` |
 | `db.password` | Password suelta si el repo no usa URL única | Legacy; preferir `db.url` |
+| `ai.openai` | API key OpenAI / compatible → `OPENAI_API_KEY` | **Ops-owned** — [ADR-0017](../decisions/ADR-0017-platform-provided-ai.md); no BYOK end-user |
+| `ai.openai.base_url` | Base URL OpenAI-compatible → `OPENAI_BASE_URL` | Local LLM / proxy; pair con `ai.openai` |
+| `ai.elevenlabs` | API key ElevenLabs → `ELEVENLABS_API_KEY` | Ops-owned (ADR-0017) |
+| `ai.deepseek` | API key DeepSeek → `DEEPSEEK_API_KEY` | Ops-owned (ADR-0017) |
+| `ai.provider` | Selector lógico → `AI_PROVIDER` | `openai` \| `deepseek` \| `local` \| … |
+| `ai.api_key` | Key genérica → `AI_API_KEY` | Single-client abstraction |
+| `ai.base_url` | Base URL genérica → `AI_BASE_URL` | Local / gateway |
 
 Rotación: crear nueva versión / reemplazar valor; deploys siguientes usan latest.
 
 Acceso DB por project (producto): [project-database-access.md](../product/project-database-access.md).
+AI de plataforma (producto): [platform-provided-ai.md](../product/platform-provided-ai.md).

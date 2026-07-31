@@ -18,10 +18,19 @@ runtime:
   # App owns the migrator (Prisma / Flyway / etc.). Omit if the container already migrates on start.
   # See docs/deployment/app-migrations.md
   migrateCommand: npm run db:migrate:deploy
-  # Optional. Inject project secrets into workspace .env before compose (ADR-0015).
-  # db.url → DATABASE_URL; override with env: / as:
+  # Optional. Inject project secrets into workspace .env before compose (ADR-0015 / ADR-0017).
+  # db.url → DATABASE_URL; ai.* → OPENAI_API_KEY / ELEVENLABS_API_KEY / … (platform-owned AI, not end-user BYOK)
+  # Override with env: / as:
   envFrom:
     - secretRef: db.url
+    - secretRef: ai.openai
+    - secretRef: ai.elevenlabs
+    # Local / OpenAI-compatible swap (optional):
+    # - secretRef: ai.openai.base_url
+    # Single-client abstraction (optional alternative to per-vendor keys):
+    # - secretRef: ai.provider
+    # - secretRef: ai.api_key
+    # - secretRef: ai.base_url
 
 services:
   api:

@@ -28,4 +28,15 @@ class ProjectManifestTest {
         assertEquals("DATABASE_URL", ref.resolveEnvKey());
         assertEquals("CUSTOM", new EnvFromSecretRef("db.url", "CUSTOM").resolveEnvKey());
     }
+
+    @Test
+    void envFromSecretRefMapsPlatformAiSecrets() {
+        assertEquals("OPENAI_API_KEY", EnvFromSecretRef.of("ai.openai").resolveEnvKey());
+        assertEquals("OPENAI_BASE_URL", EnvFromSecretRef.of("ai.openai.base_url").resolveEnvKey());
+        assertEquals("ELEVENLABS_API_KEY", EnvFromSecretRef.of("ai.elevenlabs").resolveEnvKey());
+        assertEquals("DEEPSEEK_API_KEY", EnvFromSecretRef.of("ai.deepseek").resolveEnvKey());
+        assertEquals("AI_PROVIDER", EnvFromSecretRef.of("ai.provider").resolveEnvKey());
+        assertEquals("AI_API_KEY", EnvFromSecretRef.of("ai.api_key").resolveEnvKey());
+        assertEquals("AI_BASE_URL", EnvFromSecretRef.of("ai.base_url").resolveEnvKey());
+    }
 }
