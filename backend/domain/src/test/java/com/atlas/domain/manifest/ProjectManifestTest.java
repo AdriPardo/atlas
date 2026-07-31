@@ -20,6 +20,23 @@ class ProjectManifestTest {
         assertTrue(manifest.isMinifyEnabled());
         assertTrue(manifest.isRequireTlsEnabled());
         assertTrue(manifest.getEnvFromSecrets().isEmpty());
+        assertEquals(
+                com.atlas.domain.runtime.RuntimeCapability.COMPOSE, manifest.requiredRuntimeCapability());
+    }
+
+    @Test
+    void podmanComposeKindRequiresPodmanCapability() {
+        ProjectManifest manifest = new ProjectManifest(
+                ProjectManifest.API_VERSION_V1_ALPHA1,
+                ProjectManifest.KIND_PROJECT,
+                "podman-compose",
+                "compose.yml",
+                null,
+                "atlas.yml");
+
+        assertTrue(manifest.isComposeCompatible());
+        assertEquals(
+                com.atlas.domain.runtime.RuntimeCapability.PODMAN, manifest.requiredRuntimeCapability());
     }
 
     @Test

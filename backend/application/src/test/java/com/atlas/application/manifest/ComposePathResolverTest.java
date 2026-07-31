@@ -30,6 +30,7 @@ class ComposePathResolverTest {
         assertTrue(resolution.minifyEnabled());
         assertTrue(resolution.requireTlsEnabled());
         assertTrue(resolution.envFromSecrets().isEmpty());
+        assertEquals(com.atlas.domain.runtime.RuntimeCapability.COMPOSE, resolution.runtimeCapability());
         assertTrue(resolution.describe().contains("composePath"));
     }
 
@@ -207,5 +208,25 @@ class ComposePathResolverTest {
 
         assertEquals("only-file.yml", resolution.composeFilePath());
         assertEquals(ComposePathResolver.Source.MANIFEST, resolution.source());
+        assertEquals(com.atlas.domain.runtime.RuntimeCapability.COMPOSE, resolution.runtimeCapability());
+    }
+
+    @Test
+    void mapsPodmanComposeKindToPodmanCapability() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  kind: podman-compose
+                  composeFile: compose.yml
+                """);
+
+        ComposePathResolver.Resolution resolution = resolver.resolve(workspace, null);
+
+        assertEquals("compose.yml", resolution.composeFilePath());
+        assertEquals(com.atlas.domain.runtime.RuntimeCapability.PODMAN, resolution.runtimeCapability());
+        assertTrue(resolution.describe().contains("runtime=podman"));
     }
 }

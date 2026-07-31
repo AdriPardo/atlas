@@ -2,6 +2,7 @@ package com.atlas.application.manifest;
 
 import com.atlas.domain.manifest.EnvFromSecretRef;
 import com.atlas.domain.manifest.ProjectManifest;
+import com.atlas.domain.runtime.RuntimeCapability;
 import com.atlas.domain.shared.DomainException;
 import java.nio.file.Path;
 import java.util.List;
@@ -27,7 +28,8 @@ public final class ComposePathResolver {
             Optional<String> migrateCommand,
             boolean minifyEnabled,
             boolean requireTlsEnabled,
-            List<EnvFromSecretRef> envFromSecrets) {
+            List<EnvFromSecretRef> envFromSecrets,
+            RuntimeCapability runtimeCapability) {
 
         public Resolution {
             if (manifestFileName == null) {
@@ -41,13 +43,18 @@ public final class ComposePathResolver {
             } else {
                 envFromSecrets = List.copyOf(envFromSecrets);
             }
+            if (runtimeCapability == null) {
+                runtimeCapability = RuntimeCapability.COMPOSE;
+            }
         }
 
         public String describe() {
+            String runtime = runtimeCapability.tag();
             if (source == Source.MANIFEST) {
-                return "compose file from " + manifestFileName.orElse("atlas.yml") + ": " + composeFilePath;
+                return "compose file from " + manifestFileName.orElse("atlas.yml") + ": " + composeFilePath
+                        + " (runtime=" + runtime + ")";
             }
-            return "compose file from composePath: " + composeFilePath;
+            return "compose file from composePath: " + composeFilePath + " (runtime=" + runtime + ")";
         }
     }
 
@@ -81,6 +88,7 @@ public final class ComposePathResolver {
 
             Optional<String> migrate = manifest.getMigrateCommand();
             List<EnvFromSecretRef> envFrom = manifest.getEnvFromSecrets();
+            RuntimeCapability capability = manifest.requiredRuntimeCapability();
             Optional<String> fromManifest = manifest.getComposeFile();
             if (fromManifest.isPresent()) {
                 return new Resolution(
@@ -90,7 +98,8 @@ public final class ComposePathResolver {
                         migrate,
                         manifest.isMinifyEnabled(),
                         manifest.isRequireTlsEnabled(),
-                        envFrom);
+                        envFrom,
+                        capability);
             }
             if (fallback != null) {
                 return new Resolution(
@@ -100,7 +109,8 @@ public final class ComposePathResolver {
                         migrate,
                         manifest.isMinifyEnabled(),
                         manifest.isRequireTlsEnabled(),
-                        envFrom);
+                        envFrom,
+                        capability);
             }
             throw new DomainException(
                     MISSING_COMPOSE_MSG
@@ -118,7 +128,8 @@ public final class ComposePathResolver {
                     Optional.empty(),
                     synthesized.isMinifyEnabled(),
                     synthesized.isRequireTlsEnabled(),
-                    List.of());
+                    List.of(),
+                    synthesized.requiredRuntimeCapability());
         }
 
         throw new DomainException(MISSING_COMPOSE_MSG);

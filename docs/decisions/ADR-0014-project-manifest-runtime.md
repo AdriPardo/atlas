@@ -1,8 +1,8 @@
 # ADR-0014 — Project manifest como fuente de verdad del runtime
 
-- **Estado:** Accepted (fases B–D + migrate hook + capabilities DB/placement filter; segundo runtime pendiente)
+- **Estado:** Accepted (fases B–D + migrate hook + capabilities DB/placement filter + Podman adapter opt-in)
 - **Fecha:** 2026-07-27
-- **Actualizado:** 2026-07-29 — `runtime.migrateCommand` opcional (Atlas no posee ORM; app declara el comando)
+- **Actualizado:** 2026-07-31 — adapter Podman vía `RuntimeOrchestratorPort` (`runtime.kind: podman-compose`)
 
 ## Contexto
 
@@ -11,7 +11,7 @@ Hoy el path de deploy acopla la intención del usuario a tecnologías concretas:
 | Capa | Acoplamiento actual |
 |------|---------------------|
 | Modelo `Service` / `Project` | Campo obligatorio `composePath` (p. ej. `docker-compose.atlas.yml`) |
-| Job `DEPLOY_SERVICE` | `GitRepositoryPort.cloneOrUpdate` → `RuntimeOrchestratorPort.apply(...)` (Compose adapter → `composeUp`) |
+| Job `DEPLOY_SERVICE` | `GitRepositoryPort.cloneOrUpdate` → `RuntimeOrchestratorPort.apply(...)` (Compose default; Podman si `runtime.kind: podman-compose`) |
 | `ContainerRuntimePort` | Inspect/logs/restart + delegate Compose; stack apply vía `RuntimeOrchestratorPort` |
 | Host | `dockerVersion` + `runtimeCapabilities` persistidos; sync probe Docker/Podman escribe tags reales |
 | Edge Autopilot | Traefik labels + Cloudflare Tunnel + DNS CNAME (correcto como *platform* edge, no como “cómo arrancar la app”) |
@@ -24,7 +24,7 @@ Hexagonal ya anticipa adapters ([ADR-0001](ADR-0001-hexagonal-architecture.md));
 ## Decisión
 
 1. **Fuente de verdad del “cómo correr”:** un manifiesto de proyecto en el repo (nombre canónico: `atlas.yml`; alias aceptado: `atlas.project.yml`). Atlas lo lee tras el clone; no sustituye Git ni secrets de plataforma.
-2. **Runtime pluggable:** el use case de deploy habla un port de orquestación genérico (evolución de `ContainerRuntimePort` → p. ej. `RuntimeOrchestratorPort`: `apply` / `teardown` / `status` / `logs`). El adapter **Compose** es el default actual; otros runtimes son adapters futuros.
+2. **Runtime pluggable:** el use case de deploy habla un port de orquestación genérico (`RuntimeOrchestratorPort`: `apply` / `teardown`). El adapter **Compose** es el default; **Podman** es opt-in (`runtime.kind: podman-compose` + host capability `podman`); K8s/systemd = adapters futuros.
 3. **Separación de ownership:**
 
    | Owns the project manifest | Owns Atlas Autopilot / control plane |
@@ -40,7 +40,7 @@ Hexagonal ya anticipa adapters ([ADR-0001](ADR-0001-hexagonal-architecture.md));
    - **Fase A (ahora):** documentar contrato; deploys siguen con `composePath` + `composeUp`.
    - **Fase B:** si existe `atlas.yml`, el job lo parsea; si `runtime.kind: compose` (o omitido) y hay `runtime.composeFile` / legacy path, el adapter Compose sigue siendo el ejecutor.
    - **Fase C:** UI/API dejan de exigir `composePath`; campo DB pasa a opcional / derivado (`manifestPath` + snapshot). Repos solo-compose sin manifiesto: Atlas sintetiza un manifiesto mínimo (`kind: compose`, `composeFile: <composePath>`).
-   - **Fase D:** port genérico `RuntimeOrchestratorPort` (`apply` / `teardown`); Host expone tags `runtimeCapabilities` (`compose` hoy). Compose adapter default; Podman/K8s = adapters futuros.
+   - **Fase D:** port genérico `RuntimeOrchestratorPort` (`apply` / `teardown`); Host expone tags `runtimeCapabilities` (`compose` / `podman`). Compose adapter default; Podman adapter opt-in (v0.8.19); K8s = futuro.
 
 5. **No reescribir** Hosts / Deployments / Jobs ni Traefik/Tunnel en este ADR. Autopilot sigue siendo capa de política sobre el control plane existente.
 
@@ -103,12 +103,13 @@ Reglas de diseño del schema:
 
 ## Consecuencias
 
-- (+) Usuario y repo dejan de “hablar Docker”; Compose es un detalle de adapter.
+- (+) Usuario y repo dejan de “hablar Docker”; Compose/Podman son detalle de adapter.
 - (+) Alineado con hexagonal: un port, N runtimes.
 - (+) Migración barata: `composePath` → `runtime.composeFile` sin big-bang.
-- (−) Compose adapter sigue siendo el único ejecutor; tags Host aún no persisten en DB ni filtran placement.
+- (+) Podman opt-in sin tocar Compose default ni SSO/deploy legacy.
 - (−) Riesgo de duplicar verdad (manifiesto vs compose file): mitigar con “composeFile only” como modo válido en v1alpha1.
 - (−) K8s/systemd no se diseñan en detalle aquí; solo se reserva `runtime.kind` / `RuntimeCapability`.
+- (−) Autopilot SHARED aún filtra por `compose`; deploy Podman suele ir con host pin.
 
 ## Qué no hacer aún
 
@@ -116,10 +117,10 @@ Reglas de diseño del schema:
 - No eliminar columna `compose_path` de DB en este incremento.
 - No forzar a todos los customer repos a adoptar `atlas.yml` (legacy `composePath` sigue válido).
 - No meter billing/AI ni rewrite de Hosts/Deployments.
-- No segundo adapter runtime (Podman/K8s) hasta que haya demanda; `RuntimeCapability` ya reserva tags.
+- No adapter K8s/systemd hasta demanda; Podman ya es opt-in (v0.8.19).
 - **No** exigir un migrator concreto (Prisma/Flyway/…) ni convertir apps customer a Flyway de Atlas.
 - No hacer `compose down -v` ni wipe de DB de apps en hooks de migrate.
 
 ## Relación con el siguiente paso operativo
 
-Fases B–D + pipeline sin host pin (v0.8.12) + capabilities persistidos / filtro placement (v0.8.14) + UX Domains 403 scopes (v0.8.15) + OpenAPI publicado / sunset `/applications` (v0.8.16) + sync capabilities reales (v0.8.17): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort`; Host sync escribe `compose`/`podman` desde probe; webhook/auto-deploy usan Autopilot por run; Ensure 403 → mensaje scopes; contrato OpenAPI en `docs/api/openapi.json`. Siguiente: billing/usage (v0.9). Ver `docs/roadmap/next-step.md`.
+Fases B–D + pipeline sin host pin (v0.8.12) + capabilities persistidos / filtro placement (v0.8.14) + UX Domains 403 scopes (v0.8.15) + OpenAPI publicado / sunset `/applications` (v0.8.16) + sync capabilities reales (v0.8.17) + Podman adapter opt-in (v0.8.19): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort` (Compose default, Podman si `podman-compose`); Host sync escribe `compose`/`podman` desde probe. Siguiente: ver `docs/roadmap/next-step.md`.

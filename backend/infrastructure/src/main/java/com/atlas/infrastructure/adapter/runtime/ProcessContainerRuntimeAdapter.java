@@ -45,7 +45,17 @@ public class ProcessContainerRuntimeAdapter implements ContainerRuntimePort {
             String composeFilePath,
             Optional<String> sshPrivateKeyPem,
             Consumer<String> logSink) {
-        runCompose(host, workingDirectory, composeFilePath, sshPrivateKeyPem, logSink, "up", "-d", "--build", "--remove-orphans");
+        runCompose(
+                host,
+                workingDirectory,
+                composeFilePath,
+                sshPrivateKeyPem,
+                logSink,
+                "docker",
+                "up",
+                "-d",
+                "--build",
+                "--remove-orphans");
     }
 
     @Override
@@ -55,7 +65,37 @@ public class ProcessContainerRuntimeAdapter implements ContainerRuntimePort {
             String composeFilePath,
             Optional<String> sshPrivateKeyPem,
             Consumer<String> logSink) {
-        runCompose(host, workingDirectory, composeFilePath, sshPrivateKeyPem, logSink, "down");
+        runCompose(host, workingDirectory, composeFilePath, sshPrivateKeyPem, logSink, "docker", "down");
+    }
+
+    @Override
+    public void podmanComposeUp(
+            Host host,
+            Path workingDirectory,
+            String composeFilePath,
+            Optional<String> sshPrivateKeyPem,
+            Consumer<String> logSink) {
+        runCompose(
+                host,
+                workingDirectory,
+                composeFilePath,
+                sshPrivateKeyPem,
+                logSink,
+                "podman",
+                "up",
+                "-d",
+                "--build",
+                "--remove-orphans");
+    }
+
+    @Override
+    public void podmanComposeDown(
+            Host host,
+            Path workingDirectory,
+            String composeFilePath,
+            Optional<String> sshPrivateKeyPem,
+            Consumer<String> logSink) {
+        runCompose(host, workingDirectory, composeFilePath, sshPrivateKeyPem, logSink, "podman", "down");
     }
 
     @Override
@@ -141,22 +181,26 @@ public class ProcessContainerRuntimeAdapter implements ContainerRuntimePort {
             String composeFilePath,
             Optional<String> sshPrivateKeyPem,
             Consumer<String> logSink,
+            String engine,
             String... composeArgs) {
         String composePath = composeFilePath == null || composeFilePath.isBlank()
                 ? "docker-compose.yml"
                 : composeFilePath;
+        String binary = engine == null || engine.isBlank() ? "docker" : engine.trim();
 
         if (host.getConnectionType() == ConnectionType.LOCAL) {
             List<String> command = new ArrayList<>();
-            command.add("docker");
+            command.add(binary);
             command.add("compose");
             command.add("-f");
             command.add(composePath);
             command.addAll(List.of(composeArgs));
             Map<String, String> env = new HashMap<>();
-            String dockerHost = properties.getDocker().getHost();
-            if (dockerHost != null && !dockerHost.isBlank()) {
-                env.put("DOCKER_HOST", dockerHost);
+            if ("docker".equals(binary)) {
+                String dockerHost = properties.getDocker().getHost();
+                if (dockerHost != null && !dockerHost.isBlank()) {
+                    env.put("DOCKER_HOST", dockerHost);
+                }
             }
             logSink.accept("Running local: " + String.join(" ", command) + " (cwd=" + workingDirectory + ")");
             processCommandRunner.run(command, workingDirectory, env, logSink);
@@ -164,18 +208,20 @@ public class ProcessContainerRuntimeAdapter implements ContainerRuntimePort {
         }
 
         String key = sshPrivateKeyPem.orElseThrow(
-                () -> new DomainException("SSH private key required for remote compose"));
+                () -> new DomainException("SSH private key required for remote " + binary + " compose"));
         String user = host.getSshUser() == null ? "root" : host.getSshUser();
         String remoteDir = "/var/lib/atlas/workspaces/" + workingDirectory.getFileName();
         sshCommandRunner.uploadDirectory(
                 host.getIp(), host.getSshPort(), user, key, workingDirectory, remoteDir, logSink);
         String remoteCmd = "cd "
                 + shellQuote(remoteDir)
-                + " && docker compose -f "
+                + " && "
+                + binary
+                + " compose -f "
                 + shellQuote(composePath)
                 + " "
                 + String.join(" ", composeArgs);
-        logSink.accept("Running remote compose: " + remoteCmd);
+        logSink.accept("Running remote " + binary + " compose: " + remoteCmd);
         sshCommandRunner.run(host.getIp(), host.getSshPort(), user, key, remoteCmd, logSink);
     }
 

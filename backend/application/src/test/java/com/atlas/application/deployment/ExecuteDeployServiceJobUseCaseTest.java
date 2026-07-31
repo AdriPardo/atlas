@@ -216,6 +216,112 @@ class ExecuteDeployServiceJobUseCaseTest {
     }
 
     @Test
+    void usesPodmanCapabilityWhenAtlasYmlDeclaresPodmanCompose() throws Exception {
+        java.nio.file.Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  kind: podman-compose
+                  composeFile: compose.yml
+                """);
+
+        Project project = Project.create("demo", "d");
+        ServiceUnit service = ServiceUnit.createDefault(
+                project.getId(), "https://example.com/demo.git", "main", null, "");
+        Host host = Host.create(
+                "podman-box",
+                "10.0.0.2",
+                "linux",
+                "",
+                true,
+                ConnectionType.LOCAL,
+                null,
+                22,
+                null,
+                java.util.Set.of(com.atlas.domain.runtime.RuntimeCapability.PODMAN));
+        Deployment deployment = Deployment.create(service.getId(), host.getId());
+        Deployment running = Deployment.rehydrate(
+                deployment.getId(),
+                deployment.getServiceId(),
+                deployment.getHostId(),
+                DeploymentStatus.PENDING,
+                null,
+                null,
+                "",
+                deployment.getCreatedAt(),
+                deployment.getUpdatedAt());
+
+        when(deploymentRepository.findById(deployment.getId())).thenReturn(Optional.of(running));
+        when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(hostRepository.findById(host.getId())).thenReturn(Optional.of(host));
+        when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(resolveSecretValue.forProject(project.getId(), ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.empty());
+
+        doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());
+        doAnswer(inv -> null).when(runtimeOrchestrator).apply(any());
+
+        useCase.execute(deployment.getId());
+
+        verify(runtimeOrchestrator).apply(org.mockito.ArgumentMatchers.argThat(cmd ->
+                "compose.yml".equals(cmd.composeFilePath())
+                        && cmd.capability() == com.atlas.domain.runtime.RuntimeCapability.PODMAN));
+        assertEquals(DeploymentStatus.SUCCEEDED, running.getStatus());
+    }
+
+    @Test
+    void failsWhenPodmanComposeHostLacksPodmanCapability() throws Exception {
+        java.nio.file.Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  kind: podman-compose
+                  composeFile: compose.yml
+                """);
+
+        Project project = Project.create("demo", "d");
+        ServiceUnit service = ServiceUnit.createDefault(
+                project.getId(), "https://example.com/demo.git", "main", null, "");
+        Host host = Host.create("local", "127.0.0.1", "linux", "26", true, ConnectionType.LOCAL, null, 22, null);
+        Deployment deployment = Deployment.create(service.getId(), host.getId());
+        Deployment running = Deployment.rehydrate(
+                deployment.getId(),
+                deployment.getServiceId(),
+                deployment.getHostId(),
+                DeploymentStatus.PENDING,
+                null,
+                null,
+                "",
+                deployment.getCreatedAt(),
+                deployment.getUpdatedAt());
+
+        when(deploymentRepository.findById(deployment.getId())).thenReturn(Optional.of(running));
+        when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(hostRepository.findById(host.getId())).thenReturn(Optional.of(host));
+        when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(resolveSecretValue.forProject(project.getId(), ExecuteDeployServiceJobUseCase.GIT_TOKEN_SECRET_NAME))
+                .thenReturn(Optional.empty());
+
+        doAnswer(inv -> null).when(gitRepository).cloneOrUpdate(any(), any(), any(), any(), any());
+
+        DomainException ex = assertThrows(DomainException.class, () -> useCase.execute(deployment.getId()));
+
+        assertEquals(DeploymentStatus.FAILED, running.getStatus());
+        assertTrue(ex.getMessage().contains("podman") || running.getLogs().contains("podman"));
+        assertTrue(running.getLogs().contains("podman-compose") || running.getLogs().contains("capability podman"));
+    }
+
+    @Test
     void runsMigrateCommandAfterComposeWhenDeclaredInAtlasYml() throws Exception {
         java.nio.file.Files.writeString(
                 workspace.resolve("atlas.yml"),

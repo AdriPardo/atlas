@@ -25,7 +25,7 @@ Campos clave: `name`, `slug`, `description`, `status`, timestamps, `created_by`.
 
 Campos heredados del Application actual: `repositoryUrl`, `branch`, `composePath`, `domain`, `status`.
 
-**Dirección (ADR-0014):** `composePath` es opcional (fase C): si el checkout tiene `atlas.yml` con `runtime.composeFile`, ese path gana; si no hay manifiesto, Atlas sintetiza uno mínimo desde `composePath`. Sin ambos, el deploy falla con mensaje claro. Deploy aplica el stack vía `RuntimeOrchestratorPort` (fase D; Compose adapter default). Host persiste `runtimeCapabilities` en DB; **sync** escribe tags reales desde probe Docker/Podman (v0.8.17; unreachable no pisa). Autopilot SHARED filtra por capability. Autopilot no vive en el manifiesto (placement, DNS, secrets, exposure).
+**Dirección (ADR-0014):** `composePath` es opcional (fase C): si el checkout tiene `atlas.yml` con `runtime.composeFile`, ese path gana; si no hay manifiesto, Atlas sintetiza uno mínimo desde `composePath`. Sin ambos, el deploy falla con mensaje claro. Deploy aplica el stack vía `RuntimeOrchestratorPort` (fase D; Compose adapter default; Podman opt-in con `runtime.kind: podman-compose` + host capability `podman`). Host persiste `runtimeCapabilities` en DB; **sync** escribe tags reales desde probe Docker/Podman (v0.8.17; unreachable no pisa). Autopilot SHARED filtra por capability `compose`. Autopilot no vive en el manifiesto (placement, DNS, secrets, exposure).
 
 **Migraciones de app:** Atlas **no** posee ORM. Opcional `runtime.migrateCommand` se ejecuta **después** de compose up (shell en workspace). Si el contenedor ya migra al arrancar, omitir el campo. Ver [app-migrations.md](../deployment/app-migrations.md).
 

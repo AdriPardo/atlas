@@ -181,16 +181,21 @@ public class ExecuteDeployServiceJobUseCase {
             logPublicTlsPolicy(loaded.service(), compose.requireTlsEnabled(), logSink);
 
             Host host = loaded.host();
-            if (!host.supportsRuntime(RuntimeCapability.COMPOSE)) {
+            RuntimeCapability capability = compose.runtimeCapability();
+            if (!host.supportsRuntime(capability)) {
                 throw new DomainException(
-                        "Host " + host.getHostname() + " does not advertise runtime capability compose");
+                        "Host " + host.getHostname() + " does not advertise runtime capability "
+                                + capability.tag()
+                                + (capability == RuntimeCapability.PODMAN
+                                        ? " (required by atlas.yml runtime.kind: podman-compose)"
+                                        : ""));
             }
 
             Optional<String> sshKey = resolveSshKey(host);
             runtimeOrchestrator.apply(new RuntimeOrchestratorPort.RuntimeApplyCommand(
                     host,
                     workspace,
-                    RuntimeCapability.COMPOSE,
+                    capability,
                     compose.composeFilePath(),
                     sshKey,
                     logSink));

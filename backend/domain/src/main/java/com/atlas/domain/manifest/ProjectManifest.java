@@ -1,5 +1,6 @@
 package com.atlas.domain.manifest;
 
+import com.atlas.domain.runtime.RuntimeCapability;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -152,6 +153,17 @@ public final class ProjectManifest {
         }
         String normalized = runtimeKind.toLowerCase(Locale.ROOT);
         return "compose".equals(normalized) || "podman-compose".equals(normalized);
+    }
+
+    /**
+     * Host capability required for deploy. Opt-in: {@code runtime.kind: podman-compose} → {@link
+     * RuntimeCapability#PODMAN}; omitted / {@code compose} → {@link RuntimeCapability#COMPOSE}.
+     */
+    public RuntimeCapability requiredRuntimeCapability() {
+        if (runtimeKind != null && "podman-compose".equals(runtimeKind.toLowerCase(Locale.ROOT))) {
+            return RuntimeCapability.PODMAN;
+        }
+        return RuntimeCapability.COMPOSE;
     }
 
     private static String requireText(String value, String field) {

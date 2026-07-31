@@ -2,33 +2,33 @@
 
 ## Estado del último incremento (completado)
 
-**ADR-0017 — Secretos de usuario para apps (re-enfoque):**
+**Adapter Podman (ADR-0014) — opt-in vía `RuntimeOrchestratorPort`:**
 
-- Atlas = almacén + inject de secrets que el usuario crea para sus apps — **no** “Atlas ofrece AI”.
-- UI: create/rotate project + org; delete org; copy explica `envFrom` → runtime.
-- PUT upsert + DELETE `/secrets/{id}`; seed script genérico (extras libres).
-- Docs: ADR-0017 + [secrets-for-apps.md](../product/secrets-for-apps.md); stub redirect en `platform-provided-ai.md`.
+- `PodmanRuntimeOrchestratorAdapter` → `podman compose up/down`; `RoutingRuntimeOrchestratorAdapter` enruta por capability.
+- Opt-in: `atlas.yml` `runtime.kind: podman-compose` + host con capability `podman` (sync ya la anuncia).
+- Compose default intacto (`kind` omitido / `compose`).
+- Tests: routing, podman adapter, deploy job, resolver capability.
 
-**Previo:** Secrets project + bindings (`33606f8`); envFrom inject; DB provisioner/TTL; feature flags; PUBLIC minify + TLS; Host sync; OpenAPI; Pipeline `hostId`; `migrateCommand`; Autopilot Tunnel/DNS/Proxmox.
+**Previo:** ADR-0017 secrets usuario→apps (`6a040d2`); Secrets project + bindings; envFrom inject; DB provisioner/TTL; feature flags; PUBLIC minify + TLS; Host sync; OpenAPI; Pipeline `hostId`; `migrateCommand`; Autopilot Tunnel/DNS/Proxmox.
 
 ## Recomendación única (siguiente)
 
-**Adapter Podman** vía `RuntimeOrchestratorPort` (opt-in) — host sync ya anuncia `podman`; falta deploy path. Alternativa: slice Reelpath (prefer env Atlas sobre `PlatformSecret` in-app) cuando el repo esté a mano.
+**Reelpath cutover secrets:** prefer env Atlas (`envFrom` / `.env` inject) sobre `PlatformSecret` in-app — cuando el repo Reelpath esté a mano. Alternativa: Autopilot SHARED placement por capability pedida (hoy SHARED filtra solo `compose`).
 
 ## Por qué es el paso más rentable ahora
 
 1. Envelope comercial v0.9 cerrado (usage + plan + flags).
-2. Flujo secrets→apps cerrado en Atlas (UI + API + envFrom); cutover app = trabajo aparte.
-3. Capabilities Podman ya en hosts; adapter cierra gap ADR-0014 sin tocar Compose default.
+2. Flujo secrets→apps cerrado en Atlas; cutover app = trabajo aparte.
+3. Adapter Podman cierra gap deploy; placement multi-capability y K8s siguen opcionales.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Adapter Podman opt-in vía `RuntimeOrchestratorPort` (deploy mínimo).
-2. Tests + docs; sin Stripe / sin Redis-Kafka / sin SQL console proxy.
+1. Reelpath: prefer env Atlas → fallback PlatformSecret; `atlas.yml` envFrom con keys del usuario.
+2. Sin Stripe / sin Redis-Kafka / sin SQL console proxy.
 
 ## Secundario (si sobra capacidad)
 
-- Reelpath: prefer env Atlas → fallback PlatformSecret; `atlas.yml` envFrom con keys del usuario.
+- Autopilot SHARED: filtrar por capability requerida (podman cuando manifiesto lo pida) — hoy pin de host.
 - Más meters (job minutes, backup GB).
 - Hard-enforce soft limits (hoy solo reportan).
 
@@ -39,11 +39,12 @@
 3. URLs/credenciales TTL (opción C) ✅
 4. Feature flags / plan local ✅
 5. Secrets usuario→app (UI rotate + docs ADR-0017) ✅; cutover Reelpath pendiente
-6. Proxy+RLS (B) diferido
+6. Adapter Podman opt-in ✅
+7. Proxy+RLS (B) diferido
 
 ## Norte estratégico (no es el siguiente incremento)
 
-**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + capabilities DB + sync probe + OpenAPI + PUBLIC hardening + envFrom inject hechas; Compose sigue adapter default. Podman/K8s = adapters futuros.
+**Project manifest + runtime pluggable** ([ADR-0014](../decisions/ADR-0014-project-manifest-runtime.md)): fases B–D + capabilities + sync + Podman adapter opt-in; Compose sigue default. K8s/systemd = adapters futuros.
 
 ## Qué no hacer
 
@@ -60,4 +61,4 @@
 
 ## Definición de éxito (siguiente)
 
-> Deploy vía adapter Podman en host con capability `podman` (opt-in); Compose default intacto; SSO/deploy/envFrom/DB provisioner/TTL/flags/secrets UI sin romper.
+> Reelpath (u otra app) lee secrets desde env inject Atlas; PlatformSecret solo fallback; SSO/deploy/envFrom/DB/TTL/flags/Podman opt-in sin romper.

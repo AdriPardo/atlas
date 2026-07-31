@@ -33,6 +33,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.16** | OpenAPI + `/applications` sunset path | Contrato publicado; alias deprecated hasta 2027-08-01 |
 | **v0.8.17** | Host sync runtime capabilities | Sync escribe `compose`/`podman` desde probe; unreachable no pisa |
 | **v0.8.18** | PUBLIC minify + TLS guarantees | ADR-0016: `NODE_ENV=production` + requireTls docs/edge |
+| **v0.8.19** | Podman runtime adapter (opt-in) | `runtime.kind: podman-compose` → `podman compose`; Compose default |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -308,7 +309,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 
 - `HostConnectorPort.HostInspection` incluye tags detectados; probe soft Docker + Podman (local/SSH).
 - `ExecuteSyncHostJobUseCase` reemplaza `runtime_capabilities` solo si el probe devolvió tags; unreachable / vacío → conserva tags previos (SHARED compose no se rompe por flapping).
-- Docker presente → `compose`; Podman presente → `podman`; ambos coexisten. Sin adapter Podman de deploy aún.
+- Docker presente → `compose`; Podman presente → `podman`; ambos coexisten. Deploy Podman: v0.8.19.
 
 **Criterio done:** sync con Docker → host anuncia `compose`; solo Podman → `podman` sin inventar compose; host offline mantiene capabilities anteriores.
 
@@ -321,6 +322,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Política TLS PUBLIC: log edge Tunnel/Traefik `websecure`; encrypt = TLS in transit (no payload crypto).
 
 **Criterio done:** repo sin campos usa defaults seguros; opt-out explícito documentado; Reelpath/SSO intactos.
+
+---
+
+## v0.8.19 — Podman runtime adapter (opt-in)
+
+- `PodmanRuntimeOrchestratorAdapter` + `RoutingRuntimeOrchestratorAdapter` por `RuntimeCapability`.
+- Opt-in: `atlas.yml` `runtime.kind: podman-compose` → host debe anunciar `podman`; apply vía `podman compose`.
+- Compose (`kind` omitido / `compose`) sigue default; inspect/logs/restart Docker intactos.
+- Sin placement SHARED por podman aún (pin host con capability `podman`).
+
+**Criterio done:** deploy con `podman-compose` + host `podman` verde; host solo-compose falla claro; default compose verde.
 
 ---
 

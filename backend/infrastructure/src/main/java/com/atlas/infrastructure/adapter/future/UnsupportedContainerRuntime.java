@@ -38,6 +38,30 @@ public class UnsupportedContainerRuntime implements ContainerRuntimePort {
     }
 
     @Override
+    public void podmanComposeUp(
+            Host host,
+            Path workingDirectory,
+            String composeFilePath,
+            Optional<String> sshPrivateKeyPem,
+            Consumer<String> logSink) {
+        throw new UnsupportedOperationException(
+                "Container runtime is disabled (atlas.adapters.real-enabled=false). Podman compose: "
+                        + composeFilePath);
+    }
+
+    @Override
+    public void podmanComposeDown(
+            Host host,
+            Path workingDirectory,
+            String composeFilePath,
+            Optional<String> sshPrivateKeyPem,
+            Consumer<String> logSink) {
+        throw new UnsupportedOperationException(
+                "Container runtime is disabled (atlas.adapters.real-enabled=false). Podman compose: "
+                        + composeFilePath);
+    }
+
+    @Override
     public List<ContainerSnapshot> listContainers(Host host, Optional<String> sshPrivateKeyPem) {
         return List.of();
     }

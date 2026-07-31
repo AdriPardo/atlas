@@ -10,11 +10,12 @@ metadata:
   name: example-app
 
 runtime:
-  # compose (default today) | podman-compose | kubernetes | systemd | custom
+  # compose (default) | podman-compose (opt-in; host capability podman) | k8s | systemd | custom
   kind: compose
   # Migration bridge: existing docker-compose.atlas.yml / composePath
+  # For kind podman-compose Atlas runs `podman compose` against the same composeFile.
   composeFile: docker-compose.atlas.yml
-  # Optional. Atlas runs this shell command after compose up (cwd = clone workspace).
+  # Optional. Atlas runs this shell command after stack apply (cwd = clone workspace).
   # App owns the migrator (Prisma / Flyway / etc.). Omit if the container already migrates on start.
   # See docs/deployment/app-migrations.md
   migrateCommand: npm run db:migrate:deploy

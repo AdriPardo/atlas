@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 
 /**
  * Generic stack orchestration (ADR-0014 phase D). Deploy use cases talk here;
- * Compose remains the default adapter via {@link #apply} / {@link #teardown}.
+ * Compose remains the default adapter; Podman is opt-in via capability {@code PODMAN}.
  *
  * <p>{@link ContainerRuntimePort} stays for container inspect/logs/restart.
  */
