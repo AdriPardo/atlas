@@ -1,13 +1,19 @@
 package com.atlas.application.backup;
 
 import com.atlas.application.port.out.BackupPolicyPort;
+import com.atlas.application.port.out.BillingMeterPort;
 import com.atlas.application.port.out.DatabaseBackupPort;
+import com.atlas.domain.billing.UsageMeters;
 import com.atlas.domain.shared.DomainException;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,8 +22,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ExecuteBackupDatabaseJobUseCase {
 
+    private static final BigDecimal BYTES_PER_GIB = BigDecimal.valueOf(1024L * 1024L * 1024L);
+
     private final DatabaseBackupPort databaseBackupPort;
     private final BackupPolicyPort backupPolicy;
+    private final BillingMeterPort billingMeter;
 
     public Path execute() {
         Path dir = Path.of(backupPolicy.directory()).toAbsolutePath().normalize();
@@ -28,8 +37,23 @@ public class ExecuteBackupDatabaseJobUseCase {
         }
 
         Path dump = databaseBackupPort.dumpTo(dir);
+        recordBackupGb(dump);
         pruneOldDumps(dir, backupPolicy.keepCount());
         return dump;
+    }
+
+    private void recordBackupGb(Path dump) {
+        try {
+            long bytes = Files.size(dump);
+            BigDecimal gib =
+                    BigDecimal.valueOf(bytes).divide(BYTES_PER_GIB, 6, RoundingMode.HALF_UP);
+            Map<String, String> dimensions = new LinkedHashMap<>();
+            dimensions.put("path", dump.getFileName().toString());
+            dimensions.put("bytes", Long.toString(bytes));
+            billingMeter.record(UsageMeters.BACKUP_GB, gib, dimensions);
+        } catch (IOException | RuntimeException ex) {
+            // Soft metering — backup already succeeded; size probe must not fail the job.
+        }
     }
 
     private void pruneOldDumps(Path dir, int keepCount) {

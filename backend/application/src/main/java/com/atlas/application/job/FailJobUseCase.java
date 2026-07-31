@@ -1,6 +1,7 @@
 package com.atlas.application.job;
 
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
+import com.atlas.application.port.out.BillingMeterPort;
 import com.atlas.application.port.out.JobRepositoryPort;
 import com.atlas.domain.job.Job;
 import com.atlas.domain.observability.AlertEventType;
@@ -16,6 +17,7 @@ public class FailJobUseCase {
 
     private final JobRepositoryPort jobRepository;
     private final EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
+    private final BillingMeterPort billingMeter;
 
     @Transactional
     public Job execute(UUID jobId, String error) {
@@ -25,6 +27,7 @@ public class FailJobUseCase {
         String message = error == null ? "unknown error" : error;
         job.markFailed(message);
         Job saved = jobRepository.save(job);
+        JobMinutesMetering.record(billingMeter, saved);
         evaluateProductAlertsUseCase.execute(
                 AlertEventType.JOB_FAILED,
                 null,

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,16 +15,20 @@ import com.atlas.application.access.ProjectAuthorizationService;
 import com.atlas.application.audit.RecordAuditUseCase;
 import com.atlas.application.job.EnqueueJobUseCase;
 import com.atlas.application.port.out.BackupPolicyPort;
+import com.atlas.application.port.out.BillingMeterPort;
 import com.atlas.application.port.out.CurrentUserPort;
 import com.atlas.application.port.out.DatabaseBackupPort;
 import com.atlas.domain.audit.AuditEntry;
+import com.atlas.domain.billing.UsageMeters;
 import com.atlas.domain.job.Job;
 import com.atlas.domain.job.JobType;
 import com.atlas.domain.shared.DomainException;
 import com.atlas.domain.shared.ForbiddenException;
 import com.atlas.domain.user.Role;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +55,9 @@ class BackupUseCasesTest {
 
     @Mock
     private DatabaseBackupPort databaseBackupPort;
+
+    @Mock
+    private BillingMeterPort billingMeter;
 
     @InjectMocks
     private EnqueueBackupDatabaseUseCase enqueueUseCase;
@@ -89,7 +97,7 @@ class BackupUseCasesTest {
     }
 
     @Test
-    void executeCreatesDumpAndPrunes(@TempDir Path tempDir) throws Exception {
+    void executeCreatesDumpPrunesAndMetersGb(@TempDir Path tempDir) throws Exception {
         when(backupPolicy.directory()).thenReturn(tempDir.toString());
         when(backupPolicy.keepCount()).thenReturn(2);
 
@@ -101,13 +109,14 @@ class BackupUseCasesTest {
         Files.writeString(newer, "c");
 
         Path created = tempDir.resolve("atlas-20260727-120000.sql.gz");
+        byte[] payload = new byte[1024 * 1024]; // 1 MiB
         when(databaseBackupPort.dumpTo(any())).thenAnswer(inv -> {
-            Files.writeString(created, "fresh");
+            Files.write(created, payload);
             return created;
         });
 
         ExecuteBackupDatabaseJobUseCase executeUseCase =
-                new ExecuteBackupDatabaseJobUseCase(databaseBackupPort, backupPolicy);
+                new ExecuteBackupDatabaseJobUseCase(databaseBackupPort, backupPolicy, billingMeter);
         Path result = executeUseCase.execute();
 
         assertEquals(created, result);
@@ -115,5 +124,13 @@ class BackupUseCasesTest {
         assertTrue(Files.exists(newer));
         assertFalse(Files.exists(mid));
         assertFalse(Files.exists(older));
+
+        ArgumentCaptor<BigDecimal> qty = ArgumentCaptor.forClass(BigDecimal.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, String>> dims = ArgumentCaptor.forClass(Map.class);
+        verify(billingMeter).record(eq(UsageMeters.BACKUP_GB), qty.capture(), dims.capture());
+        assertEquals(0, qty.getValue().compareTo(new BigDecimal("0.000977")));
+        assertEquals(created.getFileName().toString(), dims.getValue().get("path"));
+        assertEquals(Long.toString(payload.length), dims.getValue().get("bytes"));
     }
 }

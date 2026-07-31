@@ -133,7 +133,7 @@ export function BillingPage() {
               {usageRows.length === 0 ? (
                 <EmptyState
                   title="No usage yet"
-                  description="Deploy a service to record deploy.count meters for this period."
+                  description="Deploy a service or run a job/backup to record deploy.count, job.minutes, and backup.gb."
                 />
               ) : (
                 <Table size="small">

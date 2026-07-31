@@ -363,6 +363,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 ## v0.9 — Commercial envelope
 
 - **Hecho (slice meters):** usage_records + `BillingMeterPort`; `GET /billing/usage` + `/entitlements`; UI `/billing` + CSV; plan `community` precio 0; meter `deploy.count` en enqueue.
+- **Hecho (slice job/backup meters):** `job.minutes` en complete/fail/stale; `backup.gb` post-dump; entitlements soft unlimited.
 - **Hecho (envFrom inject):** manifiesto `envFrom.secretRef` → `.env` en deploy (`db.url` → `DATABASE_URL`); ADR-0015 delivery sin provisioner.
 - **Hecho (performance 5k):** índice `lower(name)`; IT seed 5k + smoke list/search.
 - **Hecho (DB provisioner slice 1):** CREATE ROLE/SCHEMA + grants; secrets `db.url`/`db.schema`; UI Database; `ATLAS_APP_DB_*` (DB `apps`, nunca `atlas`).

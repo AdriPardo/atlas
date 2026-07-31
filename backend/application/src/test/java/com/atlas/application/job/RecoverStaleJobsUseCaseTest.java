@@ -56,6 +56,9 @@ class RecoverStaleJobsUseCaseTest {
     @Mock
     private EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
 
+    @Mock
+    private com.atlas.application.port.out.BillingMeterPort billingMeter;
+
     @InjectMocks
     private RecoverStaleJobsUseCase useCase;
 

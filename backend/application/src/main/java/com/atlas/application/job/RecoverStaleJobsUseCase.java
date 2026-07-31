@@ -1,6 +1,7 @@
 package com.atlas.application.job;
 
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
+import com.atlas.application.port.out.BillingMeterPort;
 import com.atlas.application.port.out.DeploymentRepositoryPort;
 import com.atlas.application.port.out.JobRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
@@ -46,6 +47,7 @@ public class RecoverStaleJobsUseCase {
     private final ServiceRepositoryPort serviceRepository;
     private final ProjectRepositoryPort projectRepository;
     private final EvaluateProductAlertsUseCase evaluateProductAlertsUseCase;
+    private final BillingMeterPort billingMeter;
 
     @Transactional
     public int execute(Duration staleTimeout) {
@@ -63,6 +65,7 @@ public class RecoverStaleJobsUseCase {
                     + job.getLockedAt();
             job.markFailed(message);
             Job saved = jobRepository.save(job);
+            JobMinutesMetering.record(billingMeter, saved);
             evaluateProductAlertsUseCase.execute(
                     AlertEventType.JOB_FAILED,
                     null,

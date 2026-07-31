@@ -2,33 +2,33 @@
 
 ## Estado del último incremento (completado)
 
-**Autopilot SHARED placement por capability pedida:**
+**Billing meters `job.minutes` + `backup.gb`:**
 
-- Peek `atlas.yml` al enqueue (workspace `placement/{serviceId}`) → `requiredRuntimeCapability`.
-- SHARED filtra hosts por `compose` / `podman`; sin host `podman` → error claro (no seed compose-only).
-- Pin `hostId` sigue override; Compose default intacto.
-- Soft-fallback a `compose` si peek git falla (job sigue validando capability post-clone).
+- `UsageMeters.JOB_MINUTES` / `BACKUP_GB`; entitlements soft unlimited (community/enterprise).
+- Complete/fail/stale job → wall-clock minutes vía `BillingMeterPort` (dims: jobId, jobType, status).
+- Backup dump → GiB (6 decimales) + dims path/bytes; meter soft (no falla job).
+- UI Billing empty-state menciona los tres meters; export CSV sin cambio de schema.
 
-**Previo:** Reelpath cutover secrets; Adapter Podman; ADR-0017; Secrets/envFrom; DB provisioner/TTL; feature flags; PUBLIC minify + TLS; Host sync; OpenAPI; Pipeline `hostId`; `migrateCommand`; Autopilot Tunnel/DNS/Proxmox.
+**Previo:** Autopilot SHARED placement por capability; Reelpath secrets; Adapter Podman; ADR-0017; Secrets/envFrom; DB provisioner/TTL; feature flags; PUBLIC minify + TLS; Host sync; OpenAPI; Pipeline `hostId`; `migrateCommand`; Autopilot Tunnel/DNS/Proxmox.
 
 ## Recomendación única (siguiente)
 
-**Más meters de billing (job minutes, backup GB)** — envelope v0.9 tiene `deploy.count`; soft limits aún solo reportan.
+**Hard-enforce soft limits de billing** — hoy meters reportan; plan community aún no bloquea al cruzar límite finito (projects/hosts).
 
 ## Por qué es el paso más rentable ahora
 
-1. Placement multi-capability + Podman adapter + secrets cutover cerrados.
-2. Envelope comercial incompleto en meters / hard-enforce.
+1. Envelope meters (`deploy.count`, `job.minutes`, `backup.gb`) + gauges cerrados.
+2. Soft limits sin dientes = commercial envelope incompleto.
 3. Stripe / Redis-Kafka / SQL console siguen fuera.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Meters adicionales: job minutes y/o backup GB vía `BillingMeterPort`.
+1. Gate en flujos sensibles (create project/host, opcional enqueue deploy) cuando usage/gauge ≥ limit y `soft=true` aún: o bien rechazo claro, o flag `ATLAS_BILLING_ENFORCE`.
 2. Sin Stripe / sin Redis-Kafka / sin SQL console proxy.
 
 ## Secundario (si sobra capacidad)
 
-- Hard-enforce soft limits (hoy solo reportan).
+- Totales period agregados en `GET /billing/usage` (sum by meter).
 
 ## Cola (no es el siguiente obligatorio)
 
@@ -39,7 +39,8 @@
 5. Secrets usuario→app (UI rotate + docs ADR-0017) ✅; cutover Reelpath ✅
 6. Adapter Podman opt-in ✅
 7. Placement SHARED por capability (`compose`/`podman`) ✅
-8. Proxy+RLS (B) diferido
+8. Meters job minutes + backup GB ✅
+9. Proxy+RLS (B) diferido
 
 ## Norte estratégico (no es el siguiente incremento)
 
@@ -60,4 +61,4 @@
 
 ## Definición de éxito (siguiente)
 
-> Usage export incluye meters job minutes y/o backup GB; plan/flags/SSO/deploy/placement/secrets sin romper.
+> Create project/host (y opcional deploy) rechaza o avisa de forma controlada al cruzar soft limit; SSO/deploy/placement/secrets/meters sin romper; enforce opt-in o documentado.

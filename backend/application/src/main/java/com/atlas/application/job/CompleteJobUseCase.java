@@ -1,5 +1,6 @@
 package com.atlas.application.job;
 
+import com.atlas.application.port.out.BillingMeterPort;
 import com.atlas.application.port.out.JobRepositoryPort;
 import com.atlas.domain.job.Job;
 import com.atlas.domain.shared.NotFoundException;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CompleteJobUseCase {
 
     private final JobRepositoryPort jobRepository;
+    private final BillingMeterPort billingMeter;
 
     @Transactional
     public Job execute(UUID jobId) {
@@ -20,6 +22,8 @@ public class CompleteJobUseCase {
                 .findById(jobId)
                 .orElseThrow(() -> new NotFoundException("Job not found: " + jobId));
         job.markSucceeded();
-        return jobRepository.save(job);
+        Job saved = jobRepository.save(job);
+        JobMinutesMetering.record(billingMeter, saved);
+        return saved;
     }
 }

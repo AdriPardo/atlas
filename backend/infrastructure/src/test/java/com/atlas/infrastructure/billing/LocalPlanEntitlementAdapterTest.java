@@ -45,6 +45,23 @@ class LocalPlanEntitlementAdapterTest {
         assertEquals(PlanCodes.ENTERPRISE, projects.getPlanCode());
     }
 
+    @Test
+    void communityIncludesJobMinutesAndBackupGbUnlimited() {
+        when(featureFlagPort.currentPlanCode()).thenReturn(PlanCodes.COMMUNITY);
+        LocalPlanEntitlementAdapter adapter = new LocalPlanEntitlementAdapter(featureFlagPort);
+        List<PlanEntitlement> entitlements = adapter.listForCurrentPlan();
+        PlanEntitlement jobMinutes = entitlements.stream()
+                .filter(e -> UsageMeters.JOB_MINUTES.equals(e.getMeter()))
+                .findFirst()
+                .orElseThrow();
+        PlanEntitlement backupGb = entitlements.stream()
+                .filter(e -> UsageMeters.BACKUP_GB.equals(e.getMeter()))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(jobMinutes.isUnlimited());
+        assertTrue(backupGb.isUnlimited());
+    }
+
     private static void assertFalseUnlimited(PlanEntitlement entitlement) {
         org.junit.jupiter.api.Assertions.assertFalse(entitlement.isUnlimited());
     }
