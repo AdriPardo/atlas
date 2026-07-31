@@ -2,33 +2,32 @@
 
 ## Estado del último incremento (completado)
 
-**Adapter Podman (ADR-0014) — opt-in vía `RuntimeOrchestratorPort`:**
+**Reelpath cutover secrets (env Atlas → PlatformSecret fallback):**
 
-- `PodmanRuntimeOrchestratorAdapter` → `podman compose up/down`; `RoutingRuntimeOrchestratorAdapter` enruta por capability.
-- Opt-in: `atlas.yml` `runtime.kind: podman-compose` + host con capability `podman` (sync ya la anuncia).
-- Compose default intacto (`kind` omitido / `compose`).
-- Tests: routing, podman adapter, deploy job, resolver capability.
+- Runtime: `pickFirstSecret` — env (Atlas envFrom) → PlatformSecret → leftover org BYOK.
+- UI end-user: sin paste BYOK; solo estado. Forms keys → Admin → Infra (`PLATFORM_ADMIN_EMAILS`).
+- `atlas.yml` envFrom: `AUTH_SECRET`, `CREDENTIALS_ENCRYPTION_KEY`, `ai.openai` / `ai.elevenlabs` / `ai.deepseek`.
+- Sin wipe DB / filas PlatformSecret.
 
-**Previo:** ADR-0017 secrets usuario→apps (`6a040d2`); Secrets project + bindings; envFrom inject; DB provisioner/TTL; feature flags; PUBLIC minify + TLS; Host sync; OpenAPI; Pipeline `hostId`; `migrateCommand`; Autopilot Tunnel/DNS/Proxmox.
+**Previo:** Adapter Podman opt-in (ADR-0014); ADR-0017 secrets usuario→apps; Secrets project + bindings; envFrom inject; DB provisioner/TTL; feature flags; PUBLIC minify + TLS; Host sync; OpenAPI; Pipeline `hostId`; `migrateCommand`; Autopilot Tunnel/DNS/Proxmox.
 
 ## Recomendación única (siguiente)
 
-**Reelpath cutover secrets:** prefer env Atlas (`envFrom` / `.env` inject) sobre `PlatformSecret` in-app — cuando el repo Reelpath esté a mano. Alternativa: Autopilot SHARED placement por capability pedida (hoy SHARED filtra solo `compose`).
+**Autopilot SHARED placement por capability pedida** — hoy SHARED filtra solo `compose`; con `runtime.kind: podman-compose` hace falta host con capability `podman` (hoy pin de host).
 
 ## Por qué es el paso más rentable ahora
 
 1. Envelope comercial v0.9 cerrado (usage + plan + flags).
-2. Flujo secrets→apps cerrado en Atlas; cutover app = trabajo aparte.
-3. Adapter Podman cierra gap deploy; placement multi-capability y K8s siguen opcionales.
+2. Flujo secrets→apps + cutover Reelpath cerrados.
+3. Adapter Podman existe; placement multi-capability sigue gap para Autopilot sin pin.
 
 ## Alcance concreto del incremento (siguiente)
 
-1. Reelpath: prefer env Atlas → fallback PlatformSecret; `atlas.yml` envFrom con keys del usuario.
+1. Placement SHARED: filtrar hosts por capability requerida del manifiesto (`compose` / `podman`).
 2. Sin Stripe / sin Redis-Kafka / sin SQL console proxy.
 
 ## Secundario (si sobra capacidad)
 
-- Autopilot SHARED: filtrar por capability requerida (podman cuando manifiesto lo pida) — hoy pin de host.
 - Más meters (job minutes, backup GB).
 - Hard-enforce soft limits (hoy solo reportan).
 
@@ -38,7 +37,7 @@
 2. Provisioner CREATE ROLE/SCHEMA + grants + UI metadata ✅
 3. URLs/credenciales TTL (opción C) ✅
 4. Feature flags / plan local ✅
-5. Secrets usuario→app (UI rotate + docs ADR-0017) ✅; cutover Reelpath pendiente
+5. Secrets usuario→app (UI rotate + docs ADR-0017) ✅; cutover Reelpath ✅
 6. Adapter Podman opt-in ✅
 7. Proxy+RLS (B) diferido
 
@@ -61,4 +60,4 @@
 
 ## Definición de éxito (siguiente)
 
-> Reelpath (u otra app) lee secrets desde env inject Atlas; PlatformSecret solo fallback; SSO/deploy/envFrom/DB/TTL/flags/Podman opt-in sin romper.
+> Autopilot SHARED elige host con la capability que pide el manifiesto (`podman` cuando `runtime.kind: podman-compose`); Compose default intacto; SSO/deploy/envFrom/DB/TTL/flags/secrets cutover sin romper.

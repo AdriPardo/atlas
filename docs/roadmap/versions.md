@@ -34,6 +34,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.17** | Host sync runtime capabilities | Sync escribe `compose`/`podman` desde probe; unreachable no pisa |
 | **v0.8.18** | PUBLIC minify + TLS guarantees | ADR-0016: `NODE_ENV=production` + requireTls docs/edge |
 | **v0.8.19** | Podman runtime adapter (opt-in) | `runtime.kind: podman-compose` → `podman compose`; Compose default |
+| **v0.8.20** | Reelpath secrets cutover | App lee Atlas envFrom; PlatformSecret = fallback |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -333,6 +334,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Sin placement SHARED por podman aún (pin host con capability `podman`).
 
 **Criterio done:** deploy con `podman-compose` + host `podman` verde; host solo-compose falla claro; default compose verde.
+
+---
+
+## v0.8.20 — Reelpath secrets cutover (Atlas env → PlatformSecret)
+
+- App resolve AI/TTS: **Atlas env** (envFrom) → **PlatformSecret** BD → leftover org BYOK.
+- End-user UI sin paste BYOK; forms keys solo Admin → Infra.
+- `atlas.yml` envFrom: AUTH/CREDENTIALS + `ai.openai` / `ai.elevenlabs` / `ai.deepseek`.
+- Sin wipe filas PlatformSecret.
+
+**Criterio done:** con env inject, keys usan env aunque haya PlatformSecret; sin env, fallback BD; login/TTS path intacto.
 
 ---
 
