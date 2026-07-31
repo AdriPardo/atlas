@@ -19,6 +19,7 @@ import com.atlas.domain.host.Host;
 import com.atlas.domain.job.Job;
 import com.atlas.domain.job.JobType;
 import com.atlas.domain.runtime.RuntimeCapability;
+import com.atlas.domain.shared.DomainException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -142,6 +143,42 @@ class AutopilotPlacementServiceTest {
 
         assertEquals(hostId, service.resolveHost(hostId).getId());
         verify(vmProvisioner, never()).provision(any(), any());
+    }
+
+    @Test
+    void sharedPrefersPodmanCapableHostWhenRequired() {
+        Host composeOnly = Host.create("compose-box", "127.0.0.1", "linux", "", true, ConnectionType.LOCAL, null, 22, null);
+        Host podmanHost = Host.create(
+                "podman-box",
+                "10.0.0.9",
+                "linux",
+                "",
+                true,
+                ConnectionType.SSH,
+                "root",
+                22,
+                null,
+                Set.of(RuntimeCapability.PODMAN));
+        when(hostRepository.listForPlacement()).thenReturn(List.of(composeOnly, podmanHost));
+
+        AutopilotPlacementService.PlacementResult result = service.resolveHost(
+                null, PlacementMode.SHARED, null, "demo", RuntimeCapability.PODMAN);
+
+        assertEquals(podmanHost.getId(), result.host().getId());
+        assertTrue(result.reason().contains("podman"));
+        verify(hostRepository, never()).save(any());
+    }
+
+    @Test
+    void sharedFailsWhenNoPodmanCapableHost() {
+        Host composeOnly = Host.create("compose-box", "127.0.0.1", "linux", "", true, ConnectionType.LOCAL, null, 22, null);
+        when(hostRepository.listForPlacement()).thenReturn(List.of(composeOnly));
+
+        DomainException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                DomainException.class,
+                () -> service.resolveHost(null, PlacementMode.SHARED, null, "demo", RuntimeCapability.PODMAN));
+        assertTrue(ex.getMessage().contains("podman"));
+        verify(hostRepository, never()).save(any());
     }
 
     @Test

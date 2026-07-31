@@ -33,6 +33,7 @@ import com.atlas.domain.service.ServiceExposure;
 import com.atlas.domain.service.ServiceStatus;
 import com.atlas.domain.service.ServiceUnit;
 import com.atlas.domain.shared.NotFoundException;
+import com.atlas.domain.runtime.RuntimeCapability;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,9 @@ class DeployServiceUseCaseTest {
 
     @Mock
     private AutopilotPlacementService autopilotPlacementService;
+
+    @Mock
+    private ResolvePlacementRuntimeCapabilityUseCase resolvePlacementRuntimeCapability;
 
     @Mock
     private EnqueueJobUseCase enqueueJobUseCase;
@@ -90,7 +94,11 @@ class DeployServiceUseCaseTest {
         when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
         when(autopilotPlacementService.resolveHost(
-                        eq(hostId), nullable(PlacementMode.class), eq(project.getId()), any()))
+                        eq(hostId),
+                        nullable(PlacementMode.class),
+                        eq(project.getId()),
+                        any(),
+                        nullable(RuntimeCapability.class)))
                 .thenReturn(placementOf(host));
         when(domainRepository.existsByProjectIdAndHostnameIgnoreCase(project.getId(), "demo.atlas.local"))
                 .thenReturn(false);
@@ -135,8 +143,13 @@ class DeployServiceUseCaseTest {
                 null);
         when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(resolvePlacementRuntimeCapability.execute(service)).thenReturn(RuntimeCapability.COMPOSE);
         when(autopilotPlacementService.resolveHost(
-                        nullable(UUID.class), nullable(PlacementMode.class), eq(project.getId()), any()))
+                        nullable(UUID.class),
+                        nullable(PlacementMode.class),
+                        eq(project.getId()),
+                        any(),
+                        eq(RuntimeCapability.COMPOSE)))
                 .thenReturn(placementOf(host));
         when(domainRepository.existsByProjectIdAndHostnameIgnoreCase(eq(project.getId()), anyString()))
                 .thenReturn(false);
@@ -158,6 +171,60 @@ class DeployServiceUseCaseTest {
         ArgumentCaptor<Domain> domainCaptor = ArgumentCaptor.forClass(Domain.class);
         verify(domainRepository).save(domainCaptor.capture());
         assertEquals("default.atlas.local", domainCaptor.getValue().getHostname());
+        verify(resolvePlacementRuntimeCapability).execute(service);
+    }
+
+    @Test
+    void autoPlacesWithPodmanCapabilityFromManifestPeek() {
+        Project project = Project.create("demo", "d");
+        ServiceUnit service = ServiceUnit.createDefault(
+                project.getId(), "https://git.example/demo.git", "main", "", "");
+        Host podmanHost = Host.create(
+                "podman-box",
+                "10.0.0.9",
+                "linux",
+                "",
+                true,
+                ConnectionType.LOCAL,
+                null,
+                22,
+                null,
+                java.util.Set.of(RuntimeCapability.PODMAN));
+        when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(resolvePlacementRuntimeCapability.execute(service)).thenReturn(RuntimeCapability.PODMAN);
+        when(autopilotPlacementService.resolveHost(
+                        nullable(UUID.class),
+                        nullable(PlacementMode.class),
+                        eq(project.getId()),
+                        any(),
+                        eq(RuntimeCapability.PODMAN)))
+                .thenReturn(placementOf(podmanHost));
+        when(domainRepository.existsByProjectIdAndHostnameIgnoreCase(eq(project.getId()), anyString()))
+                .thenReturn(false);
+        when(domainRepository.save(any(Domain.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
+        Job job = Job.enqueue(JobType.DEPLOY_SERVICE, "{}", 3);
+        when(enqueueJobUseCase.execute(any())).thenReturn(job);
+        doNothing().when(authorizationService).require(eq(project.getId()), eq(ProjectPermission.DEPLOY));
+        when(recordAuditUseCase.execute(anyString(), anyString(), any(), anyString()))
+                .thenReturn(com.atlas.domain.audit.AuditEntry.record(
+                        UUID.randomUUID(), "admin", "DEPLOY_SERVICE", "deployment", UUID.randomUUID(), "{}"));
+
+        DeployServiceUseCase.DeployResult result =
+                useCase.execute(service.getId(), null, ServiceExposure.PUBLIC);
+
+        assertEquals(podmanHost.getId(), result.deployment().getHostId());
+        verify(resolvePlacementRuntimeCapability).execute(service);
+        verify(autopilotPlacementService)
+                .resolveHost(
+                        nullable(UUID.class),
+                        nullable(PlacementMode.class),
+                        eq(project.getId()),
+                        any(),
+                        eq(RuntimeCapability.PODMAN));
     }
 
     @Test
@@ -168,8 +235,13 @@ class DeployServiceUseCaseTest {
         Host host = Host.create("local", "127.0.0.1", "linux", "", true, ConnectionType.LOCAL, null, 22, null);
         when(serviceRepository.findById(service.getId())).thenReturn(Optional.of(service));
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(resolvePlacementRuntimeCapability.execute(service)).thenReturn(RuntimeCapability.COMPOSE);
         when(autopilotPlacementService.resolveHost(
-                        nullable(UUID.class), nullable(PlacementMode.class), eq(project.getId()), any()))
+                        nullable(UUID.class),
+                        nullable(PlacementMode.class),
+                        eq(project.getId()),
+                        any(),
+                        eq(RuntimeCapability.COMPOSE)))
                 .thenReturn(placementOf(host));
         when(deploymentRepository.save(any(Deployment.class))).thenAnswer(inv -> inv.getArgument(0));
         when(serviceRepository.save(any(ServiceUnit.class))).thenAnswer(inv -> inv.getArgument(0));

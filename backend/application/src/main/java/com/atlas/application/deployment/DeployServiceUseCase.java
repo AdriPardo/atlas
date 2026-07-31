@@ -18,6 +18,7 @@ import com.atlas.domain.job.JobType;
 import com.atlas.domain.networking.Domain;
 import com.atlas.domain.project.Project;
 import com.atlas.domain.project.ProjectStatus;
+import com.atlas.domain.runtime.RuntimeCapability;
 import com.atlas.domain.service.ServiceExposure;
 import com.atlas.domain.service.ServiceStatus;
 import com.atlas.domain.service.ServiceUnit;
@@ -39,6 +40,7 @@ public class DeployServiceUseCase {
     private final DeploymentRepositoryPort deploymentRepository;
     private final DomainRepositoryPort domainRepository;
     private final AutopilotPlacementService autopilotPlacementService;
+    private final ResolvePlacementRuntimeCapabilityUseCase resolvePlacementRuntimeCapability;
     private final EnqueueJobUseCase enqueueJobUseCase;
     private final ProjectAuthorizationService authorizationService;
     private final RecordAuditUseCase recordAuditUseCase;
@@ -85,8 +87,13 @@ public class DeployServiceUseCase {
         ServiceExposure resolvedExposure = exposure == null ? ServiceExposure.PUBLIC : exposure;
         service.updateExposure(resolvedExposure);
 
+        // Explicit hostId skips capability peek; Autopilot peeks atlas.yml so SHARED can filter
+        // compose vs podman (ADR-0014).
+        RuntimeCapability requiredCapability = hostId == null
+                ? resolvePlacementRuntimeCapability.execute(service)
+                : RuntimeCapability.COMPOSE;
         AutopilotPlacementService.PlacementResult placement = autopilotPlacementService.resolveHost(
-                hostId, placementMode, project.getId(), service.getName());
+                hostId, placementMode, project.getId(), service.getName(), requiredCapability);
         Host host = placement.host();
         UUID resolvedHostId = host.getId();
 

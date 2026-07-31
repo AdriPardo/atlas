@@ -35,6 +35,7 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 | **v0.8.18** | PUBLIC minify + TLS guarantees | ADR-0016: `NODE_ENV=production` + requireTls docs/edge |
 | **v0.8.19** | Podman runtime adapter (opt-in) | `runtime.kind: podman-compose` → `podman compose`; Compose default |
 | **v0.8.20** | Reelpath secrets cutover | App lee Atlas envFrom; PlatformSecret = fallback |
+| **v0.8.21** | SHARED placement by capability | Autopilot peeks `atlas.yml`; filtra hosts `compose`/`podman` |
 | **v0.9** | Billing usage + polish | Enterprise-ready metering |
 | **v1.0** | GA | Producto comercial self-host + Autopilot path maduro |
 
@@ -345,6 +346,17 @@ Cada versión es **usable** en producción self-hosted con el alcance declarado.
 - Sin wipe filas PlatformSecret.
 
 **Criterio done:** con env inject, keys usan env aunque haya PlatformSecret; sin env, fallback BD; login/TTS path intacto.
+
+---
+
+## v0.8.21 — SHARED placement by required runtime capability
+
+- Autopilot peeks `atlas.yml` (workspace `placement/{serviceId}`) antes del enqueue cuando no hay pin `hostId`.
+- SHARED filtra hosts por capability del manifiesto (`compose` default; `podman` si `runtime.kind: podman-compose`).
+- Sin host con la capability pedida (≠ compose) → `DomainException` clara; no se siembra `atlas-local` compose-only.
+- Pin `hostId` / Compose default / SSO / envFrom / secrets cutover intactos.
+
+**Criterio done:** deploy Autopilot sin pin + `podman-compose` elige host `podman`; host solo-compose no se selecciona; compose legacy verde.
 
 ---
 

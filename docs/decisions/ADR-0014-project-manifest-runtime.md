@@ -2,7 +2,7 @@
 
 - **Estado:** Accepted (fases B–D + migrate hook + capabilities DB/placement filter + Podman adapter opt-in)
 - **Fecha:** 2026-07-27
-- **Actualizado:** 2026-07-31 — adapter Podman vía `RuntimeOrchestratorPort` (`runtime.kind: podman-compose`)
+- **Actualizado:** 2026-07-31 — SHARED placement filtra por capability del manifiesto (`compose` / `podman`)
 
 ## Contexto
 
@@ -109,7 +109,7 @@ Reglas de diseño del schema:
 - (+) Podman opt-in sin tocar Compose default ni SSO/deploy legacy.
 - (−) Riesgo de duplicar verdad (manifiesto vs compose file): mitigar con “composeFile only” como modo válido en v1alpha1.
 - (−) K8s/systemd no se diseñan en detalle aquí; solo se reserva `runtime.kind` / `RuntimeCapability`.
-- (−) Autopilot SHARED aún filtra por `compose`; deploy Podman suele ir con host pin.
+- (+) Autopilot SHARED peeks el manifiesto y filtra por capability (`compose` / `podman`); pin `hostId` sigue válido.
 
 ## Qué no hacer aún
 
@@ -123,4 +123,4 @@ Reglas de diseño del schema:
 
 ## Relación con el siguiente paso operativo
 
-Fases B–D + pipeline sin host pin (v0.8.12) + capabilities persistidos / filtro placement (v0.8.14) + UX Domains 403 scopes (v0.8.15) + OpenAPI publicado / sunset `/applications` (v0.8.16) + sync capabilities reales (v0.8.17) + Podman adapter opt-in (v0.8.19): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort` (Compose default, Podman si `podman-compose`); Host sync escribe `compose`/`podman` desde probe. Siguiente: ver `docs/roadmap/next-step.md`.
+Fases B–D + pipeline sin host pin (v0.8.12) + capabilities persistidos / filtro placement (v0.8.14) + UX Domains 403 scopes (v0.8.15) + OpenAPI publicado / sunset `/applications` (v0.8.16) + sync capabilities reales (v0.8.17) + Podman adapter opt-in (v0.8.19) + placement SHARED multi-capability (v0.8.21): deploy lee manifiesto; API/UI no exigen `composePath`; orquestación vía `RuntimeOrchestratorPort` (Compose default, Podman si `podman-compose`); Host sync escribe `compose`/`podman` desde probe; Autopilot SHARED elige host por capability pedida. Siguiente: ver `docs/roadmap/next-step.md`.

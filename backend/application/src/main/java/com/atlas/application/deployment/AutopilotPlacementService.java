@@ -8,6 +8,7 @@ import com.atlas.domain.deployment.PlacementMode;
 import com.atlas.domain.host.ConnectionType;
 import com.atlas.domain.host.Host;
 import com.atlas.domain.runtime.RuntimeCapability;
+import com.atlas.domain.shared.DomainException;
 import com.atlas.domain.shared.NotFoundException;
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Autopilot host resolution (ADR-0010 / ADR-0012 / REUSED). Prefer shared LOCAL Docker hosts;
  * for ISOLATED, reuse an existing SSH Host by hostname, else ask Proxmox (reuse VM by name/tag or
  * clone), register Host + Sync, and let Deploy reuse {@code DEPLOY_SERVICE}.
+ * SHARED filters by the runtime capability required by the project manifest (compose default;
+ * podman when {@code runtime.kind: podman-compose}).
  */
 @Service
 @RequiredArgsConstructor
@@ -36,11 +39,11 @@ public class AutopilotPlacementService {
 
     @Transactional
     public Host resolveHost(UUID explicitHostId) {
-        return resolveHost(explicitHostId, PlacementMode.SHARED, null, null).host();
+        return resolveHost(explicitHostId, PlacementMode.SHARED, null, null, null).host();
     }
 
     /**
-     * Resolve a target Host for deploy.
+     * Resolve a target Host for deploy (compose capability).
      *
      * @param explicitHostId Advanced override; skips Autopilot policy when set
      * @param placementMode SHARED (default) or ISOLATED (Proxmox path with LOCAL fallback)
@@ -50,6 +53,24 @@ public class AutopilotPlacementService {
     @Transactional
     public PlacementResult resolveHost(
             UUID explicitHostId, PlacementMode placementMode, UUID projectId, String nameHint) {
+        return resolveHost(explicitHostId, placementMode, projectId, nameHint, null);
+    }
+
+    /**
+     * Resolve a target Host for deploy.
+     *
+     * @param requiredCapability host runtime tag required by {@code atlas.yml} (null → compose)
+     */
+    @Transactional
+    public PlacementResult resolveHost(
+            UUID explicitHostId,
+            PlacementMode placementMode,
+            UUID projectId,
+            String nameHint,
+            RuntimeCapability requiredCapability) {
+        RuntimeCapability required =
+                requiredCapability == null ? RuntimeCapability.COMPOSE : requiredCapability;
+
         if (explicitHostId != null) {
             Host host = hostRepository
                     .findById(explicitHostId)
@@ -84,7 +105,7 @@ public class AutopilotPlacementService {
                 Optional<UUID> sshKeySecretId =
                         resolveSecretValue.idForProject(projectId, VmProvisionerPort.SSH_PRIVATE_KEY_SECRET_NAME);
                 if (sshKeySecretId.isEmpty()) {
-                    Host shared = resolveSharedLocal();
+                    Host shared = resolveSharedLocal(required);
                     String reason = "ISOLATED → shared LOCAL fallback: missing secret "
                             + VmProvisionerPort.SSH_PRIVATE_KEY_SECRET_NAME
                             + " (link PEM used by the Proxmox cloud-init template)";
@@ -96,12 +117,17 @@ public class AutopilotPlacementService {
                 return new PlacementResult(host, PlacementMode.ISOLATED, provision.message(), provision.mode());
             }
 
-            Host shared = resolveSharedLocal();
+            Host shared = resolveSharedLocal(required);
             String reason = "ISOLATED → shared LOCAL fallback: " + provision.message();
             return new PlacementResult(shared, PlacementMode.SHARED, reason, provision.mode());
         }
 
-        return new PlacementResult(resolveSharedLocal(), PlacementMode.SHARED, "SHARED placement", null);
+        Host shared = resolveSharedLocal(required);
+        return new PlacementResult(
+                shared,
+                PlacementMode.SHARED,
+                "SHARED placement (capability " + required.tag() + ")",
+                null);
     }
 
     /**
@@ -151,19 +177,24 @@ public class AutopilotPlacementService {
                 sshPrivateKeySecretId));
     }
 
-    private Host resolveSharedLocal() {
-        return resolveSharedLocal(RuntimeCapability.COMPOSE);
-    }
-
     /**
      * SHARED placement: score only hosts that advertise the required runtime capability
-     * (compose today; future runtimes pass their tag).
+     * ({@code compose} default; {@code podman} when manifest asks for podman-compose).
      */
     private Host resolveSharedLocal(RuntimeCapability required) {
+        RuntimeCapability capability = required == null ? RuntimeCapability.COMPOSE : required;
         List<Host> hosts = hostRepository.listForPlacement().stream()
-                .filter(host -> host.supportsRuntime(required))
+                .filter(host -> host.supportsRuntime(capability))
                 .toList();
         if (hosts.isEmpty()) {
+            if (capability != RuntimeCapability.COMPOSE) {
+                throw new DomainException(
+                        "No SHARED host advertises runtime capability "
+                                + capability.tag()
+                                + " (required by atlas.yml runtime.kind"
+                                + (capability == RuntimeCapability.PODMAN ? ": podman-compose" : "")
+                                + ")");
+            }
             return ensureDefaultLocalHost();
         }
         return hosts.stream()
