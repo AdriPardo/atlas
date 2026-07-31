@@ -54,7 +54,9 @@ Override: `env:` o `as:` en el item. Valores **nunca** van a logs de deploy. Sec
 | Método | Ruta | Notas |
 |--------|------|-------|
 | GET/POST | `/secrets` | Org/global; POST = ADMIN |
+| PUT | `/secrets` | Org/global **upsert** (ops seed/rotate); ADMIN |
 | GET/POST | `/projects/{id}/secrets` | List (owned+linked) / create owned |
+| PUT | `/projects/{id}/secrets` | Project-owned **upsert** (ops seed/rotate) |
 | POST | `/projects/{id}/secrets/bindings` | Link global → alias |
 | DELETE | `/projects/{id}/secrets/bindings/{bindingId}` | Unlink |
 | DELETE | `/projects/{id}/secrets/{secretId}` | Delete owned |
@@ -84,7 +86,7 @@ Nombres lógicos conocidos (hints en UI):
 | `ai.api_key` | Key genérica → `AI_API_KEY` | Single-client abstraction |
 | `ai.base_url` | Base URL genérica → `AI_BASE_URL` | Local / gateway |
 
-Rotación: crear nueva versión / reemplazar valor; deploys siguientes usan latest.
+Rotación: **re-ejecutar** [`scripts/seed-project-secrets.sh`](../../scripts/seed-project-secrets.sh) (PUT upsert desde `.env.secrets`) o reemplazar valor en UI break-glass; deploys siguientes usan latest. End-users **nunca** pegan keys en UI de la app.
 
 Acceso DB por project (producto): [project-database-access.md](../product/project-database-access.md).
 AI de plataforma (producto): [platform-provided-ai.md](../product/platform-provided-ai.md).

@@ -26,9 +26,10 @@ Secrets + `envFrom` ya existen ([ADR-0014](ADR-0014-project-manifest-runtime.md)
 ## Decisión
 
 1. **AI es capacidad de plataforma**, no BYOK para end-users de apps hospedadas. Operadores Atlas (ADMIN/OPERATOR) gestionan keys; usuarios de Reelpath (y apps similares) **no** ven formularios de OpenAI/ElevenLabs/DeepSeek.
-2. **Dónde viven las keys:** almacén de secrets Atlas — preferido **org/global** (una key compartida por install) o **project-owned** / binding si un project necesita override. Alternativa ops: env a nivel host (Compose del host) sin pasar por UI app; sigue siendo ops, no end-user.
-3. **Entrega al runtime:** `atlas.yml` `runtime.envFrom` / `services.*.envFrom` → worker escribe `.env` antes de `compose up` (mismo path que `db.url`).
-4. **Nombres lógicos (convención):**
+2. **Cómo se guardan las keys (ops):** **script idempotente**, no pegar en UI de la app ni (preferido) en UI Atlas como flujo normal. `scripts/seed-project-secrets.sh` lee `.env.secrets` (gitignored) o env de VM → `PUT /api/v1/secrets` (org) o `PUT /api/v1/projects/{id}/secrets` (project). Rotación = re-ejecutar script. Valores **nunca** se commitean.
+3. **Dónde viven las keys:** almacén de secrets Atlas — preferido **org/global** (una key compartida por install) o **project-owned** / binding si un project necesita override. Alternativa ops: env a nivel host (Compose del host) sin pasar por UI app; sigue siendo ops, no end-user.
+4. **Entrega al runtime:** `atlas.yml` `runtime.envFrom` / `services.*.envFrom` → worker escribe `.env` antes de `compose up` (mismo path que `db.url`).
+5. **Nombres lógicos (convención):**
 
    | Secret lógico | Env default | Uso |
    |---------------|-------------|-----|
@@ -42,9 +43,9 @@ Secrets + `envFrom` ya existen ([ADR-0014](ADR-0014-project-manifest-runtime.md)
 
    **Multi-capability hoy (Reelpath):** preferir keys por vendor (`ai.openai` + `ai.elevenlabs` [+ `ai.deepseek`]).  
    **Single-client / swap futuro:** `ai.provider` + `ai.api_key` + opcional `ai.base_url` — Autopilot o ops cambian valores; la app no pide nada al usuario.
-5. **Resolución:** binding alias → project-owned → org/global (igual que `git.token` / `db.url`).
-6. **Apps existentes (Reelpath):** no borrar `PlatformSecret` en DB. Precedencia runtime: **env inyectado por Atlas gana** si está presente; fallback a PlatformSecret solo durante migración. UI de keys end-user: **ocultar detrás de flag ops** o retirar de pantallas de usuario; panel ops-only opcional hasta cutover.
-7. **Atlas no es un LLM gateway** en este ADR: no proxya tokens ni factura AI por request. Solo posee secrets + inject. Metering AI = cola futura si billing lo pide.
+6. **Resolución:** binding alias → project-owned → org/global (igual que `git.token` / `db.url`).
+7. **Apps existentes (Reelpath):** no borrar `PlatformSecret` en DB. Precedencia runtime: **env inyectado por Atlas gana** si está presente; fallback a PlatformSecret solo durante migración. El mismo seed script puede opcionalmente upsert `PlatformSecret` (`REELPATH_SEED_PLATFORM=1`) hasta cutover. UI de keys end-user: **ocultar detrás de flag ops** o retirar de pantallas de usuario; panel ops-only opcional hasta cutover.
+8. **Atlas no es un LLM gateway** en este ADR: no proxya tokens ni factura AI por request. Solo posee secrets + inject. Metering AI = cola futura si billing lo pide.
 
 ## Fuera de alcance (ahora)
 
@@ -58,11 +59,13 @@ Secrets + `envFrom` ya existen ([ADR-0014](ADR-0014-project-manifest-runtime.md)
 - (+) Contrato claro: plataforma paga / opera AI; usuario consume feature, no keys.
 - (+) Swap a local = cambiar `ai.openai.base_url` / `ai.base_url` (+ key dummy si hace falta) sin redeploy de UI ni touch de tenants.
 - (+) Reusa secrets + envFrom; cero nuevo almacén.
+- (+) Seed/rotate vía script → audit trail ops; sin keys en git ni en manos de end-user.
 - (−) Apps deben preferir `process.env` / config sobre PlatformSecret UI.
-- (−) Migración Reelpath es trabajo en repo de la app + ops crea secrets org.
+- (−) Migración Reelpath es trabajo en repo de la app + ops corre seed script.
 
 ## Referencias
 
 - Producto: [platform-provided-ai.md](../product/platform-provided-ai.md)
 - Secrets / envFrom: [config-security.md](../modules/config-security.md)
+- Seed ops: [seed-project-secrets.sh](../../scripts/seed-project-secrets.sh) + [env.secrets.example](../../scripts/env.secrets.example)
 - Manifiesto ejemplo: [atlas.project.example.yml](../schemas/atlas.project.example.yml)

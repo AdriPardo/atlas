@@ -9,9 +9,11 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +33,15 @@ public class SecretController {
                 new CreateSecretUseCase.CreateSecretCommand(request.name(), request.value()));
         return ResponseEntity.created(URI.create("/api/v1/secrets/" + secret.getId()))
                 .body(apiMapper.toSecretResponse(secret));
+    }
+
+    /** Idempotent org/global upsert (ops seed / rotate). ADMIN only. */
+    @PutMapping
+    public ResponseEntity<SecretResponse> upsert(@Valid @RequestBody CreateSecretRequest request) {
+        CreateSecretUseCase.UpsertResult result = createSecretUseCase.upsert(
+                new CreateSecretUseCase.CreateSecretCommand(request.name(), request.value()));
+        HttpStatus status = result.updated() ? HttpStatus.OK : HttpStatus.CREATED;
+        return ResponseEntity.status(status).body(apiMapper.toSecretResponse(result.secret()));
     }
 
     @GetMapping

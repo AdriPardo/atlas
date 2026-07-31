@@ -74,6 +74,42 @@ class ManageProjectSecretsUseCaseTest {
     }
 
     @Test
+    void upsertOwnedCreatesWhenMissing() {
+        Project project = Project.create("demo", "d");
+        projectId = project.getId();
+        doNothing().when(authorizationService).require(projectId, ProjectPermission.DEPLOY);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+        when(bindingRepository.existsByProjectIdAndAlias(projectId, "ai.openai")).thenReturn(false);
+        when(secretRepository.findByProjectIdAndName(projectId, "ai.openai")).thenReturn(Optional.empty());
+        when(secretCipher.encrypt("sk-test")).thenReturn("cipher");
+        when(secretRepository.save(any(Secret.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        var result = useCase.upsertOwned(projectId, "ai.openai", "sk-test");
+
+        assertEquals(false, result.updated());
+        assertEquals("ai.openai", result.secret().getName());
+    }
+
+    @Test
+    void upsertOwnedReplacesCiphertext() {
+        Project project = Project.create("demo", "d");
+        projectId = project.getId();
+        Secret existing = Secret.createForProject(projectId, "ai.openai", "old-cipher");
+        doNothing().when(authorizationService).require(projectId, ProjectPermission.DEPLOY);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+        when(bindingRepository.existsByProjectIdAndAlias(projectId, "ai.openai")).thenReturn(false);
+        when(secretRepository.findByProjectIdAndName(projectId, "ai.openai")).thenReturn(Optional.of(existing));
+        when(secretCipher.encrypt("sk-new")).thenReturn("new-cipher");
+        when(secretRepository.save(any(Secret.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        var result = useCase.upsertOwned(projectId, "ai.openai", "sk-new");
+
+        assertEquals(true, result.updated());
+        assertEquals("new-cipher", result.secret().getCiphertext());
+        assertEquals(existing.getId(), result.secret().getId());
+    }
+
+    @Test
     void linkRejectsNonGlobalSecret() {
         Project project = Project.create("demo", "d");
         projectId = project.getId();

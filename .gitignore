@@ -9,6 +9,8 @@
 .vscode/
 *.log
 .env
+.env.secrets
+*.secrets.local
 node_modules/
 frontend/dist/
 .DS_Store

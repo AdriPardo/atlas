@@ -12,11 +12,13 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,6 +42,16 @@ public class ProjectSecretController {
         Secret secret = manageProjectSecretsUseCase.createOwned(projectId, request.name(), request.value());
         return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId + "/secrets/" + secret.getId()))
                 .body(apiMapper.toSecretResponse(secret));
+    }
+
+    /** Idempotent project-owned upsert (ops seed / rotate). */
+    @PutMapping("/api/v1/projects/{projectId}/secrets")
+    public ResponseEntity<SecretResponse> upsertOwned(
+            @PathVariable UUID projectId, @Valid @RequestBody CreateSecretRequest request) {
+        ManageProjectSecretsUseCase.UpsertOwnedResult result =
+                manageProjectSecretsUseCase.upsertOwned(projectId, request.name(), request.value());
+        HttpStatus status = result.updated() ? HttpStatus.OK : HttpStatus.CREATED;
+        return ResponseEntity.status(status).body(apiMapper.toSecretResponse(result.secret()));
     }
 
     @PostMapping("/api/v1/projects/{projectId}/secrets/bindings")

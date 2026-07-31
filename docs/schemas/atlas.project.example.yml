@@ -23,12 +23,11 @@ runtime:
   # Override with env: / as:
   envFrom:
     - secretRef: db.url
-    - secretRef: ai.openai
-    - secretRef: ai.elevenlabs
-    # Local / OpenAI-compatible swap (optional):
-    # - secretRef: ai.openai.base_url
-    # Single-client abstraction (optional alternative to per-vendor keys):
-    # - secretRef: ai.provider
+    # ADR-0017 — platform AI via ops seed script (not end-user BYOK)
+    - secretRef: ai.openai            # → OPENAI_API_KEY
+    - secretRef: ai.elevenlabs        # → ELEVENLABS_API_KEY
+    # - secretRef: ai.openai.base_url # → OPENAI_BASE_URL (local / proxy)
+    # - secretRef: ai.provider        # single-client abstraction
     # - secretRef: ai.api_key
     # - secretRef: ai.base_url
 

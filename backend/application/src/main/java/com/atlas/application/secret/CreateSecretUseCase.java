@@ -33,5 +33,27 @@ public class CreateSecretUseCase {
         return secretRepository.save(Secret.createGlobal(command.name(), ciphertext));
     }
 
+    /**
+     * Idempotent create-or-replace for org/global secrets (ops seed / rotate). ADMIN only.
+     * Does not log or return plaintext.
+     */
+    @Transactional
+    public UpsertResult upsert(CreateSecretCommand command) {
+        CurrentUserPort.Actor actor = authorizationService.requireActor();
+        if (!actor.isAdmin()) {
+            throw new ForbiddenException("Only ADMIN can upsert organization secrets");
+        }
+        String ciphertext = secretCipher.encrypt(command.value());
+        var existing = secretRepository.findGlobalByName(command.name());
+        if (existing.isPresent()) {
+            Secret saved = secretRepository.save(existing.get().withCiphertext(ciphertext));
+            return new UpsertResult(saved, true);
+        }
+        Secret created = secretRepository.save(Secret.createGlobal(command.name(), ciphertext));
+        return new UpsertResult(created, false);
+    }
+
     public record CreateSecretCommand(String name, String value) {}
+
+    public record UpsertResult(Secret secret, boolean updated) {}
 }

@@ -94,6 +94,30 @@ public class ManageProjectSecretsUseCase {
         return secretRepository.save(Secret.createForProject(projectId, name, ciphertext));
     }
 
+    /**
+     * Idempotent create-or-replace for project-owned secrets (ops seed / rotate).
+     * Fails if the name is already a linked org-secret alias — unlink first.
+     */
+    @Transactional
+    public UpsertOwnedResult upsertOwned(UUID projectId, String name, String value) {
+        authorizationService.require(projectId, ProjectPermission.DEPLOY);
+        requireProject(projectId);
+        if (bindingRepository.existsByProjectIdAndAlias(projectId, name)) {
+            throw new DomainException(
+                    "Alias '" + name + "' is linked from an org secret — unlink before upsert");
+        }
+        String ciphertext = secretCipher.encrypt(value);
+        var existing = secretRepository.findByProjectIdAndName(projectId, name);
+        if (existing.isPresent()) {
+            Secret saved = secretRepository.save(existing.get().withCiphertext(ciphertext));
+            return new UpsertOwnedResult(saved, true);
+        }
+        Secret created = secretRepository.save(Secret.createForProject(projectId, name, ciphertext));
+        return new UpsertOwnedResult(created, false);
+    }
+
+    public record UpsertOwnedResult(Secret secret, boolean updated) {}
+
     @Transactional
     public ProjectSecretEntry linkGlobal(UUID projectId, UUID secretId, String aliasOrNull) {
         authorizationService.require(projectId, ProjectPermission.DEPLOY);
