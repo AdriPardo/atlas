@@ -21,12 +21,6 @@ public class RoutingRuntimeOrchestratorAdapter implements RuntimeOrchestratorPor
         this.podman = new PodmanRuntimeOrchestratorAdapter(containerRuntime);
     }
 
-    RoutingRuntimeOrchestratorAdapter(
-            ComposeRuntimeOrchestratorAdapter compose, PodmanRuntimeOrchestratorAdapter podman) {
-        this.compose = compose;
-        this.podman = podman;
-    }
-
     @Override
     public void apply(RuntimeApplyCommand command) {
         delegate(command.capability()).apply(command);
