@@ -1,11 +1,13 @@
 package com.atlas.api.web;
 
 import com.atlas.api.dto.request.IssueProjectDatabaseCredentialRequest;
+import com.atlas.api.dto.response.ProjectDatabaseConsoleSessionResponse;
 import com.atlas.api.dto.response.ProjectDatabaseCredentialListItemResponse;
 import com.atlas.api.dto.response.ProjectDatabaseCredentialResponse;
 import com.atlas.api.dto.response.ProjectDatabaseProvisionResponse;
 import com.atlas.api.dto.response.ProjectDatabaseResponse;
 import com.atlas.application.database.IssueProjectDatabaseCredentialsUseCase;
+import com.atlas.application.database.OpenProjectDatabaseConsoleUseCase;
 import com.atlas.application.database.ProvisionProjectDatabaseUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,11 +32,13 @@ public class ProjectDatabaseController {
 
     private final ProvisionProjectDatabaseUseCase provisionProjectDatabaseUseCase;
     private final IssueProjectDatabaseCredentialsUseCase issueProjectDatabaseCredentialsUseCase;
+    private final OpenProjectDatabaseConsoleUseCase openProjectDatabaseConsoleUseCase;
 
     @GetMapping
     @Operation(summary = "Project DB status (schema metadata; never returns credentials)")
     public ResponseEntity<ProjectDatabaseResponse> status(@PathVariable UUID projectId) {
         var status = provisionProjectDatabaseUseCase.status(projectId);
+        String consoleUrl = openProjectDatabaseConsoleUseCase.publicUrlOrEmpty();
         return ResponseEntity.ok(new ProjectDatabaseResponse(
                 status.provisionerConfigured(),
                 status.provisioned(),
@@ -42,7 +46,9 @@ public class ProjectDatabaseController {
                 status.role(),
                 status.databaseName(),
                 status.profile(),
-                status.message()));
+                status.message(),
+                openProjectDatabaseConsoleUseCase.isConfigured(),
+                consoleUrl.isBlank() ? null : consoleUrl));
     }
 
     @PostMapping("/provision")
@@ -82,6 +88,27 @@ public class ProjectDatabaseController {
                 issued.connectionUrl(),
                 issued.expiresAt(),
                 issued.ttlMinutes()));
+    }
+
+    @PostMapping("/console-session")
+    @Operation(
+            summary =
+                    "Issue TTL creds and return pgweb console launch payload (SSO-gated console URL)")
+    public ResponseEntity<ProjectDatabaseConsoleSessionResponse> openConsole(
+            @PathVariable UUID projectId, @Valid @RequestBody(required = false) IssueProjectDatabaseCredentialRequest body) {
+        IssueProjectDatabaseCredentialRequest req =
+                body == null ? new IssueProjectDatabaseCredentialRequest(null, null) : body;
+        var session = openProjectDatabaseConsoleUseCase.open(projectId, req.profile(), req.ttlMinutes());
+        return ResponseEntity.ok(new ProjectDatabaseConsoleSessionResponse(
+                session.consoleUrl(),
+                session.schema(),
+                session.database(),
+                session.server(),
+                session.role(),
+                session.profile(),
+                session.connectionUrl(),
+                session.expiresAt(),
+                session.ttlMinutes()));
     }
 
     @DeleteMapping("/credentials/{role}")

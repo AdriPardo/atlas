@@ -169,6 +169,8 @@ export interface ProjectDatabaseStatus {
   databaseName: string | null
   profile: string
   message: string
+  consoleConfigured: boolean
+  consoleUrl: string | null
 }
 
 export interface ProjectDatabaseProvisionResult {
@@ -180,6 +182,18 @@ export interface ProjectDatabaseProvisionResult {
 }
 
 export interface ProjectDatabaseCredential {
+  role: string
+  profile: string
+  connectionUrl: string
+  expiresAt: string
+  ttlMinutes: number
+}
+
+export interface ProjectDatabaseConsoleSession {
+  consoleUrl: string
+  schema: string
+  database: string
+  server: string
   role: string
   profile: string
   connectionUrl: string

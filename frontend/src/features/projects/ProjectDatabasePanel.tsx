@@ -23,6 +23,7 @@ export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
   const [ttlMinutes, setTtlMinutes] = useState(60)
   const [issuedUrl, setIssuedUrl] = useState<string | null>(null)
   const [copyLabel, setCopyLabel] = useState('Copy URL')
+  const [consoleHint, setConsoleHint] = useState<string | null>(null)
 
   const statusQuery = useQuery({
     queryKey: ['projects', projectId, 'database'],
@@ -50,6 +51,24 @@ export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
     onSuccess: async (result) => {
       setIssuedUrl(result.connectionUrl)
       setCopyLabel('Copy URL')
+      await queryClient.invalidateQueries({
+        queryKey: ['projects', projectId, 'database', 'credentials'],
+      })
+    },
+  })
+
+  const openConsoleMutation = useMutation({
+    mutationFn: () =>
+      projectDatabaseApi.openConsole(projectId, { profile, ttlMinutes }),
+    onSuccess: async (session) => {
+      setConsoleHint(
+        `Opened console for schema ${session.schema} (role ${session.role}, TTL ${session.ttlMinutes}m). Use the schema selector if needed.`,
+      )
+      const base = session.consoleUrl.endsWith('/')
+        ? session.consoleUrl
+        : `${session.consoleUrl}/`
+      const url = `${base}?url=${encodeURIComponent(session.connectionUrl)}`
+      window.open(url, '_blank', 'noopener,noreferrer')
       await queryClient.invalidateQueries({
         queryKey: ['projects', projectId, 'database', 'credentials'],
       })
@@ -89,7 +108,7 @@ export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
             {DB_SCHEMA_SECRET}
           </Typography>
           . Control-plane DB <code>atlas</code> is never exposed. TTL URLs are ephemeral (option C)
-          and do not rotate <code>db.url</code>.
+          and do not rotate <code>db.url</code>. Open database uses the managed SQL console (SSO).
         </Typography>
 
         <QueryState isLoading={statusQuery.isLoading} isError={statusQuery.isError}>
@@ -145,7 +164,7 @@ export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
                     : 'Schema + role created; db.url / db.schema stored.'}
                 </Alert>
               )}
-              <Stack direction="row" spacing={1}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 <Button
                   variant="contained"
                   disabled={!data.provisionerConfigured || provisionMutation.isPending}
@@ -153,7 +172,40 @@ export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
                 >
                   {data.provisioned ? 'Rotate / re-provision' : 'Provision DB'}
                 </Button>
+                {data.provisioned && data.provisionerConfigured && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    disabled={!data.consoleConfigured || openConsoleMutation.isPending}
+                    onClick={() => openConsoleMutation.mutate()}
+                  >
+                    Open database
+                  </Button>
+                )}
               </Stack>
+              {data.provisioned && data.provisionerConfigured && !data.consoleConfigured && (
+                <Alert severity="info" variant="outlined">
+                  SQL console not configured (<code>ATLAS_DB_CONSOLE_URL</code>). Issue URL still
+                  works for local <code>psql</code> / GUI.
+                </Alert>
+              )}
+              {openConsoleMutation.isError && (
+                <Alert severity="error" variant="outlined">
+                  {(() => {
+                    const apiMessage =
+                      (openConsoleMutation.error as { response?: { data?: { message?: string } } })
+                        ?.response?.data?.message
+                    return apiMessage?.trim()
+                      ? apiMessage
+                      : 'Could not open console. Check permissions, provisioner, and ATLAS_DB_CONSOLE_URL.'
+                  })()}
+                </Alert>
+              )}
+              {consoleHint && (
+                <Alert severity="success" variant="outlined" onClose={() => setConsoleHint(null)}>
+                  {consoleHint}
+                </Alert>
+              )}
 
               {data.provisioned && data.provisionerConfigured && (
                 <Stack spacing={1.5} sx={{ pt: 1 }}>
@@ -161,8 +213,9 @@ export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
                     Temporary credentials
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Issue a short-lived URL for local <code>psql</code> / GUI. Default profile is
-                    read-only.
+                    Open database (preferred) or issue a short-lived URL for local{' '}
+                    <code>psql</code> / GUI. Default profile is read-only. Profile + TTL apply to
+                    both.
                   </Typography>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
                     <FormControl size="small" sx={{ minWidth: 160 }}>

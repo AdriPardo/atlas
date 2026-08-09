@@ -7,4 +7,6 @@ public record ProjectDatabaseResponse(
         String role,
         String databaseName,
         String profile,
-        String message) {}
+        String message,
+        boolean consoleConfigured,
+        String consoleUrl) {}

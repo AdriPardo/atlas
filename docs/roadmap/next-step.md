@@ -2,7 +2,13 @@
 
 ## Estado del último incremento (completado)
 
-**Billing meters `job.minutes` + `backup.gb`:**
+**One-click DB console (pgweb):**
+
+- Compose `deploy/db-console` → `https://atlas.atlasops.dev/db-console/` (Authentik ForwardAuth).
+- `POST /projects/{id}/database/console-session` + botón **Open database** (TTL + schema `search_path`).
+- `ATLAS_DB_CONSOLE_URL`; ADR-0015 / product docs actualizados.
+
+**Previo — Billing meters `job.minutes` + `backup.gb`:**
 
 - `UsageMeters.JOB_MINUTES` / `BACKUP_GB`; entitlements soft unlimited (community/enterprise).
 - Complete/fail/stale job → wall-clock minutes vía `BillingMeterPort` (dims: jobId, jobType, status).
@@ -19,12 +25,12 @@
 
 1. Envelope meters (`deploy.count`, `job.minutes`, `backup.gb`) + gauges cerrados.
 2. Soft limits sin dientes = commercial envelope incompleto.
-3. Stripe / Redis-Kafka / SQL console siguen fuera.
+3. Stripe / Redis-Kafka siguen fuera; SQL console web (pgweb) ya shipped.
 
 ## Alcance concreto del incremento (siguiente)
 
 1. Gate en flujos sensibles (create project/host, opcional enqueue deploy) cuando usage/gauge ≥ limit y `soft=true` aún: o bien rechazo claro, o flag `ATLAS_BILLING_ENFORCE`.
-2. Sin Stripe / sin Redis-Kafka / sin SQL console proxy.
+2. Sin Stripe / sin Redis-Kafka.
 
 ## Secundario (si sobra capacidad)
 
@@ -40,7 +46,8 @@
 6. Adapter Podman opt-in ✅
 7. Placement SHARED por capability (`compose`/`podman`) ✅
 8. Meters job minutes + backup GB ✅
-9. Proxy+RLS (B) diferido
+9. Consola SQL web (pgweb + Open database) ✅
+10. CloudBeaver / proxy+RLS in-Atlas — upgrade path si hace falta
 
 ## Norte estratégico (no es el siguiente incremento)
 
@@ -55,10 +62,10 @@
 - No eliminar `composePath` de DB antes de migrar callers restantes.
 - No `compose down -v` ni tocar `.env` en runbooks de deploy.
 - No retirar `/applications` antes de Sunset 2027-08-01.
-- No SQL console / proxy RLS sin demanda explícita.
 - No interferir con fixes de login Reelpath en paralelo.
 - No apuntar `ATLAS_APP_DB_URL` a la DB `atlas`.
+- No exponer pgweb/Adminer sin Authentik.
 
 ## Definición de éxito (siguiente)
 
-> Create project/host (y opcional deploy) rechaza o avisa de forma controlada al cruzar soft limit; SSO/deploy/placement/secrets/meters sin romper; enforce opt-in o documentado.
+> Create project/host (y opcional deploy) rechaza o avisa de forma controlada al cruzar soft limit; SSO/deploy/placement/secrets/meters/consola DB sin romper; enforce opt-in o documentado.

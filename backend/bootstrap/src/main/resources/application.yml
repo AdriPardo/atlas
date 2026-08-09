@@ -103,6 +103,9 @@ atlas:
     jdbc-url: ${ATLAS_APP_DB_URL:}
     username: ${ATLAS_APP_DB_USERNAME:}
     password: ${ATLAS_APP_DB_PASSWORD:}
+  # Managed SQL console (pgweb). Must sit behind Authentik; blank disables Open database.
+  db-console:
+    public-url: ${ATLAS_DB_CONSOLE_URL:}
   proxmox:
     # Autopilot ISOLATED placement (optional). Secret proxmox.api.token via Secrets UI.
     api-url: ${ATLAS_PROXMOX_API_URL:}

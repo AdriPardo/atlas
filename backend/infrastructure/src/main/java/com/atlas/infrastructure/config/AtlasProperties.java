@@ -16,6 +16,7 @@ public class AtlasProperties {
     private final Networking networking = new Networking();
     private final Proxmox proxmox = new Proxmox();
     private final AppDatabase appDatabase = new AppDatabase();
+    private final DbConsole dbConsole = new DbConsole();
     private final Plan plan = new Plan();
     private final Features features = new Features();
 
@@ -69,6 +70,10 @@ public class AtlasProperties {
 
     public AppDatabase getAppDatabase() {
         return appDatabase;
+    }
+
+    public DbConsole getDbConsole() {
+        return dbConsole;
     }
 
     /** Local commercial plan ({@code community} | {@code enterprise}). */
@@ -141,6 +146,23 @@ public class AtlasProperties {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+    }
+
+    /**
+     * Managed web SQL console (pgweb/Adminer) for project DBs. Public URL must be Authentik-gated.
+     * Blank = Open database button disabled.
+     */
+    public static class DbConsole {
+        /** e.g. {@code https://atlas.atlasops.dev/db-console/} */
+        private String publicUrl = "";
+
+        public String getPublicUrl() {
+            return publicUrl;
+        }
+
+        public void setPublicUrl(String publicUrl) {
+            this.publicUrl = publicUrl;
         }
     }
 

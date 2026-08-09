@@ -25,3 +25,5 @@ atlas:
     jdbc-url: ${ATLAS_APP_DB_URL:}
     username: ${ATLAS_APP_DB_USERNAME:}
     password: ${ATLAS_APP_DB_PASSWORD:}
+  db-console:
+    public-url: ${ATLAS_DB_CONSOLE_URL:}

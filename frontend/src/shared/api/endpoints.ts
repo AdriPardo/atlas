@@ -29,6 +29,7 @@ import type {
   ProjectDatabaseProvisionResult,
   ProjectDatabaseCredential,
   ProjectDatabaseCredentialListItem,
+  ProjectDatabaseConsoleSession,
   SecretMeta,
   Service,
   ServiceExposure,
@@ -306,6 +307,16 @@ export const projectDatabaseApi = {
   ) =>
     api
       .post<ProjectDatabaseCredential>(`/projects/${projectId}/database/credentials`, body ?? {})
+      .then((r) => r.data),
+  openConsole: (
+    projectId: string,
+    body?: { profile?: string; ttlMinutes?: number },
+  ) =>
+    api
+      .post<ProjectDatabaseConsoleSession>(
+        `/projects/${projectId}/database/console-session`,
+        body ?? {},
+      )
       .then((r) => r.data),
   revokeCredential: (projectId: string, role: string) =>
     api.delete(`/projects/${projectId}/database/credentials/${encodeURIComponent(role)}`),
