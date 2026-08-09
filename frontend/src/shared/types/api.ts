@@ -196,7 +196,6 @@ export interface ProjectDatabaseConsoleSession {
   server: string
   role: string
   profile: string
-  connectionUrl: string
   expiresAt: string
   ttlMinutes: number
 }

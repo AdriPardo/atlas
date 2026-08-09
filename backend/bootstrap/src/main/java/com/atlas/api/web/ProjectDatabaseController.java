@@ -93,7 +93,7 @@ public class ProjectDatabaseController {
     @PostMapping("/console-session")
     @Operation(
             summary =
-                    "Issue TTL creds and return pgweb console launch payload (SSO-gated console URL)")
+                    "Issue TTL creds + one-time pgweb Connect Backend launch URL (no password in browser)")
     public ResponseEntity<ProjectDatabaseConsoleSessionResponse> openConsole(
             @PathVariable UUID projectId, @Valid @RequestBody(required = false) IssueProjectDatabaseCredentialRequest body) {
         IssueProjectDatabaseCredentialRequest req =
@@ -106,7 +106,6 @@ public class ProjectDatabaseController {
                 session.server(),
                 session.role(),
                 session.profile(),
-                session.connectionUrl(),
                 session.expiresAt(),
                 session.ttlMinutes()));
     }

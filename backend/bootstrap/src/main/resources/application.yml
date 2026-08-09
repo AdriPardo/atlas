@@ -106,6 +106,7 @@ atlas:
   # Managed SQL console (pgweb). Must sit behind Authentik; blank disables Open database.
   db-console:
     public-url: ${ATLAS_DB_CONSOLE_URL:}
+    connect-token: ${ATLAS_DB_CONSOLE_CONNECT_TOKEN:}
   proxmox:
     # Autopilot ISOLATED placement (optional). Secret proxmox.api.token via Secrets UI.
     api-url: ${ATLAS_PROXMOX_API_URL:}

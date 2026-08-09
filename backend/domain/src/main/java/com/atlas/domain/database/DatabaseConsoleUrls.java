@@ -43,7 +43,9 @@ public final class DatabaseConsoleUrls {
                 kept.append(part);
             }
         }
-        String options = "options=-csearch_path%3D" + URLEncoder.encode(safeSchema, StandardCharsets.UTF_8);
+        String options = "options=-csearch_path%3D"
+                + URLEncoder.encode(safeSchema, StandardCharsets.UTF_8)
+                + "&sslmode=disable";
         if (!kept.isEmpty()) {
             kept.append('&');
         }

@@ -26,7 +26,7 @@ Falta un contrato de producto: cómo un project obtiene acceso DB **solo** a sus
 
 1. **Modelo de aislamiento (norte):** **A** — por project, al menos un **schema** (default) o **database** dedicada (opt-in alto riesgo), con **rol Postgres** propio. Search_path / grants limitan al propio namespace. Atlas control plane DB (`atlas`) permanece separada y **nunca** se expone a projects.
 2. **Acceso humano/app:** **C** sobre A — emitir URLs/credenciales de corta vida (read-only vs migrate vs admin) a partir del rol del project. No sustituye A. **Hecho:** `POST/GET/DELETE …/database/credentials`.
-3. **Consola web pragmática (slice B ligero):** pgweb gestionado detrás de Authentik en path `/db-console` del host Atlas + `POST …/database/console-session` + botón **Open database**. No es proxy RLS in-Atlas; sí cumple “un click → SQL UI” sobre `apps` + schema del project. Upgrade path: CloudBeaver. Ver [db-console-hostname.md](../deployment/db-console-hostname.md).
+3. **Consola web pragmática (slice B ligero):** pgweb gestionado detrás de Authentik en path `/db-console` del host Atlas + `POST …/database/console-session` + botón **Open database** vía **Connect Backend** (ticket one-shot; sin password en query string). No es proxy RLS in-Atlas; sí cumple “un click → SQL UI” sobre `apps` + schema del project. Upgrade path: CloudBeaver. Ver [db-console-hostname.md](../deployment/db-console-hostname.md).
 4. **Diferir proxy+RLS in-process** — solo si pgweb/CloudBeaver no bastan.
 5. **Secretos lógicos (slice inmediato, sin provisioning):** reutilizar el almacén de secrets existente:
 

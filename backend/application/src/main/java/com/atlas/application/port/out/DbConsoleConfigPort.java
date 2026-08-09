@@ -9,4 +9,9 @@ public interface DbConsoleConfigPort {
 
     /** Normalized public base URL with trailing slash, if configured. */
     Optional<String> publicBaseUrl();
+
+    /**
+     * Shared secret for pgweb {@code --connect-token}. Empty = Connect Backend redeem disabled.
+     */
+    Optional<String> connectToken();
 }

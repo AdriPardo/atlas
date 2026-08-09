@@ -7,6 +7,5 @@ public record ProjectDatabaseConsoleSessionResponse(
         String server,
         String role,
         String profile,
-        String connectionUrl,
         java.time.Instant expiresAt,
         int ttlMinutes) {}

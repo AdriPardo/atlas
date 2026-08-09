@@ -1,39 +1,45 @@
 # Managed SQL console for Atlas project DBs (ADR-0015 option B, pragmatic).
-# Public: https://atlas.atlasops.dev/db-console/ (Traefik StripPrefix + Authentik ForwardAuth)
+# Public: https://atlas.atlasops.dev/db-console/ (Traefik PathPrefix + Authentik ForwardAuth)
 # Targets shared apps Postgres only from the UI default; never wire a default URL to control-plane `atlas`.
 #
 # Deploy on platform host:
 #   mkdir -p /opt/atlas-data/compose/db-console
 #   cp docker-compose.yml /opt/atlas-data/compose/db-console/
+#   # Set PGWEB_CONNECT_TOKEN to the same value as ATLAS_DB_CONSOLE_CONNECT_TOKEN on Atlas backend
+#   echo "PGWEB_CONNECT_TOKEN=$(openssl rand -hex 32)" >> /opt/atlas-data/compose/db-console/.env
 #   cd /opt/atlas-data/compose/db-console && docker compose up -d
 #
 # Optional later: Host(`db.atlasops.dev`) + Cloudflare Tunnel Public Hostname (see README).
 
 services:
   db-console:
-    image: sosedoff/pgweb:0.16.2
+    image: sosedoff/pgweb:0.17.0
     container_name: atlas-db-console
     restart: unless-stopped
-    # No --prefix: Traefik strips /db-console so relative static/* assets resolve under the path.
+    env_file:
+      - .env
+    # --prefix matches public PathPrefix so Connect Backend redirect (/db-console/?session=)
+    # and relative api/* assets stay under the path. Do NOT StripPrefix.
     command:
       - "--bind=0.0.0.0"
       - "--listen=8081"
       - "--sessions"
       - "--skip-open"
-      - "--log-forwarded-user"
+      - "--prefix=db-console"
+      - "--connect-backend=http://backend:8080/api/v1/internal/pgweb/connect"
+      - "--connect-token=${PGWEB_CONNECT_TOKEN}"
     networks:
       - atlas-public
       - atlas-internal
     labels:
       - traefik.enable=true
       - traefik.docker.network=atlas-public
-      - traefik.http.middlewares.db-console-strip.stripprefix.prefixes=/db-console
       - traefik.http.routers.db-console.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/db-console`)
       - traefik.http.routers.db-console.entrypoints=websecure
       - traefik.http.routers.db-console.priority=50
       - traefik.http.routers.db-console.tls=true
       - traefik.http.routers.db-console.tls.certresolver=cloudflare
-      - traefik.http.routers.db-console.middlewares=authentik,db-console-strip,securityHeaders@file,gzip@file
+      - traefik.http.routers.db-console.middlewares=authentik,securityHeaders@file,gzip@file
       - traefik.http.services.db-console.loadbalancer.server.port=8081
     logging:
       driver: json-file

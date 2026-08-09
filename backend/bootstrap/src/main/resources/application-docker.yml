@@ -27,3 +27,4 @@ atlas:
     password: ${ATLAS_APP_DB_PASSWORD:}
   db-console:
     public-url: ${ATLAS_DB_CONSOLE_URL:}
+    connect-token: ${ATLAS_DB_CONSOLE_CONNECT_TOKEN:}

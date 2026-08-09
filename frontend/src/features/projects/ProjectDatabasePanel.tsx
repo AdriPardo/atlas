@@ -62,13 +62,9 @@ export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
       projectDatabaseApi.openConsole(projectId, { profile, ttlMinutes }),
     onSuccess: async (session) => {
       setConsoleHint(
-        `Opened console for schema ${session.schema} (role ${session.role}, TTL ${session.ttlMinutes}m). Use the schema selector if needed.`,
+        `Opened console for schema ${session.schema} (role ${session.role}, TTL ${session.ttlMinutes}m).`,
       )
-      const base = session.consoleUrl.endsWith('/')
-        ? session.consoleUrl
-        : `${session.consoleUrl}/`
-      const url = `${base}?url=${encodeURIComponent(session.connectionUrl)}`
-      window.open(url, '_blank', 'noopener,noreferrer')
+      window.open(session.consoleUrl, '_blank', 'noopener,noreferrer')
       await queryClient.invalidateQueries({
         queryKey: ['projects', projectId, 'database', 'credentials'],
       })

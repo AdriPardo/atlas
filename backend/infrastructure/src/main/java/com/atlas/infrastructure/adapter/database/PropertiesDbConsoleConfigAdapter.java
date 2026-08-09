@@ -26,4 +26,13 @@ public class PropertiesDbConsoleConfigAdapter implements DbConsoleConfigPort {
         }
         return Optional.of(trimmed);
     }
+
+    @Override
+    public Optional<String> connectToken() {
+        String raw = properties.getDbConsole().getConnectToken();
+        if (raw == null || raw.isBlank()) {
+            return Optional.empty();
+        }
+        return Optional.of(raw.trim());
+    }
 }

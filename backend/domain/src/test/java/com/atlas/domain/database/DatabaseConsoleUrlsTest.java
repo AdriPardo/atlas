@@ -15,6 +15,7 @@ class DatabaseConsoleUrlsTest {
         String out = DatabaseConsoleUrls.withSearchPath(in, "app_demo");
         assertTrue(out.startsWith("postgresql://app_demo_t_abcd:s3cret@postgres:5432/apps?"));
         assertTrue(out.contains("options=-csearch_path%3Dapp_demo"));
+        assertTrue(out.contains("sslmode=disable"));
         assertFalse(out.contains("currentSchema"));
     }
 

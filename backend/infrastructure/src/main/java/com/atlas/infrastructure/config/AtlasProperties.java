@@ -156,6 +156,10 @@ public class AtlasProperties {
     public static class DbConsole {
         /** e.g. {@code https://atlas.atlasops.dev/db-console/} */
         private String publicUrl = "";
+        /**
+         * Shared secret with pgweb {@code --connect-token}. Required for one-click Connect Backend.
+         */
+        private String connectToken = "";
 
         public String getPublicUrl() {
             return publicUrl;
@@ -163,6 +167,14 @@ public class AtlasProperties {
 
         public void setPublicUrl(String publicUrl) {
             this.publicUrl = publicUrl;
+        }
+
+        public String getConnectToken() {
+            return connectToken;
+        }
+
+        public void setConnectToken(String connectToken) {
+            this.connectToken = connectToken;
         }
     }
 
