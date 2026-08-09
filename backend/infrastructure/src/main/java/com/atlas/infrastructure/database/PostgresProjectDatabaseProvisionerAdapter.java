@@ -148,10 +148,22 @@ public class PostgresProjectDatabaseProvisionerAdapter implements ProjectDatabas
                 Statement stmt = connection.createStatement()) {
             connection.setAutoCommit(true);
             // Drop memberships / privileges owned by the ephemeral role, then drop login.
+            // CREATEROLE (non-superuser) often cannot DROP OWNED; REVOKE CONNECT is enough to
+            // clear the database-level privilege dependency that blocks DROP ROLE.
             try {
                 stmt.execute("DROP OWNED BY " + quoteIdent(safeRole));
             } catch (SQLException ignored) {
-                // Role may not exist yet — DROP ROLE below is idempotent enough via IF EXISTS.
+                // Fall through — REVOKE + DROP ROLE below.
+            }
+            try {
+                String dbName = parseDatabaseName(jdbcUrl);
+                stmt.execute(
+                        "REVOKE ALL PRIVILEGES ON DATABASE "
+                                + quoteIdent(dbName)
+                                + " FROM "
+                                + quoteIdent(safeRole));
+            } catch (SQLException ignored) {
+                // Role may already be gone.
             }
             stmt.execute("DROP ROLE IF EXISTS " + quoteIdent(safeRole));
         } catch (SQLException e) {
