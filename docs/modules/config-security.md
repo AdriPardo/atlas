@@ -68,7 +68,7 @@ Override: `env:` o `as:` en el item. Valores **nunca** van a logs de deploy. Sec
 
 UI: panel **Database** + **Secrets** en Project detail; página sidebar **Org secrets** (`/secrets`) para el almacén compartido.
 
-Provisioner (ADR-0015): `ATLAS_APP_DB_URL` / `ATLAS_APP_DB_USERNAME` / `ATLAS_APP_DB_PASSWORD` → DB compartida de apps (p. ej. `apps`). Rechaza database name `atlas`. Docker Compose crea `apps` en init.
+Provisioner (ADR-0015): `ATLAS_APP_DB_URL` / `ATLAS_APP_DB_USERNAME` / `ATLAS_APP_DB_PASSWORD` → DB compartida de apps (p. ej. `apps`). Rechaza database name `atlas`. El rol de `ATLAS_APP_DB_USERNAME` necesita `CREATEROLE` (no hace falta SUPERUSER). Docker Compose crea `apps` en init; en Postgres compartido de prod: `CREATE DATABASE apps;` + `ALTER ROLE <user> WITH CREATEROLE;` una vez.
 
 Nombres lógicos conocidos (hints en UI):
 

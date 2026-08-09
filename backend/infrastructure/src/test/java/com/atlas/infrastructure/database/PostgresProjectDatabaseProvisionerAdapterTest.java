@@ -138,6 +138,42 @@ class PostgresProjectDatabaseProvisionerAdapterTest {
     }
 
     @Test
+    void provisionsAsNonSuperuserWithCreaterole() throws Exception {
+        // Mirror prod shared Postgres: app role has CREATEROLE but not SUPERUSER.
+        // PG16+ rejects ALTER/CREATE ... NOSUPERUSER from such roles.
+        String appsUrl = postgres.getJdbcUrl().replace("/atlas", "/apps");
+        try (Connection c = DriverManager.getConnection(
+                        postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+                Statement stmt = c.createStatement()) {
+            stmt.execute("DROP ROLE IF EXISTS apps_provisioner");
+            stmt.execute("CREATE ROLE apps_provisioner LOGIN PASSWORD 'prov-pass' CREATEROLE NOSUPERUSER");
+            stmt.execute("GRANT ALL PRIVILEGES ON DATABASE apps TO apps_provisioner");
+        }
+        try (Connection c = DriverManager.getConnection(appsUrl, postgres.getUsername(), postgres.getPassword());
+                Statement stmt = c.createStatement()) {
+            stmt.execute("GRANT ALL ON SCHEMA public TO apps_provisioner");
+            stmt.execute("GRANT CREATE ON SCHEMA public TO apps_provisioner");
+        }
+
+        properties.getAppDatabase().setJdbcUrl(appsUrl);
+        properties.getAppDatabase().setUsername("apps_provisioner");
+        properties.getAppDatabase().setPassword("prov-pass");
+        adapter = new PostgresProjectDatabaseProvisionerAdapter(properties);
+
+        var result = adapter.provision(new ProjectDatabaseProvisionerPort.ProvisionRequest(
+                "app_nonsuper", "app_nonsuper_migrator", "app_nonsuper_ro", "first-pass"));
+        assertEquals("apps", result.databaseName());
+
+        // Re-provision hits ALTER ROLE path (password rotate) — must not set NOSUPERUSER.
+        var rotated = adapter.provision(new ProjectDatabaseProvisionerPort.ProvisionRequest(
+                "app_nonsuper", "app_nonsuper_migrator", "app_nonsuper_ro", "second-pass"));
+        assertEquals("app_nonsuper", rotated.schema());
+        try (Connection c = DriverManager.getConnection(appsUrl, "app_nonsuper_migrator", "second-pass")) {
+            assertFalse(c.isClosed());
+        }
+    }
+
+    @Test
     void parseHelpers() {
         assertEquals(
                 "apps",

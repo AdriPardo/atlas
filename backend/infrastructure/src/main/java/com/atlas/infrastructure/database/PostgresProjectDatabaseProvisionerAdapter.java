@@ -228,7 +228,9 @@ public class PostgresProjectDatabaseProvisionerAdapter implements ProjectDatabas
             exists = rs.next();
         }
         if (!exists) {
-            stmt.execute("CREATE ROLE " + quoteIdent(readRole) + " WITH NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE");
+            // Omit NOSUPERUSER/NOCREATEDB/NOCREATEROLE: PG16+ forbids non-superuser CREATEROLE
+            // roles from setting those attributes (defaults already match).
+            stmt.execute("CREATE ROLE " + quoteIdent(readRole) + " WITH NOLOGIN");
         }
         grantConnect(stmt, dbName, readRole);
         stmt.execute("GRANT USAGE ON SCHEMA " + quoteIdent(schema) + " TO " + quoteIdent(readRole));
@@ -266,16 +268,21 @@ public class PostgresProjectDatabaseProvisionerAdapter implements ProjectDatabas
                 validUntil == null
                         ? " VALID UNTIL 'infinity'"
                         : " VALID UNTIL " + quoteLiteral(validUntil.toString());
+        // PG16+ (and prod shared Postgres): CREATEROLE without SUPERUSER cannot set
+        // SUPERUSER/REPLICATION/BYPASSRLS attrs — even NOSUPERUSER. Defaults are safe.
         if (exists) {
             stmt.execute("ALTER ROLE " + quoteIdent(role) + " WITH LOGIN PASSWORD " + quoteLiteral(password)
-                    + " NOSUPERUSER NOCREATEDB NOCREATEROLE" + inheritClause + validClause);
+                    + inheritClause + validClause);
         } else {
             stmt.execute("CREATE ROLE " + quoteIdent(role) + " WITH LOGIN PASSWORD " + quoteLiteral(password)
-                    + " NOSUPERUSER NOCREATEDB NOCREATEROLE" + inheritClause + validClause);
+                    + inheritClause + validClause);
         }
     }
 
     private void ensureSchema(Statement stmt, String schema, String role) throws SQLException {
+        // PG15+: CREATE SCHEMA AUTHORIZATION / OWNER TO requires SET ROLE to the owner.
+        // CREATEROLE yields ADMIN OPTION on created roles, not membership — grant explicitly.
+        stmt.execute("GRANT " + quoteIdent(role) + " TO CURRENT_USER");
         stmt.execute("CREATE SCHEMA IF NOT EXISTS " + quoteIdent(schema) + " AUTHORIZATION " + quoteIdent(role));
         stmt.execute("GRANT USAGE, CREATE ON SCHEMA " + quoteIdent(schema) + " TO " + quoteIdent(role));
         stmt.execute("GRANT ALL ON ALL TABLES IN SCHEMA " + quoteIdent(schema) + " TO " + quoteIdent(role));

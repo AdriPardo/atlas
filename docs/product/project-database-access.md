@@ -28,7 +28,7 @@ Install Atlas = una org ([ADR-0002](../decisions/ADR-0002-single-tenant-install.
 ## Opciones de acceso (producto)
 
 1. **Hoy:** operador crea schema/rol fuera de Atlas; guarda connection string como secret project `db.url`; Compose/`atlas.yml` `envFrom.secretRef: db.url` → deploy escribe `DATABASE_URL` en `.env`.
-2. **Hoy (slice 1):** provisioner Atlas (`POST /projects/{id}/database/provision`) CREATE ROLE/SCHEMA + grants + UI “Database” en Project detail (metadata + secrets `db.url` / `db.schema`). Requiere `ATLAS_APP_DB_URL` apuntando a DB dedicada (p. ej. `apps`), **nunca** `atlas`.
+2. **Hoy (slice 1):** provisioner Atlas (`POST /projects/{id}/database/provision`) CREATE ROLE/SCHEMA + grants + UI “Database” en Project detail (metadata + secrets `db.url` / `db.schema`). Requiere `ATLAS_APP_DB_URL` apuntando a DB dedicada (p. ej. `apps`), **nunca** `atlas`, y el user de `ATLAS_APP_DB_*` con `CREATEROLE` (PG16+ no permite poner `NOSUPERUSER` desde un rol no-superuser).
 3. **Hoy (opción C):** emitir credenciales / URLs con TTL (`POST /projects/{id}/database/credentials`) para consola local (`psql`, GUI). Default `db.read`; `db.migrate` / `db.admin` con permisos más altos. Revoke temprano vía DELETE. No rota `db.url`.
 4. **Diferido:** SQL console proxy con RLS (opción B) — alto riesgo ops.
 

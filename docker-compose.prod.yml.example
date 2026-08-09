@@ -17,6 +17,10 @@ services:
       ATLAS_WORKER_ENABLED: ${ATLAS_WORKER_ENABLED:-true}
       ATLAS_WORKSPACE_DIR: /var/lib/atlas/workspaces
       ATLAS_BACKUP_DIR: /var/lib/atlas/backups
+      # ADR-0015: set in .env — dedicated apps DB (never jdbc .../atlas). Role needs CREATEROLE.
+      # ATLAS_APP_DB_URL=jdbc:postgresql://postgres:5432/apps
+      # ATLAS_APP_DB_USERNAME=atlas
+      # ATLAS_APP_DB_PASSWORD=...
     ports:
       - "8080:8080"
     # LOCAL host sync/deploy needs the Docker socket. Backend user must share the host

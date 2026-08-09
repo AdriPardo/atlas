@@ -128,8 +128,14 @@ export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
               </Alert>
               {provisionMutation.isError && (
                 <Alert severity="error" variant="outlined">
-                  Provision failed. Check ATLAS_APP_DB_* points at a dedicated apps database (not
-                  atlas).
+                  {(() => {
+                    const apiMessage =
+                      (provisionMutation.error as { response?: { data?: { message?: string } } })
+                        ?.response?.data?.message
+                    return apiMessage?.trim()
+                      ? apiMessage
+                      : 'Provision failed. Check ATLAS_APP_DB_* points at a dedicated apps database (not atlas) and the role has CREATEROLE.'
+                  })()}
                 </Alert>
               )}
               {provisionMutation.isSuccess && (
