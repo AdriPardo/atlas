@@ -11,7 +11,7 @@ One-click SQL UI for project schemas in the shared `apps` database.
 
 ## Security model
 
-- Traefik middleware `authentik` — same SSO gate as Atlas UI (no anonymous Adminer/pgweb).
+- Traefik middleware `authentik` + `stripPrefix=/db-console` — same SSO gate as Atlas UI (no anonymous Adminer/pgweb).
 - Atlas mints short-lived Postgres roles (`db.read` default) scoped to the project schema; does not rotate `db.url`.
 - Console has **no** default connection to control-plane DB `atlas`.
 - Operators with SSO can still type other connection strings inside pgweb if they know credentials (same class of risk as LAN `psql`). Prefer TTL Open button.

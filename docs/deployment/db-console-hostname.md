@@ -21,7 +21,7 @@ Path under the existing Atlas host avoids a new Cloudflare Tunnel Public Hostnam
 ## Platform pieces (`192.168.1.24`)
 
 - Compose: `/opt/atlas-data/compose/db-console/` (source: `deploy/db-console/` in repo)
-- Traefik: `Host(\`atlas.atlasops.dev\`) && PathPrefix(\`/db-console\`)` priority 50 + middleware `authentik,securityHeaders@file,gzip@file`
+- Traefik: `Host(\`atlas.atlasops.dev\`) && PathPrefix(\`/db-console\`)` priority 50 + middleware `authentik,db-console-strip,securityHeaders@file,gzip@file` (StripPrefix so pgweb serves at `/` with relative assets)
 - Networks: `atlas-public` + `atlas-internal` (reaches hostname `postgres`, DB `apps`)
 - Atlas `.env`: `ATLAS_DB_CONSOLE_URL=https://atlas.atlasops.dev/db-console/`
 

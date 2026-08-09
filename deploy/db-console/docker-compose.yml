@@ -1,5 +1,5 @@
 # Managed SQL console for Atlas project DBs (ADR-0015 option B, pragmatic).
-# Public: https://atlas.atlasops.dev/db-console/ (Traefik + Authentik ForwardAuth — same SSO as Atlas)
+# Public: https://atlas.atlasops.dev/db-console/ (Traefik StripPrefix + Authentik ForwardAuth)
 # Targets shared apps Postgres only from the UI default; never wire a default URL to control-plane `atlas`.
 #
 # Deploy on platform host:
@@ -14,26 +14,26 @@ services:
     image: sosedoff/pgweb:0.16.2
     container_name: atlas-db-console
     restart: unless-stopped
+    # No --prefix: Traefik strips /db-console so relative static/* assets resolve under the path.
     command:
       - "--bind=0.0.0.0"
       - "--listen=8081"
-      - "--prefix=/db-console"
       - "--sessions"
       - "--skip-open"
       - "--log-forwarded-user"
-    # No host ports — Traefik only. No default --url (empty UI until Atlas mints TTL creds).
     networks:
       - atlas-public
       - atlas-internal
     labels:
       - traefik.enable=true
       - traefik.docker.network=atlas-public
+      - traefik.http.middlewares.db-console-strip.stripprefix.prefixes=/db-console
       - traefik.http.routers.db-console.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/db-console`)
       - traefik.http.routers.db-console.entrypoints=websecure
       - traefik.http.routers.db-console.priority=50
       - traefik.http.routers.db-console.tls=true
       - traefik.http.routers.db-console.tls.certresolver=cloudflare
-      - traefik.http.routers.db-console.middlewares=authentik,securityHeaders@file,gzip@file
+      - traefik.http.routers.db-console.middlewares=authentik,db-console-strip,securityHeaders@file,gzip@file
       - traefik.http.services.db-console.loadbalancer.server.port=8081
     logging:
       driver: json-file
