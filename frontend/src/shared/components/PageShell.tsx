@@ -13,6 +13,7 @@ export function PageShell({ children, maxWidth }: PageShellProps) {
       className="atlas-page"
       sx={{
         width: '100%',
+        minWidth: 0,
         maxWidth: maxWidth ?? '100%',
         mx: maxWidth ? 'auto' : 0,
       }}

@@ -58,6 +58,9 @@ export function RowOverflowMenu({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         marginThreshold={8}
+        disableScrollLock
+        // Portal to body so table overflow / sticky cells never clip the menu.
+        disablePortal={false}
         slotProps={{
           paper: {
             sx: {

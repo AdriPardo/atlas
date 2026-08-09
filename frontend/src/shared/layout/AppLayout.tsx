@@ -325,10 +325,14 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
         sx={{
           flexGrow: 1,
           width: { md: `calc(100% - ${drawerWidth}px)` },
+          maxWidth: '100%',
+          boxSizing: 'border-box',
           px: { xs: 2, md: 3.5 },
           py: { xs: 2.5, md: 3.5 },
           mt: 8,
           minWidth: 0,
+          // Prevent nested tables from blowing the flex row wider than the viewport.
+          overflowX: 'clip',
         }}
       >
         <Outlet />

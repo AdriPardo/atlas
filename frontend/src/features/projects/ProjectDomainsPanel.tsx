@@ -230,13 +230,18 @@ export function ProjectDomainsPanel({
       <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 650 }}>
         Domains
       </Typography>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1}
+        alignItems={{ sm: 'center' }}
+        sx={{ width: '100%' }}
+      >
         <TextField
           label="Hostname"
           size="small"
           value={hostname}
           onChange={(e) => setHostname(e.target.value)}
-          sx={{ minWidth: 220 }}
+          sx={{ flex: 1, minWidth: { xs: '100%', sm: 220 } }}
           placeholder="app.example.com"
         />
         <TextField
@@ -245,7 +250,7 @@ export function ProjectDomainsPanel({
           size="small"
           value={serviceId}
           onChange={(e) => setServiceId(e.target.value)}
-          sx={{ minWidth: 180 }}
+          sx={{ flex: { sm: '0 1 220px' }, minWidth: { xs: '100%', sm: 180 } }}
         >
           <MenuItem value="">None</MenuItem>
           {services.map((svc) => (
@@ -286,7 +291,21 @@ export function ProjectDomainsPanel({
                   <TableCell>Hostname</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Certificate</TableCell>
-                  <TableCell align="right">Actions</TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{
+                      position: 'sticky',
+                      right: 0,
+                      bgcolor: 'background.paper',
+                      zIndex: 2,
+                      boxShadow: (t) =>
+                        t.palette.mode === 'dark'
+                          ? '-8px 0 12px -10px rgba(0,0,0,0.55)'
+                          : '-8px 0 12px -10px rgba(15,23,42,0.18)',
+                    }}
+                  >
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -307,7 +326,22 @@ export function ProjectDomainsPanel({
                             }`
                           : '—'}
                       </TableCell>
-                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                      <TableCell
+                        align="right"
+                        sx={{
+                          whiteSpace: 'nowrap',
+                          // Stay visible while the table scrolls horizontally.
+                          position: 'sticky',
+                          right: 0,
+                          bgcolor: 'background.paper',
+                          zIndex: 1,
+                          pl: 1.5,
+                          boxShadow: (t) =>
+                            t.palette.mode === 'dark'
+                              ? '-8px 0 12px -10px rgba(0,0,0,0.55)'
+                              : '-8px 0 12px -10px rgba(15,23,42,0.18)',
+                        }}
+                      >
                         <Stack
                           direction="row"
                           spacing={0.5}
