@@ -8,5 +8,5 @@ public record CreateApplicationRequest(
         @Size(max = 1000) String description,
         @NotBlank @Size(max = 500) String repositoryUrl,
         @NotBlank @Size(max = 200) String branch,
-        @NotBlank @Size(max = 500) String composePath,
+        @Size(max = 500) String composePath,
         @Size(max = 255) String domain) {}
