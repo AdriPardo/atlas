@@ -21,13 +21,27 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Check required secrets
+      - name: Check required path / secrets
+        id: mode
         env:
-          # Prefer ATLAS_DEPLOY_*; DEPLOY_* accepted as aliases (see cicd-atlas-self.md)
           ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST || secrets.DEPLOY_HOST }}
           ATLAS_DEPLOY_USER: ${{ secrets.ATLAS_DEPLOY_USER || secrets.DEPLOY_USER }}
           ATLAS_DEPLOY_SSH_KEY: ${{ secrets.ATLAS_DEPLOY_SSH_KEY || secrets.DEPLOY_SSH_KEY }}
+          ATLAS_DEPLOY_PATH: ${{ secrets.ATLAS_DEPLOY_PATH }}
         run: |
+          set -euo pipefail
+          APP_DIR="${ATLAS_DEPLOY_PATH:-/opt/atlas/atlas}"
+          echo "app_dir=$APP_DIR" >> "$GITHUB_OUTPUT"
+
+          # Runner on the same VM (dogfood): deploy locally — no SSH hop.
+          if [ -x "$APP_DIR/scripts/deploy.sh" ] || [ -x "$APP_DIR/scripts/deploy-vm.sh" ]; then
+            echo "mode=local" >> "$GITHUB_OUTPUT"
+            echo "Deploy mode: local (found deploy script under $APP_DIR)"
+            exit 0
+          fi
+
+          echo "mode=ssh" >> "$GITHUB_OUTPUT"
+          echo "Deploy mode: SSH (no local deploy script at $APP_DIR)"
           missing=0
           for name in ATLAS_DEPLOY_HOST ATLAS_DEPLOY_USER ATLAS_DEPLOY_SSH_KEY; do
             if [ -z "${!name}" ]; then
@@ -35,9 +49,12 @@ jobs:
               missing=1
             fi
           done
-          exit "$missing"
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
 
       - name: Prepare SSH
+        if: steps.mode.outputs.mode == 'ssh'
         env:
           ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST || secrets.DEPLOY_HOST }}
           ATLAS_DEPLOY_SSH_KEY: ${{ secrets.ATLAS_DEPLOY_SSH_KEY || secrets.DEPLOY_SSH_KEY }}
@@ -58,7 +75,26 @@ jobs:
           fi
           chmod 644 "$KH"
 
+      - name: Deploy locally on runner VM
+        if: steps.mode.outputs.mode == 'local'
+        env:
+          ATLAS_DEPLOY_PATH: ${{ secrets.ATLAS_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          APP_DIR="${ATLAS_DEPLOY_PATH:-/opt/atlas/atlas}"
+          export ATLAS_APP_DIR="$APP_DIR"
+          cd "$APP_DIR"
+          if [ -x scripts/deploy.sh ]; then
+            exec bash scripts/deploy.sh
+          fi
+          if [ -x scripts/deploy-vm.sh ]; then
+            exec bash scripts/deploy-vm.sh
+          fi
+          echo "::error::Missing executable scripts/deploy.sh under $APP_DIR"
+          exit 1
+
       - name: Deploy over SSH
+        if: steps.mode.outputs.mode == 'ssh'
         env:
           ATLAS_DEPLOY_HOST: ${{ secrets.ATLAS_DEPLOY_HOST || secrets.DEPLOY_HOST }}
           ATLAS_DEPLOY_USER: ${{ secrets.ATLAS_DEPLOY_USER || secrets.DEPLOY_USER }}
@@ -66,14 +102,22 @@ jobs:
         run: |
           set -euo pipefail
           REMOTE_PATH="${ATLAS_DEPLOY_PATH:-/opt/atlas/atlas}"
+          set +e
           ssh -i ~/.ssh/atlas_deploy \
             -o IdentitiesOnly=yes \
             -o BatchMode=yes \
+            -o ConnectTimeout=15 \
             -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile=~/.ssh/atlas_deploy_known_hosts \
             "${ATLAS_DEPLOY_USER}@${ATLAS_DEPLOY_HOST}" \
             "export ATLAS_APP_DIR='${REMOTE_PATH}'; cd \"\${ATLAS_APP_DIR}\"; if [ -x scripts/deploy.sh ]; then exec bash scripts/deploy.sh; elif [ -x scripts/deploy-vm.sh ]; then exec bash scripts/deploy-vm.sh; fi; echo '::error::Missing scripts/deploy.sh on VM — pull master once manually'; exit 1"
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::SSH deploy failed (exit $rc). Host unreachable from runner (often 'No route to host'). Fix ATLAS_DEPLOY_HOST to a LAN IP reachable from the self-hosted runner, or install the runner on the VM so local deploy mode can use $REMOTE_PATH. See docs/deployment/cicd-atlas-self.md"
+            exit "$rc"
+          fi
 
       - name: Cleanup SSH key
-        if: always()
+        if: always() && steps.mode.outputs.mode == 'ssh'
         run: rm -f ~/.ssh/atlas_deploy

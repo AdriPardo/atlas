@@ -9,13 +9,16 @@ Esto **no** es la feature in-app `DEPLOY_SERVICE` (pipelines de projects de clie
 ```text
 push master / workflow_dispatch
   → GitHub Actions (runner self-hosted, labels: self-hosted,linux,atlas-prod)
-  → SSH a la VM
-  → /opt/atlas/atlas/scripts/deploy.sh (alias: `scripts/deploy-vm.sh`)
+  → Preferencia: si existe /opt/atlas/atlas/scripts/deploy.sh en el runner → deploy local
+  → Si no: SSH a ATLAS_DEPLOY_HOST → mismo script en remoto
+  → scripts/deploy.sh (alias: `scripts/deploy-vm.sh`)
        git fetch + reset --hard origin/master
        (no toca .env ni docker-compose.prod.yml)
        docker compose up -d --build
        health: backend /actuator/health + frontend HTTP 2xx
 ```
+
+**Modo local vs SSH:** si el runner vive en la misma VM de producción (caso dogfood recomendado), el workflow **no hace SSH**: ejecuta `scripts/deploy.sh` directamente. Evita fallos `ssh: No route to host` cuando `ATLAS_DEPLOY_HOST` apunta a una IP inalcanzable desde el runner. SSH queda como fallback cuando el checkout no está en el runner (otro host en la LAN).
 
 El host de producción está en LAN privada (`192.168.x`). Los runners hospedados por GitHub **no** pueden alcanzarla; hace falta un **self-hosted runner** en la VM (o en la misma red).
 
@@ -143,4 +146,6 @@ Si faltan secretos, el job falla al inicio con un mensaje claro (no despliega a 
 
 ## Nota runner en la misma VM
 
-El workflow escribe la clave y `UserKnownHostsFile` en rutas dedicadas (`~/.ssh/atlas_deploy*`) y **no** sobrescribe `~/.ssh/known_hosts`, para no romper `git fetch` hacia GitHub cuando el runner corre como el mismo usuario `atlas`.
+Con el checkout en `/opt/atlas/atlas` visible para el proceso del runner, el job usa **deploy local** (sin SSH). Si cae al modo SSH, escribe la clave y `UserKnownHostsFile` en rutas dedicadas (`~/.ssh/atlas_deploy*`) y **no** sobrescribe `~/.ssh/known_hosts`, para no romper `git fetch` hacia GitHub cuando el runner corre como el mismo usuario `atlas`.
+
+Si ves runs ~10s en `failure` con `No route to host`, el modo SSH está activo con un `ATLAS_DEPLOY_HOST` malo, o el path local no existe para el usuario del runner. Corrige el secret a la IP LAN, o asegúrate de que el servicio del runner puede leer `$ATLAS_DEPLOY_PATH/scripts/deploy.sh`.
