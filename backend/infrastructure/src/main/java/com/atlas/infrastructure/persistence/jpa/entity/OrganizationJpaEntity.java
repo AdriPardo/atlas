@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "organizations")
@@ -21,6 +23,7 @@ public class OrganizationJpaEntity {
     private String slug;
 
     /** JSON document stored as text; column type is jsonb in PostgreSQL. */
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String settings = "{}";
 

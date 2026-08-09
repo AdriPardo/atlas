@@ -19,7 +19,9 @@ atlas:
     dir: ${ATLAS_WORKSPACE_DIR:/var/lib/atlas/workspaces}
   adapters:
     real-enabled: ${ATLAS_ADAPTERS_REAL_ENABLED:true}
+  # Opt-in: set ATLAS_APP_DB_* explicitly (see docker-compose.yml). No silent defaults —
+  # wrong password against a missing "apps" DB would report provisionerConfigured=true and 400 on list.
   app-database:
-    jdbc-url: ${ATLAS_APP_DB_URL:jdbc:postgresql://postgres:5432/apps}
-    username: ${ATLAS_APP_DB_USERNAME:atlas}
-    password: ${ATLAS_APP_DB_PASSWORD:atlas}
+    jdbc-url: ${ATLAS_APP_DB_URL:}
+    username: ${ATLAS_APP_DB_USERNAME:}
+    password: ${ATLAS_APP_DB_PASSWORD:}

@@ -307,13 +307,14 @@ export function ProjectDomainsPanel({
                             }`
                           : '—'}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                         <Stack
                           direction="row"
                           spacing={0.5}
                           justifyContent="flex-end"
                           alignItems="center"
                           flexWrap="nowrap"
+                          sx={{ minWidth: 0 }}
                         >
                           {d.status !== 'ACTIVE' && (
                             <Button
@@ -332,16 +333,8 @@ export function ProjectDomainsPanel({
                           >
                             {publishing ? 'Publishing…' : 'Publish'}
                           </Button>
-                          <Button
-                            size="small"
-                            color="error"
-                            disabled={removeMutation.isPending}
-                            onClick={() => removeMutation.mutate(d.id)}
-                          >
-                            Remove
-                          </Button>
                           <RowOverflowMenu
-                            aria-label={`Advanced actions for ${d.hostname}`}
+                            aria-label={`More actions for ${d.hostname}`}
                             items={[
                               {
                                 label: 'Copy ingress',
@@ -368,6 +361,13 @@ export function ProjectDomainsPanel({
                                 label: 'Ensure DNS only',
                                 disabled: ensureDnsOnly.isPending,
                                 onClick: () => ensureDnsOnly.mutate(d.id),
+                              },
+                              {
+                                label: 'Remove',
+                                dividerBefore: true,
+                                destructive: true,
+                                disabled: removeMutation.isPending,
+                                onClick: () => removeMutation.mutate(d.id),
                               },
                             ]}
                           />

@@ -9,6 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "hosts")
@@ -46,6 +48,7 @@ public class HostJpaEntity {
     private UUID sshPrivateKeySecretId;
 
     /** JSON array of capability tags; column type is jsonb in PostgreSQL. */
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "runtime_capabilities", nullable = false, columnDefinition = "jsonb")
     private String runtimeCapabilities = "[\"compose\"]";
 

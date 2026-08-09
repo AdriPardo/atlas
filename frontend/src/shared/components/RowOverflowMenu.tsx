@@ -57,9 +57,13 @@ export function RowOverflowMenu({
         onClick={(e) => e.stopPropagation()}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        marginThreshold={8}
         slotProps={{
           paper: {
-            sx: { minWidth: 200 },
+            sx: {
+              minWidth: 220,
+              maxWidth: 'min(320px, calc(100vw - 16px))',
+            },
           },
         }}
       >
