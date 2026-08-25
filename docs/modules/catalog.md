@@ -21,7 +21,7 @@ Estado: `MVP` (en código) · `v0.x` (roadmap) · `v1.0` · `future` · `designe
 | Logs | Consulta/stream logs app y deploy | designed | [observability-modules.md](observability-modules.md) |
 | Metrics | Series y paneles deep-link | designed | [observability-modules.md](observability-modules.md) |
 | Alerts | Reglas producto + estado | designed | [observability-modules.md](observability-modules.md) |
-| Notifications | Email/Slack/Webhook destinos | designed | [observability-modules.md](observability-modules.md) |
+| Notifications | Email SMTP alertas + relay apps | implemented | [observability-modules.md](observability-modules.md), [project-mail-access.md](../product/project-mail-access.md) |
 | Domains | Hostnames de servicios | v0.7 | [networking.md](networking.md) |
 | Certificates | TLS metadata / renovación | v0.7 (metadata en Domain) | [networking.md](networking.md) |
 | DNS | Records deseados | designed (TXT challenge en Domain) | [networking.md](networking.md) |

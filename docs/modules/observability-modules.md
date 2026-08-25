@@ -20,6 +20,6 @@
 
 ## Notifications
 
-Canales: email SMTP, Slack webhook, generic webhook, (futuro) Discord/Teams.
+Canales: email SMTP (ADR-0018, implementado), Slack webhook, generic webhook, (futuro) Discord/Teams.
 
 Preferencias por usuario + overrides por Project. Throttling para evitar storms.

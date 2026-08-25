@@ -9,6 +9,7 @@ public final class UsageMeters {
     public static final String PROJECT_COUNT = "project.count";
     public static final String HOST_COUNT = "host.count";
     public static final String DEPLOYMENT_COUNT = "deployment.count";
+    public static final String MAIL_SEND_COUNT = "mail.send.count";
 
     private UsageMeters() {}
 }

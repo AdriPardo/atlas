@@ -15,6 +15,7 @@ dependencies {
     implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r")
     implementation("org.apache.sshd:sshd-core:2.14.0")
     implementation("org.apache.sshd:sshd-common:2.14.0")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

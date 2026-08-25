@@ -30,6 +30,8 @@ public class LocalPlanEntitlementAdapter implements PlanEntitlementPort {
             new PlanEntitlement(
                     PlanCodes.COMMUNITY, UsageMeters.BACKUP_GB, BigDecimal.valueOf(-1), "backup-GB/month", 0, true),
             new PlanEntitlement(
+                    PlanCodes.COMMUNITY, UsageMeters.MAIL_SEND_COUNT, BigDecimal.valueOf(-1), "emails/day", 0, true),
+            new PlanEntitlement(
                     PlanCodes.COMMUNITY,
                     UsageMeters.DEPLOYMENT_COUNT,
                     BigDecimal.valueOf(-1),
@@ -48,6 +50,8 @@ public class LocalPlanEntitlementAdapter implements PlanEntitlementPort {
                     PlanCodes.ENTERPRISE, UsageMeters.JOB_MINUTES, BigDecimal.valueOf(-1), "job-minutes/month", 0, true),
             new PlanEntitlement(
                     PlanCodes.ENTERPRISE, UsageMeters.BACKUP_GB, BigDecimal.valueOf(-1), "backup-GB/month", 0, true),
+            new PlanEntitlement(
+                    PlanCodes.ENTERPRISE, UsageMeters.MAIL_SEND_COUNT, BigDecimal.valueOf(-1), "emails/day", 0, true),
             new PlanEntitlement(
                     PlanCodes.ENTERPRISE,
                     UsageMeters.DEPLOYMENT_COUNT,

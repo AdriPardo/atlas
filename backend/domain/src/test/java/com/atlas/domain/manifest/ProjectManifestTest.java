@@ -56,4 +56,12 @@ class ProjectManifestTest {
         assertEquals("AI_API_KEY", EnvFromSecretRef.of("ai.api_key").resolveEnvKey());
         assertEquals("AI_BASE_URL", EnvFromSecretRef.of("ai.base_url").resolveEnvKey());
     }
+
+    @Test
+    void envFromSecretRefMapsPlatformSmtpSecrets() {
+        assertEquals("SMTP_HOST", EnvFromSecretRef.of("smtp.host").resolveEnvKey());
+        assertEquals("SMTP_PORT", EnvFromSecretRef.of("smtp.port").resolveEnvKey());
+        assertEquals("SMTP_FROM", EnvFromSecretRef.of("smtp.from").resolveEnvKey());
+        assertEquals("MAIL_API_TOKEN", EnvFromSecretRef.of("mail.api_token").resolveEnvKey());
+    }
 }

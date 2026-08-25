@@ -45,6 +45,13 @@ Si el manifiesto declara `envFrom.secretRef` (`runtime.envFrom` y/o `services.*.
 | `ai.provider` | `AI_PROVIDER` |
 | `ai.api_key` | `AI_API_KEY` |
 | `ai.base_url` | `AI_BASE_URL` |
+| `smtp.host` | `SMTP_HOST` |
+| `smtp.port` | `SMTP_PORT` |
+| `smtp.user` | `SMTP_USER` |
+| `smtp.password` | `SMTP_PASSWORD` |
+| `smtp.from` | `SMTP_FROM` |
+| `smtp.tls` | `SMTP_TLS` |
+| `mail.api_token` | `MAIL_API_TOKEN` |
 | otro | `SCREAMING_SNAKE` (`.`/`-` → `_`) |
 
 Override: `env:` o `as:` en el item. Valores **nunca** van a logs de deploy. Secret no resuelto → warn + skip.
@@ -64,9 +71,12 @@ Override: `env:` o `as:` en el item. Valores **nunca** van a logs de deploy. Sec
 | GET | `/projects/{id}/database` | Metadata schema/status (sin credenciales) |
 | POST | `/projects/{id}/database/provision` | CREATE ROLE/SCHEMA + upsert `db.url` / `db.schema` |
 | GET/POST | `/projects/{id}/database/credentials` | List TTL roles / issue ephemeral URL (`db.read` default) |
-| DELETE | `/projects/{id}/database/credentials/{role}` | Revoke TTL role early |
+| GET | `/projects/{id}/database/credentials/{role}` | Revoke TTL role early |
+| GET/POST | `/projects/{id}/mail` | Mail status / provision SMTP secrets |
+| POST | `/projects/{id}/mail/send` | Send via platform relay (rate limited) |
+| GET | `/settings/mail` | Platform SMTP metadata (no secrets) |
 
-UI: panel **Database** + **Secrets** en Project detail; página sidebar **Org secrets** (`/secrets`) para el almacén compartido.
+UI: panel **Database** + **Mail** + **Secrets** en Project detail; página sidebar **Org secrets** (`/secrets`) para el almacén compartido.
 
 Provisioner (ADR-0015): `ATLAS_APP_DB_URL` / `ATLAS_APP_DB_USERNAME` / `ATLAS_APP_DB_PASSWORD` → DB compartida de apps (p. ej. `apps`). Rechaza database name `atlas`. El rol de `ATLAS_APP_DB_USERNAME` necesita `CREATEROLE` (no hace falta SUPERUSER). Docker Compose crea `apps` en init; en Postgres compartido de prod: `CREATE DATABASE apps;` + `ALTER ROLE <user> WITH CREATEROLE;` una vez.
 
@@ -86,6 +96,13 @@ Nombres lógicos conocidos (hints en UI):
 | `ai.provider` | Selector lógico → `AI_PROVIDER` | `openai` \| `deepseek` \| `local` \| … |
 | `ai.api_key` | Key genérica → `AI_API_KEY` | Single-client abstraction |
 | `ai.base_url` | Base URL genérica → `AI_BASE_URL` | Local / gateway |
+| `smtp.host` | Relay SMTP → `SMTP_HOST` | Platform provisioner — [ADR-0018](../decisions/ADR-0018-project-mail-access.md) |
+| `smtp.port` | Puerto → `SMTP_PORT` | 1025 Mailpit / 587 TLS |
+| `smtp.user` | Usuario SMTP → `SMTP_USER` | Cuando `ATLAS_APP_SMTP_AUTH=true` |
+| `smtp.password` | Password → `SMTP_PASSWORD` | Por project tras provision |
+| `smtp.from` | From default → `SMTP_FROM` | `{slug}@{fromDomain}` |
+| `smtp.tls` | STARTTLS → `SMTP_TLS` | `true` / `false` |
+| `mail.api_token` | Token API HTTP → `MAIL_API_TOKEN` | Header `X-Atlas-Mail-Token` |
 
 Rotación: UI **Rotate value** / `PUT` upsert / [`scripts/seed-project-secrets.sh`](../../scripts/seed-project-secrets.sh) (bulk opcional desde `.env.secrets`). Deploys siguientes usan latest. Cualquier nombre lógico funciona; `ai.*` es solo convención de mapeo env.
 

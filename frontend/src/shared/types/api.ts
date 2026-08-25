@@ -206,6 +206,42 @@ export interface ProjectDatabaseCredentialListItem {
   expired: boolean
 }
 
+export interface ProjectMailStatus {
+  provisionerConfigured: boolean
+  provisioned: boolean
+  from: string
+  host: string | null
+  port: number | null
+  tls: boolean
+  message: string
+  remainingSendsToday: number
+  dailySendLimit: number
+}
+
+export interface ProjectMailProvisionResult {
+  from: string
+  host: string
+  port: number
+  tls: boolean
+  rotated: boolean
+}
+
+export interface SendProjectMailResult {
+  sent: boolean
+  detail: string
+  remainingToday: number
+}
+
+export interface MailSettings {
+  configured: boolean
+  host: string | null
+  port: number
+  fromDomain: string
+  tls: boolean
+  auth: boolean
+  dailySendLimitPerProject: number
+}
+
 export interface DeployResponse {
   deploymentId: string
   jobId: string

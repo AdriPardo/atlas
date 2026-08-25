@@ -11,6 +11,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atlas.application.mail.ProvisionProjectMailUseCase;
 import com.atlas.application.networking.EnsureDomainDnsCnameUseCase;
 import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
 import com.atlas.application.observability.EvaluateProductAlertsUseCase;
@@ -20,6 +21,7 @@ import com.atlas.application.port.out.GitRepositoryPort;
 import com.atlas.application.port.out.HostCommandPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
+import com.atlas.application.port.out.ProjectSmtpProvisionerPort;
 import com.atlas.application.port.out.RuntimeOrchestratorPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.application.secret.ResolveSecretValueUseCase;
@@ -87,6 +89,12 @@ class ExecuteDeployServiceJobUseCaseTest {
     private EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase;
 
     @Mock
+    private ProvisionProjectMailUseCase provisionProjectMailUseCase;
+
+    @Mock
+    private ProjectSmtpProvisionerPort smtpProvisioner;
+
+    @Mock
     private PlatformTransactionManager transactionManager;
 
     private ExecuteDeployServiceJobUseCase useCase;
@@ -94,6 +102,7 @@ class ExecuteDeployServiceJobUseCaseTest {
     @BeforeEach
     void setUp() {
         lenient().when(transactionManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
+        lenient().when(smtpProvisioner.isConfigured()).thenReturn(false);
         useCase = new ExecuteDeployServiceJobUseCase(
                 deploymentRepository,
                 serviceRepository,
@@ -108,6 +117,8 @@ class ExecuteDeployServiceJobUseCaseTest {
                 evaluateProductAlertsUseCase,
                 ensureDomainTunnelIngressUseCase,
                 ensureDomainDnsCnameUseCase,
+                provisionProjectMailUseCase,
+                smtpProvisioner,
                 transactionManager);
     }
 

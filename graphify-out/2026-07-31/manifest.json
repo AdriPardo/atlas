@@ -1,0 +1,3072 @@
+{
+  ".cursor/hooks.json": {
+    "mtime": 1784966467.0,
+    "ast_hash": "f6613ba24dceadae48d74c73338c7072",
+    "semantic_hash": ""
+  },
+  ".cursor/hooks/sync-skills.sh": {
+    "mtime": 1785100893.4991796,
+    "ast_hash": "69723d28f8d7d1df40ab4d4a8021a22c",
+    "semantic_hash": ""
+  },
+  ".cursor/settings.json": {
+    "mtime": 1784016434.0,
+    "ast_hash": "73c6f3749ddd7bfa0de43d4274d8dbab",
+    "semantic_hash": ""
+  },
+  "backend/application/build.gradle.kts": {
+    "mtime": 1785384546.1996272,
+    "ast_hash": "5b7f0e181bc32dabde0366459252b159",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/access/FeatureGateService.java": {
+    "mtime": 1785387395.238379,
+    "ast_hash": "7c69c6965428bdbc7fdf8ad22472f54f",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/access/ManageProjectMembershipUseCase.java": {
+    "mtime": 1785108264.6924748,
+    "ast_hash": "1729156a65b3a4fbe300a51ea3369db0",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/access/ProjectAuthorizationService.java": {
+    "mtime": 1785108259.3191025,
+    "ast_hash": "068c45ac3e22a4a917396b7ae14068a0",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/application/CreateApplicationUseCase.java": {
+    "mtime": 1785100151.962973,
+    "ast_hash": "690bd70eb6e3b0413e065b1cf9152a87",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/application/DeleteApplicationUseCase.java": {
+    "mtime": 1785107437.6394694,
+    "ast_hash": "5809cbddc91aa4ab628cc5510f1628b2",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/application/GetApplicationUseCase.java": {
+    "mtime": 1785100153.3733928,
+    "ast_hash": "ab74d30475c383e2657853233cdbc956",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/application/ListApplicationsUseCase.java": {
+    "mtime": 1785100154.600183,
+    "ast_hash": "bfa908dc1cd921c4e0b4f509a46aff52",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/application/UpdateApplicationUseCase.java": {
+    "mtime": 1785100155.8807805,
+    "ast_hash": "11b208f5a1d6a89539cc55754a6903ce",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/audit/ExportAuditEntriesUseCase.java": {
+    "mtime": 1785387400.5668187,
+    "ast_hash": "71e757c827521f19a8a38911f4c17e26",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/audit/ListAuditEntriesUseCase.java": {
+    "mtime": 1785108264.5567245,
+    "ast_hash": "c9eaa1935d057df22a821bf0844cef43",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/audit/RecordAuditUseCase.java": {
+    "mtime": 1785108260.9723542,
+    "ast_hash": "47a99b61f9f954002b8b72a0f8934188",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/auth/AuthenticateFromAuthentikUseCase.java": {
+    "mtime": 1785106023.5204246,
+    "ast_hash": "a478818e57aea876bb60b7b92e380c13",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/auth/AuthenticateUserUseCase.java": {
+    "mtime": 1785106023.520552,
+    "ast_hash": "b5f442eb8bac4b44e8f42ed157b135fb",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/auth/AuthenticationResult.java": {
+    "mtime": 1785106023.5206487,
+    "ast_hash": "f144b77e84a8506cd283bea7e5425577",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/backup/EnqueueBackupDatabaseUseCase.java": {
+    "mtime": 1785112288.1458077,
+    "ast_hash": "96d4b2af0ff38bee2fd63e1dc076f8d2",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/backup/ExecuteBackupDatabaseJobUseCase.java": {
+    "mtime": 1785112385.8801293,
+    "ast_hash": "16306f1a28bc95637f1da2f61c0704f4",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/billing/GetPlanEntitlementsUseCase.java": {
+    "mtime": 1785387432.7683156,
+    "ast_hash": "5ccbe01d59f4c4590ee189f2b1096f6b",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/billing/ListUsageRecordsUseCase.java": {
+    "mtime": 1785387433.2281454,
+    "ast_hash": "871a1db4a8402426a8ce653aaa1e8af0",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/billing/RecordUsageUseCase.java": {
+    "mtime": 1785384546.1887503,
+    "ast_hash": "c14294ed09f7db9faf904747cec4fc00",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/cron/ManageCronJobUseCase.java": {
+    "mtime": 1785127921.9133675,
+    "ast_hash": "47255f23ec0dc7ed1198d0913e59fc48",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/cron/TickCronJobsUseCase.java": {
+    "mtime": 1785127927.8687482,
+    "ast_hash": "4d770cd07a2dede1e01f8e39425bd1d7",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/database/IssueProjectDatabaseCredentialsUseCase.java": {
+    "mtime": 1785386959.4920156,
+    "ast_hash": "4290e5cf204e2dabef2f8139650bc16e",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/database/ProvisionProjectDatabaseUseCase.java": {
+    "mtime": 1785386735.2545853,
+    "ast_hash": "dbbb90f4fc90a0bc61518f3c829db67b",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/AutopilotPlacementService.java": {
+    "mtime": 1785526280.0049896,
+    "ast_hash": "97e825be1ee46c3b20ee40af66949952",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/CreateDeploymentUseCase.java": {
+    "mtime": 1785107437.9860866,
+    "ast_hash": "0812e86fdac3fe7332994b2e8ea9c97a",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/DeleteDeploymentUseCase.java": {
+    "mtime": 1785100175.9585075,
+    "ast_hash": "02aa87fe3f5802b3e0ece50b99723ecd",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/DeployApplicationUseCase.java": {
+    "mtime": 1785107434.7217093,
+    "ast_hash": "0452a93f105946df02db08fedb24beea",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/DeployServiceUseCase.java": {
+    "mtime": 1785526292.0726779,
+    "ast_hash": "1930f81ab724a37d0f66f5707357d535",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/ExecuteDeployServiceJobUseCase.java": {
+    "mtime": 1785522843.5310512,
+    "ast_hash": "3a9cf8b379121a7ba2a79cbe6e6ba08a",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/GetDeploymentUseCase.java": {
+    "mtime": 1785100171.4756885,
+    "ast_hash": "03e0e76cb103ac7ea96f09ce0f415e87",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/ListDeploymentsUseCase.java": {
+    "mtime": 1785107444.2774704,
+    "ast_hash": "792a1074c386ca188d25356f0fc6f2eb",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/UpdateDeploymentUseCase.java": {
+    "mtime": 1785100174.3629427,
+    "ast_hash": "126b0a24eceff578b8d71958c0168b46",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/CreateHostUseCase.java": {
+    "mtime": 1785106770.7428384,
+    "ast_hash": "84f51045efc1749acc2379554602513b",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/DeleteHostUseCase.java": {
+    "mtime": 1785100162.9412854,
+    "ast_hash": "11e34e90ee237c257df405b4b85266fd",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/ExecuteSyncHostJobUseCase.java": {
+    "mtime": 1785364545.3181198,
+    "ast_hash": "dd8f727fdb0a248d1decdf5ea4da0a23",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/GetContainerLogsUseCase.java": {
+    "mtime": 1785107856.6289248,
+    "ast_hash": "68e1d377cf217c9ca8406cda30b9e227",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/GetHostUseCase.java": {
+    "mtime": 1785100160.2396028,
+    "ast_hash": "efcb86ab9e76646e57fd89a9af05025d",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/HostRuntimeSupport.java": {
+    "mtime": 1785107853.508472,
+    "ast_hash": "88fea163d87b7c6f93ce41280d1ad3c3",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/ListHostContainersUseCase.java": {
+    "mtime": 1785107855.3598497,
+    "ast_hash": "6698492debe007d80f86dc7c224095ac",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/ListHostsUseCase.java": {
+    "mtime": 1785100161.227016,
+    "ast_hash": "f3f60310ba5d68374a77e0a2593d2c79",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/RestartContainerUseCase.java": {
+    "mtime": 1785107858.0302439,
+    "ast_hash": "159eeb7abb1599ccf1a0c74e28751941",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/RuntimeCapabilityDetector.java": {
+    "mtime": 1785364539.1331186,
+    "ast_hash": "88f728853322a16979469d662f598ec6",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/SyncHostUseCase.java": {
+    "mtime": 1785106749.1284406,
+    "ast_hash": "bc09b848e446d9a7871565319eb7e19b",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/host/UpdateHostUseCase.java": {
+    "mtime": 1785106770.7594306,
+    "ast_hash": "53443a700ed166fbf177ac250d649f92",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/job/ClaimJobsUseCase.java": {
+    "mtime": 1785106742.0959053,
+    "ast_hash": "73f36d4a682311b09b72b0451bb50fa6",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/job/CompleteJobUseCase.java": {
+    "mtime": 1785106742.5773983,
+    "ast_hash": "d244aaa0155902c2b73a042f8bfc9d9b",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/job/EnqueueJobUseCase.java": {
+    "mtime": 1785106742.0959055,
+    "ast_hash": "c410841ab39205056e7a258d830a2fff",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/job/FailJobUseCase.java": {
+    "mtime": 1785118716.1615164,
+    "ast_hash": "654a8b2f74419b46817b59880b0fbf05",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/job/GetJobUseCase.java": {
+    "mtime": 1785106744.644635,
+    "ast_hash": "c8820b122a4d539b3279d12bb8c0a817",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/job/ListJobsUseCase.java": {
+    "mtime": 1785106747.033724,
+    "ast_hash": "bffb56ad22296bc64240f60e678a4f07",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/job/RecoverStaleJobsUseCase.java": {
+    "mtime": 1785267153.8471344,
+    "ast_hash": "3b2193be56965ce6ff25f2e562cc28ee",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/manifest/ComposePathResolver.java": {
+    "mtime": 1785522785.1692023,
+    "ast_hash": "2858569c56184c7d2c557e5d4cd59d48",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/manifest/ProjectManifestLoader.java": {
+    "mtime": 1785385509.301408,
+    "ast_hash": "983585256bd1dcb17a530d04b64a767a",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/networking/EnsureDomainDnsCnameUseCase.java": {
+    "mtime": 1785180139.3078701,
+    "ast_hash": "ecb53959354bed5596243e6a369e95b9",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/networking/EnsureDomainTunnelIngressUseCase.java": {
+    "mtime": 1785177960.4898512,
+    "ast_hash": "98243828bc3a68910cd2ccc0dfb56b3d",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/networking/GetDomainDnsCnameUseCase.java": {
+    "mtime": 1785180137.9581244,
+    "ast_hash": "7b77e200090912b930534f3bc27f8553",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/networking/GetDomainTraefikMetadataUseCase.java": {
+    "mtime": 1785113276.2696507,
+    "ast_hash": "4536dbad1475dfd3dd196194c5089427",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/networking/GetDomainTunnelIngressUseCase.java": {
+    "mtime": 1785177786.823782,
+    "ast_hash": "3e77679839f966d80d608931a99db70f",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/networking/ManageDomainUseCase.java": {
+    "mtime": 1785113272.200266,
+    "ast_hash": "dd9995a973e62dbd7eb4a09bd423b35f",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/networking/VerifyDomainUseCase.java": {
+    "mtime": 1785113274.226659,
+    "ast_hash": "7a2ac9924da3304da99bb173eeda28a8",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/observability/EvaluateProductAlertsUseCase.java": {
+    "mtime": 1785126842.4378781,
+    "ast_hash": "2e1f601763145e24c86dc786a4267618",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/observability/ManageAlertRuleUseCase.java": {
+    "mtime": 1785127354.603325,
+    "ast_hash": "ab03672d3ba37fbfdf87600e813030da",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/observability/ManageNotificationChannelUseCase.java": {
+    "mtime": 1785118695.8059726,
+    "ast_hash": "1a8dbff612719005d0a60a68ff6a9d1e",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/CreatePipelineUseCase.java": {
+    "mtime": 1785359022.1480632,
+    "ast_hash": "52b9a70cfc9ab7781e3ffc8c85cc242e",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/DeletePipelineUseCase.java": {
+    "mtime": 1785127335.2863507,
+    "ast_hash": "84357eba299216872329ed5f27fe1139",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/EnableAutoDeployUseCase.java": {
+    "mtime": 1785359040.6290126,
+    "ast_hash": "109309273d3a94e98747fe62807098c3",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/GetPipelineUseCase.java": {
+    "mtime": 1785108364.2001708,
+    "ast_hash": "2aeafe547cac80b901b5881654cdd534",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/GitWebhookEventEvaluator.java": {
+    "mtime": 1785355770.3453403,
+    "ast_hash": "6b07ae7dd6ef74afc2e341c8ce9bc20a",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/GitWebhookSignatureVerifier.java": {
+    "mtime": 1785109168.124541,
+    "ast_hash": "1f7d347bcae1783a7c7943785ebbb20a",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/GithubRepositoryUrlParser.java": {
+    "mtime": 1785355737.6560075,
+    "ast_hash": "4463ae78f3de490c2e39d18afbf2e8d5",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/HandleGitWebhookUseCase.java": {
+    "mtime": 1785356105.899547,
+    "ast_hash": "7fb41392f435559895d2c7786b7f9ae1",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/ListPipelineRunsUseCase.java": {
+    "mtime": 1785108089.1368256,
+    "ast_hash": "684bcf8faaf7969367a3f9907dce667d",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/ListPipelinesUseCase.java": {
+    "mtime": 1785108073.7600756,
+    "ast_hash": "8436ebaefdc172c17f393a606ec3d360",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/RotatePipelineWebhookTokenUseCase.java": {
+    "mtime": 1785109168.1283221,
+    "ast_hash": "00c647d47f750c9912661bb504efdcdb",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/RunPipelineUseCase.java": {
+    "mtime": 1785359066.7591102,
+    "ast_hash": "0a13bd874494490dacfdc1f95482eccc",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/pipeline/UpdatePipelineUseCase.java": {
+    "mtime": 1785359040.3799982,
+    "ast_hash": "98c124516a42c0b34b12fe18af91c32f",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/platform/GetFeatureFlagsUseCase.java": {
+    "mtime": 1785387400.1644087,
+    "ast_hash": "314799ab6f0be4c8fb5bdd41f3302846",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/project/CreateProjectUseCase.java": {
+    "mtime": 1785108280.876861,
+    "ast_hash": "76ec32c6f34c29645e963cb62ec1fc43",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/project/DeleteProjectUseCase.java": {
+    "mtime": 1785127855.6638627,
+    "ast_hash": "7627c859594890cb74985374e7216ba2",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/project/GetProjectUseCase.java": {
+    "mtime": 1785108282.7160537,
+    "ast_hash": "cda386c62a5ce94eb49abd56b0d1a9df",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/project/ListProjectsUseCase.java": {
+    "mtime": 1785108283.0405083,
+    "ast_hash": "ab24ac983ff6f02c9acc064d5133ae24",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/project/UpdateProjectUseCase.java": {
+    "mtime": 1785108304.9890404,
+    "ast_hash": "5325ec6a7c3c19a8d2e083e6113013f5",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/retention/PurgeRetentionUseCase.java": {
+    "mtime": 1785110588.152091,
+    "ast_hash": "cb871e40dfef339f4f08c34621c9d3ac",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/secret/CreateSecretUseCase.java": {
+    "mtime": 1785521698.6649272,
+    "ast_hash": "2287f96fd55945a6621862e6cc8fcd77",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/secret/ListSecretsUseCase.java": {
+    "mtime": 1785384546.282804,
+    "ast_hash": "2ca33f59e5160b34c4e1a1940fea5169",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/secret/ManageProjectSecretsUseCase.java": {
+    "mtime": 1785521699.3965967,
+    "ast_hash": "ed22e200aaf0d3d2443ff81837586fbc",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/secret/ResolveSecretValueUseCase.java": {
+    "mtime": 1785179271.2451272,
+    "ast_hash": "2a0bc787e5d2bf78cc7425f3e55d5742",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/service/CreateServiceUseCase.java": {
+    "mtime": 1785384546.1969483,
+    "ast_hash": "875f91abbdeabbf0d8cea347d0133692",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/service/DeleteServiceUseCase.java": {
+    "mtime": 1785127317.433387,
+    "ast_hash": "87d40d5b1a4cd229e6edc1b6615ce35e",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/service/GetServiceUseCase.java": {
+    "mtime": 1785127320.0594177,
+    "ast_hash": "a3ba59394ef4e7ae652d9aed6fb21027",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/service/ListServicesUseCase.java": {
+    "mtime": 1785127322.8646264,
+    "ast_hash": "24cdaa5a6d8f82a9b29e53969ac581a3",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/service/UpdateServiceUseCase.java": {
+    "mtime": 1785127315.1842997,
+    "ast_hash": "cce7bf1995fb723c73e25ff421b1c98e",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/shared/GetDashboardStatsUseCase.java": {
+    "mtime": 1785107461.8959234,
+    "ast_hash": "d3b73f28358fcfb24f0732e10065f2d1",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/shared/GetObservabilitySettingsUseCase.java": {
+    "mtime": 1785107858.866637,
+    "ast_hash": "dc22dc8beaa1e1320d06ac7f38e8b0e8",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/shared/PageQuery.java": {
+    "mtime": 1785100140.1967502,
+    "ast_hash": "fbd97c2f2d12b0164d078fb16740ea5c",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/shared/PageResult.java": {
+    "mtime": 1785100138.257238,
+    "ast_hash": "d1866d935bbc6d090d8855fa459f5c24",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/user/GetCurrentUserUseCase.java": {
+    "mtime": 1785100178.0532262,
+    "ast_hash": "d9bc8eaef0fdb047d071f97b71c8ce35",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/user/ListUsersUseCase.java": {
+    "mtime": 1785108385.2124584,
+    "ast_hash": "130d97c2ad9d0dac8f04f619e199f9dc",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/access/ProjectAuthorizationServiceTest.java": {
+    "mtime": 1785384546.1887727,
+    "ast_hash": "6e97ef3ff4680a92a6a6d68281ce95c9",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/application/CreateApplicationUseCaseTest.java": {
+    "mtime": 1785100523.31424,
+    "ast_hash": "bd885331ddd8a1ec29e68afbb12aa7f3",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/audit/ExportAuditEntriesUseCaseTest.java": {
+    "mtime": 1785387508.1382864,
+    "ast_hash": "91b11865ec5bc73de06ffcc05a995e4c",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/auth/AuthenticateFromAuthentikUseCaseTest.java": {
+    "mtime": 1785106023.520974,
+    "ast_hash": "91063e7bd31e0bfdc657d556e01c991c",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/backup/BackupUseCasesTest.java": {
+    "mtime": 1785112348.506823,
+    "ast_hash": "3d7f6a39d989cb60a97ccb1e67a714fb",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/billing/BillingUseCasesTest.java": {
+    "mtime": 1785387492.35441,
+    "ast_hash": "8ee125d4761efbf81fb2cae60f061948",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/cron/CronUseCasesTest.java": {
+    "mtime": 1785127966.669871,
+    "ast_hash": "173bb2cb5e446c69afc60df7c694f447",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/database/IssueProjectDatabaseCredentialsUseCaseTest.java": {
+    "mtime": 1785386858.6894841,
+    "ast_hash": "87a26653f8babef7ca6423f5762fb390",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/database/ProvisionProjectDatabaseUseCaseTest.java": {
+    "mtime": 1785386821.7827036,
+    "ast_hash": "71733461d8e34ea96449b223d7145c7b",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/deployment/AutopilotPlacementServiceTest.java": {
+    "mtime": 1785526322.7530835,
+    "ast_hash": "600fd07b67467986c3d615b460f02d70",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/deployment/DeployServiceUseCaseTest.java": {
+    "mtime": 1785526330.7992606,
+    "ast_hash": "5945cb68a7778e9ebf0541350e1be224",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/deployment/ExecuteDeployServiceJobUseCaseTest.java": {
+    "mtime": 1785522910.1143205,
+    "ast_hash": "8d957819b29eff88dcfe43ccc044f6a3",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/host/DeleteHostUseCaseTest.java": {
+    "mtime": 1785106953.8839502,
+    "ast_hash": "68987176aab55daae46d3f853053f23e",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/host/ExecuteSyncHostJobUseCaseTest.java": {
+    "mtime": 1785364558.0734828,
+    "ast_hash": "682bce03f42f83ee350288e70be59254",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/host/GetContainerLogsUseCaseTest.java": {
+    "mtime": 1785107954.9839492,
+    "ast_hash": "4eb32b042d87786619e10feb28a018ff",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/host/ListHostContainersUseCaseTest.java": {
+    "mtime": 1785107952.9637833,
+    "ast_hash": "5349145fc9e8733f246b798b9f0a7ef1",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/host/RuntimeCapabilityDetectorTest.java": {
+    "mtime": 1785364557.7598708,
+    "ast_hash": "8f504f5c49d942a42254fa8f5e09f163",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/job/RecoverStaleJobsUseCaseTest.java": {
+    "mtime": 1785267044.4290311,
+    "ast_hash": "5b12bfe78980ca18588ef4dcc0160ce9",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/manifest/ComposePathResolverTest.java": {
+    "mtime": 1785522889.4621918,
+    "ast_hash": "e6f1433a6310d93d0d322277da2b4ebb",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/manifest/ProjectManifestLoaderTest.java": {
+    "mtime": 1785385605.6500576,
+    "ast_hash": "87fa7fe3589423dd6ecfa8800cdbde13",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/networking/DomainUseCasesTest.java": {
+    "mtime": 1785180288.3114877,
+    "ast_hash": "fe4a2e0a52c7d18a1972f211d6255d5a",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/observability/AlertObservabilityUseCasesTest.java": {
+    "mtime": 1785126796.172578,
+    "ast_hash": "3623adcb67615b43d6af6f3f6bd5d039",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/pipeline/EnableAutoDeployUseCaseTest.java": {
+    "mtime": 1785359084.2601528,
+    "ast_hash": "95e11730a2c69f92deddecb00510a2b3",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/pipeline/GitWebhookEventEvaluatorTest.java": {
+    "mtime": 1785355876.9327478,
+    "ast_hash": "bbd1d0002eceffc2aa5c6c9fa425b78d",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/pipeline/GitWebhookSignatureVerifierTest.java": {
+    "mtime": 1785109244.4646456,
+    "ast_hash": "c780483f122f18524c902c60bb338c2a",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/pipeline/GithubRepositoryUrlParserTest.java": {
+    "mtime": 1785355893.2456198,
+    "ast_hash": "4dccc5d2f13707a2de78648ad10d8cf4",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/pipeline/HandleGitWebhookUseCaseTest.java": {
+    "mtime": 1785355893.7904139,
+    "ast_hash": "664c53cd275f99ae3d73347358e4895e",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/pipeline/RunPipelineUseCaseTest.java": {
+    "mtime": 1785359083.6811154,
+    "ast_hash": "13c61871aefb13d0bf1106e7d8b7f2e2",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/retention/PurgeRetentionUseCaseTest.java": {
+    "mtime": 1785110635.0549054,
+    "ast_hash": "5f9a5c19959b45bb2863cafa7ce3da17",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/secret/ManageProjectSecretsUseCaseTest.java": {
+    "mtime": 1785520619.3341622,
+    "ast_hash": "aba2ba9f535f4d7c49a46bebc0ed8089",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/secret/ResolveSecretValueUseCaseTest.java": {
+    "mtime": 1785179720.3581433,
+    "ast_hash": "edf94c6836ef9e3d8572f9615e94c52b",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/build.gradle.kts": {
+    "mtime": 1785364467.758086,
+    "ast_hash": "5203abceec5c55ec3fbf555d5cb0e3c9",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/AtlasApplication.java": {
+    "mtime": 1785100265.1412039,
+    "ast_hash": "0410e915c7b98c1c7dd59851125e0df2",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/config/OpenApiConfig.java": {
+    "mtime": 1785364443.3174734,
+    "ast_hash": "30249ca3a0cf27d24c9f4f9a6406a76d",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/config/SecurityConfig.java": {
+    "mtime": 1785109226.4846845,
+    "ast_hash": "4afa7171710fa1f70927054b5c542fae",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/common/PageResponse.java": {
+    "mtime": 1785100251.023382,
+    "ast_hash": "79a50836ebff750ae634d2511314147d",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/common/PageResponses.java": {
+    "mtime": 1785100251.5768914,
+    "ast_hash": "d87d32f341c67eb0edfd972b24327cdc",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/BindProjectSecretRequest.java": {
+    "mtime": 1785129089.7752767,
+    "ast_hash": "f044066e6765340ef3db752c7fc085f5",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateAlertRuleRequest.java": {
+    "mtime": 1785125945.85312,
+    "ast_hash": "5fa2c2392909e4d4297e2ae2a3177795",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateApplicationRequest.java": {
+    "mtime": 1785100266.5871587,
+    "ast_hash": "406a4ab24efa031205ae0629760c6e07",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateCronJobRequest.java": {
+    "mtime": 1785127941.1049492,
+    "ast_hash": "d8b1225d6aa37b8efecf8560cbf5c9e2",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateDeploymentRequest.java": {
+    "mtime": 1785107469.7713113,
+    "ast_hash": "7ab1c6fb4dfee38b72b0f00ff15d4af2",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateDomainRequest.java": {
+    "mtime": 1785113302.813394,
+    "ast_hash": "b42c83dab48efa84c85f084b6974177a",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateHostRequest.java": {
+    "mtime": 1785106900.9801993,
+    "ast_hash": "0bbb8b7ecb9600549148a4d3a2e35387",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateNotificationChannelRequest.java": {
+    "mtime": 1785125942.6993155,
+    "ast_hash": "c21d4ac056fbe4c279b09a0e8fd0bd32",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreatePipelineRequest.java": {
+    "mtime": 1785359010.2816417,
+    "ast_hash": "c3acc87b076b2b55bb5aeb30f891c420",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateProjectMembershipRequest.java": {
+    "mtime": 1785108344.0805984,
+    "ast_hash": "24292b712b43480f977198209ae0f76c",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateProjectRequest.java": {
+    "mtime": 1785358173.6567914,
+    "ast_hash": "4ffaaac6c685de27a5232d80b02b840c",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateSecretRequest.java": {
+    "mtime": 1785106898.5463347,
+    "ast_hash": "bfe8888709a4c0461d4cc3f18b1654ad",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/CreateServiceRequest.java": {
+    "mtime": 1785358170.2869568,
+    "ast_hash": "f0e1ef6c75015ebdf6b59a83e4316891",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/DeployApplicationRequest.java": {
+    "mtime": 1785106897.6692796,
+    "ast_hash": "437a2695436b5e48f3a3f59320b822b1",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/DeployServiceRequest.java": {
+    "mtime": 1785384546.2946713,
+    "ast_hash": "fe105921bbf52fe2c8f814602a8a6784",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/EnableAutoDeployRequest.java": {
+    "mtime": 1785355818.601264,
+    "ast_hash": "654b1bb6668ab09dc7cc6ca8fb5842f0",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/IssueProjectDatabaseCredentialRequest.java": {
+    "mtime": 1785386756.604733,
+    "ast_hash": "a10e71dff9c5d63fcfb81a0624e4b196",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/LoginRequest.java": {
+    "mtime": 1785100265.4464989,
+    "ast_hash": "e2e39429567037909c4388de38f7819c",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateAlertRuleRequest.java": {
+    "mtime": 1785125947.2038286,
+    "ast_hash": "f80417eb23c34df75fa16fb0c07862fd",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateApplicationRequest.java": {
+    "mtime": 1785100267.4195704,
+    "ast_hash": "cb1cbd549129bb664e870e90904ac797",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateCronJobRequest.java": {
+    "mtime": 1785127942.2117536,
+    "ast_hash": "60a10a93217b604e1374a97ce76e134d",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateDeploymentRequest.java": {
+    "mtime": 1785100269.7823546,
+    "ast_hash": "3879abcdd18ce5348633be730ed11722",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateDomainRequest.java": {
+    "mtime": 1785113303.6924202,
+    "ast_hash": "c19096ca895ce0c6d9105f7cd56728d8",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateHostRequest.java": {
+    "mtime": 1785106900.9802122,
+    "ast_hash": "137e3b17bd75830f0e19db79c356bdf2",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateNotificationChannelRequest.java": {
+    "mtime": 1785125944.223333,
+    "ast_hash": "ba1e235834d072c53b91544924e18b31",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdatePipelineRequest.java": {
+    "mtime": 1785359016.6229084,
+    "ast_hash": "0049ae6f99d3e0b5829bb4cce174ded9",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateProjectMembershipRequest.java": {
+    "mtime": 1785108348.2789052,
+    "ast_hash": "242922243ce9cf4570f106fbf870e44d",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateProjectRequest.java": {
+    "mtime": 1785107464.7602696,
+    "ast_hash": "f90082fe60ec24ab7e864e8c618a9658",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/request/UpdateServiceRequest.java": {
+    "mtime": 1785358171.6339633,
+    "ast_hash": "1666384f13b9302ef652542f14cb87c3",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/AlertRuleResponse.java": {
+    "mtime": 1785125949.1866112,
+    "ast_hash": "ed7e3d22b07c2c96822b699f1807a3b2",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ApplicationResponse.java": {
+    "mtime": 1785100270.7581363,
+    "ast_hash": "3322962f76a23db865e3b43252fe36a5",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/AuditEntryResponse.java": {
+    "mtime": 1785108343.5980241,
+    "ast_hash": "cc386c5c891f091597044b9a26b300f8",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/AutoDeployResponse.java": {
+    "mtime": 1785355824.8333547,
+    "ast_hash": "c246247b332b008f9e97681e5551f7e0",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ContainerLogsResponse.java": {
+    "mtime": 1785107886.5361593,
+    "ast_hash": "071d164e2fcf3d4f2b1a6cda02ae32cd",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ContainerResponse.java": {
+    "mtime": 1785107886.029931,
+    "ast_hash": "f81a5574327a3f2c2d22301c6f350222",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/CronJobResponse.java": {
+    "mtime": 1785127949.3164663,
+    "ast_hash": "546a320bbf46bbee73e112309813ed72",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/DashboardStatsResponse.java": {
+    "mtime": 1785107472.4682593,
+    "ast_hash": "b155b227f7b98699bc1c546250bee4a7",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/DeployResponse.java": {
+    "mtime": 1785106897.0356898,
+    "ast_hash": "63130f6fd8bb89dfed3a0cf87b275403",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/DeploymentResponse.java": {
+    "mtime": 1785107682.3027644,
+    "ast_hash": "0157236789d8ce655773a83a8779e65e",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/DnsCnameResponse.java": {
+    "mtime": 1785180139.615385,
+    "ast_hash": "909c1e1254e24267de65793bcfe9bac4",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/DomainResponse.java": {
+    "mtime": 1785113304.324538,
+    "ast_hash": "02b23937f596a50be025613078b74150",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/FeatureFlagsResponse.java": {
+    "mtime": 1785387442.9958713,
+    "ast_hash": "f7444c7af16278ed06d375e051138476",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/HostResponse.java": {
+    "mtime": 1785358626.6747363,
+    "ast_hash": "c3b87f61fad158961b87cbb9add03189",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/JobResponse.java": {
+    "mtime": 1785106896.046026,
+    "ast_hash": "4a3650f0d1997bccef0069abe2f71889",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/LoginResponse.java": {
+    "mtime": 1785100270.4687457,
+    "ast_hash": "2ef2f8ced8dd278b83e14f46a3c52bcb",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/NotificationChannelResponse.java": {
+    "mtime": 1785125948.8636513,
+    "ast_hash": "284b0b9228555a5fb82c4d569836c4fc",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ObservabilitySettingsResponse.java": {
+    "mtime": 1785107887.9105735,
+    "ast_hash": "37b500f3caedd5df27a8f625926783f4",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/PipelineResponse.java": {
+    "mtime": 1785109226.4554038,
+    "ast_hash": "aab93af598d2f6344c362e857ba91dbc",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/PipelineRunResponse.java": {
+    "mtime": 1785108117.8340864,
+    "ast_hash": "4f330171541388b1c10ce8def6a4f302",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/PlanEntitlementsResponse.java": {
+    "mtime": 1785384546.1996148,
+    "ast_hash": "6f80a4270d3105ed7b4d3ef6b3d78c40",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ProjectDatabaseCredentialListItemResponse.java": {
+    "mtime": 1785386767.3337033,
+    "ast_hash": "04163ad536a919f4ac32558b535035b8",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ProjectDatabaseCredentialResponse.java": {
+    "mtime": 1785386757.5020444,
+    "ast_hash": "0b8faf6b7f79f6f218de4b9c5ff136a8",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ProjectDatabaseProvisionResponse.java": {
+    "mtime": 1785386193.0219414,
+    "ast_hash": "a177aa77ca032b8631275c97f6105f50",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ProjectDatabaseResponse.java": {
+    "mtime": 1785386187.7533538,
+    "ast_hash": "3c6b75b3fd9d20ab92a5d0efe7d59172",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ProjectMembershipResponse.java": {
+    "mtime": 1785108342.9514618,
+    "ast_hash": "b8dbe25acee67a6ccd75d2b5a6dd6883",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ProjectResponse.java": {
+    "mtime": 1785107462.7219052,
+    "ast_hash": "dd40b02147fa3884310f0d80f2bddd6d",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ProjectSecretEntryResponse.java": {
+    "mtime": 1785129089.7758358,
+    "ast_hash": "75cb84d9eddfa1e5fb110feea355798e",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/SecretResponse.java": {
+    "mtime": 1785129089.7760727,
+    "ast_hash": "eda59386f0b5d1ed814df634280bb333",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/ServiceResponse.java": {
+    "mtime": 1785384546.2001755,
+    "ast_hash": "7a443cabbf8c56e40ba112bc344e4a94",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/TraefikMetadataResponse.java": {
+    "mtime": 1785113310.1557684,
+    "ast_hash": "5d9b1c307de177cafbfe73617afd3e08",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/TunnelIngressResponse.java": {
+    "mtime": 1785177827.2692122,
+    "ast_hash": "0ab8d64bc85214f0c4bc3ad20270d882",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/UsageRecordResponse.java": {
+    "mtime": 1785384546.2002058,
+    "ast_hash": "301fa6d5242bcee93f52edc0c511dcb7",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/dto/response/UserResponse.java": {
+    "mtime": 1785100278.4301443,
+    "ast_hash": "afd795072787f0404fab4cd96403aaf3",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/error/ApiError.java": {
+    "mtime": 1785100255.1035361,
+    "ast_hash": "08f1656042b496709f0c3952a6863d1d",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/error/GlobalExceptionHandler.java": {
+    "mtime": 1785109226.4849894,
+    "ast_hash": "4d4d5f4f0cf8d4c3f7738af3d6799baf",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/mapper/ApiMapper.java": {
+    "mtime": 1785358628.7371242,
+    "ast_hash": "c07d04a57a1a469cbf195feba76e4c79",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/AdminController.java": {
+    "mtime": 1785112317.4689593,
+    "ast_hash": "cb7444e8ea41f5b857b90c1d6126c0cf",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/AlertRuleController.java": {
+    "mtime": 1785126673.6107554,
+    "ast_hash": "bdd97a33d2d1490867c98aaa1fe3d592",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/ApplicationController.java": {
+    "mtime": 1785364408.7964368,
+    "ast_hash": "9f2a7cf3a0bdbe80775105803e1955bc",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/AuditController.java": {
+    "mtime": 1785387454.2478356,
+    "ast_hash": "8e7865caea46e232da4cd9f1dc75c881",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/AuthController.java": {
+    "mtime": 1785106023.521241,
+    "ast_hash": "49e1f331a2a299bf49c61dd171efbfc2",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/BillingController.java": {
+    "mtime": 1785384546.1996646,
+    "ast_hash": "e6be9a30f832d3f694c60d204e22b990",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/CronJobController.java": {
+    "mtime": 1785127949.657186,
+    "ast_hash": "f5ff174faa6975a4596071e521d33869",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/DeploymentController.java": {
+    "mtime": 1785107502.6346698,
+    "ast_hash": "521511cc938fbbdfd21d15e6a317603a",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/DomainController.java": {
+    "mtime": 1785180161.721032,
+    "ast_hash": "dabea4f094bb2807bbd2e3f5dbd5994d",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/GitWebhookController.java": {
+    "mtime": 1785355841.7425523,
+    "ast_hash": "43dbbaacc7de11f78d53c26800c9fbff",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/HostController.java": {
+    "mtime": 1785107919.2111952,
+    "ast_hash": "b440835d9caac00fd8fd9aa63188786e",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/JobController.java": {
+    "mtime": 1785106923.9994416,
+    "ast_hash": "3a14896487f246e7a4dd1aedc8b910f5",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/MeController.java": {
+    "mtime": 1785107503.0545452,
+    "ast_hash": "5606e4232aaf552548373188af084031",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/NotificationChannelController.java": {
+    "mtime": 1785126673.592667,
+    "ast_hash": "ce2fafbcc45ec432f188df57515bc515",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/PipelineController.java": {
+    "mtime": 1785355866.4611719,
+    "ast_hash": "9c3e27a30057537e4a2e1b2067818cc6",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/ProjectController.java": {
+    "mtime": 1785384546.2000084,
+    "ast_hash": "be2cc9115d69623878b9fff37719134b",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/ProjectDatabaseController.java": {
+    "mtime": 1785386767.6480286,
+    "ast_hash": "bcf518d196a4d977ab932f91bb391fbd",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/ProjectMembershipController.java": {
+    "mtime": 1785108350.719342,
+    "ast_hash": "bcd08b8f3586b71420b44cd487a05dcb",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/ProjectSecretController.java": {
+    "mtime": 1785521699.6970973,
+    "ast_hash": "dbb5deb6dee5cf77e564ee2132d51f63",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/SecretController.java": {
+    "mtime": 1785521697.470436,
+    "ast_hash": "f58df97ebb92b34a9f33b359e566dd55",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/ServiceController.java": {
+    "mtime": 1785384546.2245662,
+    "ast_hash": "eaf12ef42d99e7d06522ea6e74bb4aea",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/SettingsController.java": {
+    "mtime": 1785387451.678958,
+    "ast_hash": "ed12c7a645acc4e6b4d8b1ceef5cd119",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/java/com/atlas/api/web/UserController.java": {
+    "mtime": 1785108390.6881394,
+    "ast_hash": "f64cf6d7e5b66c0a7ba9872f4b99931a",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/test/java/com/atlas/AtlasIntegrationTest.java": {
+    "mtime": 1785384546.1894722,
+    "ast_hash": "444ce2d782e7c44e8e792b5e8b4a7d82",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/test/java/com/atlas/JobClaimIntegrationTest.java": {
+    "mtime": 1785106981.5108876,
+    "ast_hash": "38195b7744ab45d1d4c420d6a542170c",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/test/java/com/atlas/JobStaleRecoveryIntegrationTest.java": {
+    "mtime": 1785267394.403865,
+    "ast_hash": "9bb735481ab50e12ac730042dbeb4868",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/test/java/com/atlas/OpenApiContractIntegrationTest.java": {
+    "mtime": 1785387459.0766363,
+    "ast_hash": "5c95ad810dc9bf58b3cc732a45e26096",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/test/java/com/atlas/ProjectDatabaseProvisionIntegrationTest.java": {
+    "mtime": 1785386860.4103274,
+    "ast_hash": "7da336ecfb715c8f677bf7911c5f29d1",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/test/java/com/atlas/ProjectsScaleIntegrationTest.java": {
+    "mtime": 1785385777.3600934,
+    "ast_hash": "d3df922525840bc3da596f9d8dfe27a2",
+    "semantic_hash": ""
+  },
+  "backend/build.gradle.kts": {
+    "mtime": 1785100422.0860786,
+    "ast_hash": "d012af70c28fde8b63196caa70fa7d25",
+    "semantic_hash": ""
+  },
+  "backend/domain/build.gradle.kts": {
+    "mtime": 1785100445.1553166,
+    "ast_hash": "a75858a297ba93c0ec26c862a175dad4",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/access/ProjectMemberRole.java": {
+    "mtime": 1785108245.1925921,
+    "ast_hash": "e2803df09c2bf387add6ffa1c6a59d1b",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/access/ProjectMembership.java": {
+    "mtime": 1785108250.5189867,
+    "ast_hash": "17b91a56cc93769ebd59cad53f4676c9",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/access/ProjectPermission.java": {
+    "mtime": 1785108247.8158062,
+    "ast_hash": "bee88681b28ed6ede339dc60f1136f9e",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/application/Application.java": {
+    "mtime": 1785100128.5354443,
+    "ast_hash": "99173b43ad118d5633bf76e1b9a7b9e2",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/application/ApplicationStatus.java": {
+    "mtime": 1785100118.8446465,
+    "ast_hash": "666244443f9c0964e0eb3bdebebc0f67",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/audit/AuditEntry.java": {
+    "mtime": 1785108250.5509663,
+    "ast_hash": "bc6a18fa48b6bbfff56c6b9f3569d9b0",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/billing/FeatureFlags.java": {
+    "mtime": 1785387391.808739,
+    "ast_hash": "de9c90915ba26d133e53295bb4e9857f",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/billing/PlanCodes.java": {
+    "mtime": 1785387389.3121507,
+    "ast_hash": "98db521d320003a288032abaece316f1",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/billing/PlanEntitlement.java": {
+    "mtime": 1785384546.2002733,
+    "ast_hash": "b734984c26e5aad61ad2bf5b7b8cffa8",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/billing/UsageMeters.java": {
+    "mtime": 1785384546.189934,
+    "ast_hash": "dd333607f90e851b5dcea03693f123bc",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/billing/UsageRecord.java": {
+    "mtime": 1785384546.1996455,
+    "ast_hash": "0d6b6d378ec20b88c090190867aac3d3",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/cron/CronJob.java": {
+    "mtime": 1785127896.0287287,
+    "ast_hash": "0f85fd6b1bbd0b67f6db37c4ce59bff0",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/cron/CronTargetType.java": {
+    "mtime": 1785127892.440704,
+    "ast_hash": "879a915adc20e63f88d78c0b7b1387c2",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/database/DatabaseAccessProfile.java": {
+    "mtime": 1785386650.024433,
+    "ast_hash": "5793f7da6418af665fb6ffe112d5c06c",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/database/ProjectDatabaseNames.java": {
+    "mtime": 1785386654.0638413,
+    "ast_hash": "6bb43d8a50bb625c8687eeb1cd329032",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/deployment/Deployment.java": {
+    "mtime": 1785107360.293214,
+    "ast_hash": "23ef632cb9fe73a3f8c33273f515475f",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/deployment/DeploymentStatus.java": {
+    "mtime": 1785100119.1078656,
+    "ast_hash": "2ff6aeb1d30255559ad314b2e3089c01",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/deployment/PlacementMode.java": {
+    "mtime": 1785178467.4990757,
+    "ast_hash": "8e65793d9ac9398ebd1356f1fa992d8c",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/host/ConnectionType.java": {
+    "mtime": 1785107111.9154482,
+    "ast_hash": "b2825ded2612cdeb40fcfaeb45d83b47",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/host/Host.java": {
+    "mtime": 1785362441.734213,
+    "ast_hash": "71aac92feea67018ba388568cfb5b7fb",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/job/Job.java": {
+    "mtime": 1785266968.2551098,
+    "ast_hash": "8eb742e37fc1cc0715c4f096e65d1b81",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/job/JobStatus.java": {
+    "mtime": 1785106709.809707,
+    "ast_hash": "3aec8331f9f889279aa1a3f71a39bf22",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/job/JobType.java": {
+    "mtime": 1785112281.831224,
+    "ast_hash": "78788d9d08f64ec99fd80fb31f8f280e",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/manifest/EnvFromSecretRef.java": {
+    "mtime": 1785521830.6497083,
+    "ast_hash": "9aefe98488f580f45c7412076feedadd",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/manifest/ProjectManifest.java": {
+    "mtime": 1785522772.6842096,
+    "ast_hash": "6c47c6c240ea8b3144786e8ac620eccf",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/networking/Domain.java": {
+    "mtime": 1785113257.5045326,
+    "ast_hash": "09bcb57a160001d9109f11c40e312228",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/networking/DomainStatus.java": {
+    "mtime": 1785113256.5032773,
+    "ast_hash": "64a15e2e262bd20a14f49e5530249276",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/observability/AlertEventType.java": {
+    "mtime": 1785117688.6983488,
+    "ast_hash": "e03922523021ee8becb71260d4bd3120",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/observability/AlertRule.java": {
+    "mtime": 1785117706.6674232,
+    "ast_hash": "4d4339481dc02e47332717b2808436bb",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/observability/AlertRuleStatus.java": {
+    "mtime": 1785117688.6983194,
+    "ast_hash": "77161ee97cdb3c1f28d3955e35cd8c96",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/observability/NotificationChannel.java": {
+    "mtime": 1785117706.8877826,
+    "ast_hash": "af5a520886c9e241789705f2125a7d68",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/observability/NotificationChannelType.java": {
+    "mtime": 1785117698.8049953,
+    "ast_hash": "08438dffa165a7211a4791ef6b35c6bc",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/organization/Organization.java": {
+    "mtime": 1785107338.1411693,
+    "ast_hash": "0597881810297bacbd448385ce9a28cb",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/pipeline/Pipeline.java": {
+    "mtime": 1785359005.6146326,
+    "ast_hash": "b58bc878e2f5cdfc08e0903ed1de8245",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/pipeline/PipelineRun.java": {
+    "mtime": 1785108061.6261313,
+    "ast_hash": "b0aefeecc31ef96a5609a53606e1509c",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/pipeline/PipelineRunStatus.java": {
+    "mtime": 1785108055.087836,
+    "ast_hash": "29ca2b3cafe45068eab13a6f022ca44f",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/project/Project.java": {
+    "mtime": 1785107348.6531923,
+    "ast_hash": "4be5862ec3decef19d7b44ff8f768233",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/project/ProjectStatus.java": {
+    "mtime": 1785107338.6487029,
+    "ast_hash": "8906f1afd5a371ac3f5182eabe51baab",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/runtime/ContainerSnapshot.java": {
+    "mtime": 1785107849.8650408,
+    "ast_hash": "f05b07e40994a6ba435680e3356533ee",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/runtime/RuntimeCapability.java": {
+    "mtime": 1785358565.0126152,
+    "ast_hash": "a46a9204de587b5aff0bf4fd66ce86d5",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/secret/ProjectSecretBinding.java": {
+    "mtime": 1785129089.7764533,
+    "ast_hash": "75a4b517ba27a4b3e2c884fb73d8cfd7",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/secret/Secret.java": {
+    "mtime": 1785129089.7766364,
+    "ast_hash": "3fb65d905229b0f1b2c077f60628b162",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/service/ServiceExposure.java": {
+    "mtime": 1785127840.6665242,
+    "ast_hash": "2fac21ab94387452368606b031f410e3",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/service/ServiceStatus.java": {
+    "mtime": 1785107343.1485183,
+    "ast_hash": "ded277354887b5e9d3de1c3219737dec",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/service/ServiceUnit.java": {
+    "mtime": 1785384546.1995144,
+    "ast_hash": "f5bd1bcc96afa752bf239dcf58a71f61",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/shared/ConflictException.java": {
+    "mtime": 1785100118.7455971,
+    "ast_hash": "5f976104341358a114c2f2fc31e4d455",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/shared/DomainException.java": {
+    "mtime": 1785100117.308269,
+    "ast_hash": "f0a368c81ed8bfcfb9e289994690674f",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/shared/ForbiddenException.java": {
+    "mtime": 1785108244.6694038,
+    "ast_hash": "d9442cad4a8f3da775bd3df96bcf44d8",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/shared/NotFoundException.java": {
+    "mtime": 1785100117.7507668,
+    "ast_hash": "a0528b72cc5afa576179c2c2b2948f34",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/shared/TooManyRequestsException.java": {
+    "mtime": 1785109148.2850037,
+    "ast_hash": "3c75dc951eb0981d08fc5e1c43c7b692",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/shared/UnauthorizedException.java": {
+    "mtime": 1785100181.959495,
+    "ast_hash": "8fc6517f170bac1da30263d51f742ca9",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/user/Role.java": {
+    "mtime": 1785100124.0162249,
+    "ast_hash": "7162ae25cc7ec4a77b57a61e56941241",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/main/java/com/atlas/domain/user/User.java": {
+    "mtime": 1785106023.5219486,
+    "ast_hash": "05aafded9faa59bc1a62ce94f28aa95d",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/access/ProjectMemberRoleTest.java": {
+    "mtime": 1785127151.6506793,
+    "ast_hash": "d4f2d671683dc55f590d5f6980536798",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/application/ApplicationTest.java": {
+    "mtime": 1785100521.1755257,
+    "ast_hash": "9b824b68093e104c193d7841e590ef8c",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/billing/BillingDomainTest.java": {
+    "mtime": 1785387492.6538894,
+    "ast_hash": "798f481116f5117b9230bd4bdeaa4dbe",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/cron/CronJobTest.java": {
+    "mtime": 1785127897.78849,
+    "ast_hash": "c43a82c9faaf66f895bda3a66e0fe2a8",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/database/ProjectDatabaseNamesTest.java": {
+    "mtime": 1785386797.209165,
+    "ast_hash": "57bb3974b6b4dd8a2aba905e4fb4e6b7",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/host/HostRuntimeCapabilityTest.java": {
+    "mtime": 1785362471.4907556,
+    "ast_hash": "1a762b3ffbba5dfdf7293c4469070c66",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/job/JobTest.java": {
+    "mtime": 1785267064.1729655,
+    "ast_hash": "9f4d9a9dd255d1a8114d2dbaf95abc77",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/manifest/ProjectManifestTest.java": {
+    "mtime": 1785522910.4848022,
+    "ast_hash": "e5292bf41c3a0d2f2466304f47617080",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/networking/DomainTest.java": {
+    "mtime": 1785113326.828484,
+    "ast_hash": "84bd5c95108474bd01b9d168520234de",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/observability/AlertRuleTest.java": {
+    "mtime": 1785118659.236946,
+    "ast_hash": "2307278cba7e2cd6269fe788aefdbb5b",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/observability/NotificationChannelTest.java": {
+    "mtime": 1785118661.1605406,
+    "ast_hash": "77cd7373a49e3c615b1c3bc29a9099ba",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/pipeline/PipelineHostIdTest.java": {
+    "mtime": 1785359106.038755,
+    "ast_hash": "d60fb6590cccdedb182a77ef2eab8ecf",
+    "semantic_hash": ""
+  },
+  "backend/domain/src/test/java/com/atlas/domain/service/ServiceUnitExposureTest.java": {
+    "mtime": 1785358240.9929762,
+    "ast_hash": "5045d795c0bc28f8fad894365e1906e0",
+    "semantic_hash": ""
+  },
+  "backend/gradlew": {
+    "mtime": 1785100380.4263732,
+    "ast_hash": "cf6bb46b25d0768b3929c9b1377bf481",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/build.gradle.kts": {
+    "mtime": 1785386281.0616565,
+    "ast_hash": "b71779dc5d352366f914807e552ba6e2",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/future/StubDnsProviderAdapter.java": {
+    "mtime": 1785180434.7873363,
+    "ast_hash": "168651568c036cab975e8adaf9395b59",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/future/UnsupportedContainerRuntime.java": {
+    "mtime": 1785522821.0466912,
+    "ast_hash": "3b6b1f0ced11fc76e6d54ea24ffd20d2",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/future/UnsupportedDatabaseBackup.java": {
+    "mtime": 1785112301.9125845,
+    "ast_hash": "963c6f4c63fc1b126c56253e8c10a062",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/future/UnsupportedGitRepository.java": {
+    "mtime": 1785106863.0741384,
+    "ast_hash": "de92dbbfd2aee4064d9155742303e38a",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/future/UnsupportedHostCommand.java": {
+    "mtime": 1785361078.3189125,
+    "ast_hash": "58a681c9edde89768a54c7f8e987d478",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/future/UnsupportedHostConnector.java": {
+    "mtime": 1785106861.0821085,
+    "ast_hash": "7aa149359737a765fb1dc3889592bd40",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/git/GitHubWebhookAdapter.java": {
+    "mtime": 1785355813.130187,
+    "ast_hash": "5aae4fad927876b9828f62075fa6a34a",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/git/JGitRepositoryAdapter.java": {
+    "mtime": 1785129089.7768998,
+    "ast_hash": "eb3c6a654d6118ecfebe6250546284e7",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/host/RealHostConnectorAdapter.java": {
+    "mtime": 1785364546.3955436,
+    "ast_hash": "8ca3dfe1d6eadadfb6fbba4e93b84acb",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/observability/EnvObservabilitySettingsAdapter.java": {
+    "mtime": 1785107880.232378,
+    "ast_hash": "a9dc7183e9c11a849040b4f6b4dc88d5",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/observability/StubNotificationDeliveryAdapter.java": {
+    "mtime": 1785125940.9975607,
+    "ast_hash": "91436602a39a1437a550b909241d5ff6",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/runtime/ComposeRuntimeOrchestratorAdapter.java": {
+    "mtime": 1785522827.2203157,
+    "ast_hash": "cbae7cf0339f7ac2c45d1eafa283d6b4",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/runtime/ProcessCommandRunner.java": {
+    "mtime": 1785127871.5973918,
+    "ast_hash": "c9274abe2c233b54bdb245dd7db4bf9a",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/runtime/ProcessContainerRuntimeAdapter.java": {
+    "mtime": 1785522815.2316546,
+    "ast_hash": "4cbfec9596f2e43f28f3ebb9249b69ba",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/runtime/ProcessHostCommandAdapter.java": {
+    "mtime": 1785361077.895079,
+    "ast_hash": "82670d255c114ccc7c418d2e231c908b",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/runtime/SshCommandRunner.java": {
+    "mtime": 1785106859.527209,
+    "ast_hash": "22ed7bd4f54861475990723b8394b1d0",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/backup/DatabaseBackupScheduler.java": {
+    "mtime": 1785112306.437074,
+    "ast_hash": "dc7f5bcf66f4b0a8af1f66ceb95235c5",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/backup/EnvBackupPolicyAdapter.java": {
+    "mtime": 1785112299.525017,
+    "ast_hash": "587a6b55d82966ed14ffa35f9ca87faf",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/backup/PgDumpDatabaseBackupAdapter.java": {
+    "mtime": 1785112300.662195,
+    "ast_hash": "b8dc2ebc2cf422fedef5c8a5bbf95f6c",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/billing/InProcessBillingMeterAdapter.java": {
+    "mtime": 1785384546.1970348,
+    "ast_hash": "e858739e56f68bc756093202afdaf320",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/billing/LocalFeatureFlagAdapter.java": {
+    "mtime": 1785387413.1078343,
+    "ast_hash": "c98c3e0d7c7cc2ca0226fd3a6970c5bf",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/billing/LocalPlanEntitlementAdapter.java": {
+    "mtime": 1785387414.8145304,
+    "ast_hash": "440dc6a0d952db228a3210309bf997c7",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/config/AdminUserInitializer.java": {
+    "mtime": 1785102241.4438963,
+    "ast_hash": "3fce790d9124b2fb1ee8185e013ea830",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/config/AtlasProperties.java": {
+    "mtime": 1785387420.1078255,
+    "ast_hash": "c22fa5201fd7293532fc9445b0cd5fd0",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/config/InfrastructureConfig.java": {
+    "mtime": 1785106879.2484627,
+    "ast_hash": "c8ac31fc43941a7fb0c75826abcccc3d",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/cron/CronJobScheduler.java": {
+    "mtime": 1785127939.7389607,
+    "ast_hash": "246b6976400a0127f3063da86299b008",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/database/PostgresProjectDatabaseProvisionerAdapter.java": {
+    "mtime": 1785386781.6257656,
+    "ast_hash": "31b2c460fc6f756defc97f5966ca52e1",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/networking/CloudflareApiErrorMessages.java": {
+    "mtime": 1785364126.5386803,
+    "ast_hash": "9a5ee9282557cfefc27028f2d08da4cd",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/networking/CloudflareDnsAdapter.java": {
+    "mtime": 1785364130.0355237,
+    "ast_hash": "3accdd01dd0f5b5a971f5de3ecb0e16b",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/networking/CloudflareTunnelAdapter.java": {
+    "mtime": 1785364127.5875683,
+    "ast_hash": "7e4e4739eb4a6d406aab7bfaeab530e9",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/networking/CloudflareTunnelHttpGateway.java": {
+    "mtime": 1785180104.800539,
+    "ast_hash": "1e49194e3fdd7964be3020f7b5bbbb0f",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/networking/StaticTraefikMetadataAdapter.java": {
+    "mtime": 1785113295.5012476,
+    "ast_hash": "2e7bfabc6587756a4f44336e8150a48f",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/PageableFactory.java": {
+    "mtime": 1785100215.279084,
+    "ast_hash": "296d5f2114c3929c02c278b848a93ef0",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/AlertRuleRepositoryAdapter.java": {
+    "mtime": 1785125932.0195541,
+    "ast_hash": "5171d9eb56da1e7c76dd666285378816",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/ApplicationRepositoryAdapter.java": {
+    "mtime": 1785107674.5970492,
+    "ast_hash": "e9b8b7b36696e634bc5c9bb1b52d2c0f",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/AuditRepositoryAdapter.java": {
+    "mtime": 1785108330.1510978,
+    "ast_hash": "178150972de16df6d632428328a49169",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/CronJobRepositoryAdapter.java": {
+    "mtime": 1785127938.4819627,
+    "ast_hash": "5a5c35b8c0dc31239724e134a3e7d4b3",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/DeploymentRepositoryAdapter.java": {
+    "mtime": 1785107413.9309995,
+    "ast_hash": "144a11c236ee45d8a31f9cf819801620",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/DomainRepositoryAdapter.java": {
+    "mtime": 1785113286.2562237,
+    "ast_hash": "d5253189ac470f7dd441a40d6147c3bc",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/HostRepositoryAdapter.java": {
+    "mtime": 1785384546.200257,
+    "ast_hash": "3735e4636f71db7eaf9323e94aadc157",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/JobRepositoryAdapter.java": {
+    "mtime": 1785267394.3439808,
+    "ast_hash": "30495cb25e08e2d3b70c8c0f949710c5",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/NotificationChannelRepositoryAdapter.java": {
+    "mtime": 1785125939.2102675,
+    "ast_hash": "ffb81764f99d51cde4d7f2fd4c9692b6",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/PipelineRepositoryAdapter.java": {
+    "mtime": 1785355812.6072607,
+    "ast_hash": "e25bce86e96ed9f5fc201f1173acc4f7",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/PipelineRunRepositoryAdapter.java": {
+    "mtime": 1785110618.0478704,
+    "ast_hash": "a763cc8a746d17a58028727c722a0348",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/ProjectMembershipRepositoryAdapter.java": {
+    "mtime": 1785108328.8188014,
+    "ast_hash": "f6045d96c16e5ed76e1eaf41635ce891",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/ProjectRepositoryAdapter.java": {
+    "mtime": 1785108274.6948884,
+    "ast_hash": "13ee287b38fc650c1b91add74bcf7ee7",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/ProjectSecretBindingRepositoryAdapter.java": {
+    "mtime": 1785129089.7770736,
+    "ast_hash": "e4863dfdb25116fb5fc758877ccec3bb",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/SecretRepositoryAdapter.java": {
+    "mtime": 1785129089.777261,
+    "ast_hash": "10bdd35d225480f712f9af08a40e7c95",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/ServiceRepositoryAdapter.java": {
+    "mtime": 1785107406.6702974,
+    "ast_hash": "0b3082cee243a7b607b6246966fbf4ce",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/UsageRecordRepositoryAdapter.java": {
+    "mtime": 1785384546.294703,
+    "ast_hash": "09a2d5eb00fcd4653714ad9a74d12eac",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/adapter/UserRepositoryAdapter.java": {
+    "mtime": 1785108390.4436603,
+    "ast_hash": "42156e82bccf1bf09134bae0ca847e8b",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/AlertRuleJpaEntity.java": {
+    "mtime": 1785384546.2245433,
+    "ast_hash": "5adbe5b596ca55742f0116e0b960dbfd",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/AuditEntryJpaEntity.java": {
+    "mtime": 1785108321.5949938,
+    "ast_hash": "b813d917a821c01ba0d15b6a975e08a0",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/CronJobJpaEntity.java": {
+    "mtime": 1785127929.6470957,
+    "ast_hash": "3b4c0e1cec6926260dbefe8ce132744a",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/DeploymentJpaEntity.java": {
+    "mtime": 1785107376.7622428,
+    "ast_hash": "8973ce40805fd4ed31189caaa72d1d5d",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/DomainJpaEntity.java": {
+    "mtime": 1785113281.797172,
+    "ast_hash": "fa6729cfd3b320697935cc2cf5c3cd4c",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/HostJpaEntity.java": {
+    "mtime": 1785362455.9192674,
+    "ast_hash": "3cc519ed59b23b954b6b521175ab604f",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/JobJpaEntity.java": {
+    "mtime": 1785107057.082853,
+    "ast_hash": "02af3ff3bac0fc6729548d27eea8fe20",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/NotificationChannelJpaEntity.java": {
+    "mtime": 1785384546.2002432,
+    "ast_hash": "cd8068aebe4357a74240ea93837fcf15",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/OrganizationJpaEntity.java": {
+    "mtime": 1785107631.2106729,
+    "ast_hash": "6aa0ecea662ec7601365ec8ac3754a92",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/PipelineJpaEntity.java": {
+    "mtime": 1785359008.4122543,
+    "ast_hash": "cb8507864860d62ee104b158adacede7",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/PipelineRunJpaEntity.java": {
+    "mtime": 1785108094.2444756,
+    "ast_hash": "9428bcfa6045dca05d26f9227566d66f",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/ProjectJpaEntity.java": {
+    "mtime": 1785107374.9562073,
+    "ast_hash": "bd513fa483f66969a8b9faf590e104f5",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/ProjectMembershipJpaEntity.java": {
+    "mtime": 1785108320.1897593,
+    "ast_hash": "c0b2bb2eca67a507f5b0bc5f38d9eeb2",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/ProjectSecretBindingJpaEntity.java": {
+    "mtime": 1785129089.77745,
+    "ast_hash": "3714d2c7b52964636da5f8c3aa5d1177",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/SecretJpaEntity.java": {
+    "mtime": 1785129089.777673,
+    "ast_hash": "030719f912d41b1638d37d11b6f997ca",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/ServiceJpaEntity.java": {
+    "mtime": 1785384546.2000375,
+    "ast_hash": "eb77cd6ec495e84ed9f35505e692ef3f",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/UsageRecordJpaEntity.java": {
+    "mtime": 1785384546.1899574,
+    "ast_hash": "4cf0f039bcfa75e5ac27dd49dfb63a63",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/entity/UserJpaEntity.java": {
+    "mtime": 1785100490.4170685,
+    "ast_hash": "b902b9eb5a3039121d144ed94c7b62a4",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/mapper/DeploymentJpaMapper.java": {
+    "mtime": 1785107385.9149175,
+    "ast_hash": "f9abaa2b70ff8b2baeb8bc518203515d",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/mapper/HostJpaMapper.java": {
+    "mtime": 1785362458.3199325,
+    "ast_hash": "2411cc20ea7e5a4ac200621d14719aa6",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/mapper/JobJpaMapper.java": {
+    "mtime": 1785106795.793887,
+    "ast_hash": "c1c642b52ac8c1b6c3b387ab733a9885",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/mapper/PipelineJpaMapper.java": {
+    "mtime": 1785109214.495774,
+    "ast_hash": "6de6e024469bf9e8b717c442351cfa67",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/mapper/PipelineRunJpaMapper.java": {
+    "mtime": 1785108097.405716,
+    "ast_hash": "dc30575d8427fe30072c146572703aa7",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/mapper/ProjectJpaMapper.java": {
+    "mtime": 1785107382.9376478,
+    "ast_hash": "86d64222be4a92476e1211ba3f3fb3e3",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/mapper/SecretJpaMapper.java": {
+    "mtime": 1785129089.7778654,
+    "ast_hash": "faf19c28cf4cf0b6d3fa084b72447dfe",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/mapper/ServiceJpaMapper.java": {
+    "mtime": 1785384546.2914405,
+    "ast_hash": "e67fa21ddf4d3874d2216c47160ddfcc",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/mapper/UserJpaMapper.java": {
+    "mtime": 1785100206.8335218,
+    "ast_hash": "7ec75ee1cf58afc13647a879d4cc755f",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/AlertRuleJpaRepository.java": {
+    "mtime": 1785384546.2002234,
+    "ast_hash": "d700f5313fc9c942bcad33182d1e26eb",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/AuditEntryJpaRepository.java": {
+    "mtime": 1785108325.7614446,
+    "ast_hash": "aaa3bf563d7d0a643fc851bf7b553980",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/CronJobJpaRepository.java": {
+    "mtime": 1785127936.0617082,
+    "ast_hash": "1be98ef22929abc7be46d5ff50031fbd",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/DeploymentJpaRepository.java": {
+    "mtime": 1785107391.0010588,
+    "ast_hash": "3ae1ba6f2b3b9325d29c08d41a5aae5a",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/DomainJpaRepository.java": {
+    "mtime": 1785113285.9027743,
+    "ast_hash": "3f3b771234d9a585b1128da781d2a35e",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/HostJpaRepository.java": {
+    "mtime": 1785384546.196901,
+    "ast_hash": "741e706dc95a43417491f722b7e33e84",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/JobJpaRepository.java": {
+    "mtime": 1785110597.1854055,
+    "ast_hash": "9fc43f17ae86e648df3b47ac128ee7ff",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/NotificationChannelJpaRepository.java": {
+    "mtime": 1785384546.1970658,
+    "ast_hash": "c04945a404a04da377dd2f1ef16171ca",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/OrganizationJpaRepository.java": {
+    "mtime": 1785107387.3012438,
+    "ast_hash": "6c78d121715238db43189bba1f5534f0",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/PipelineJpaRepository.java": {
+    "mtime": 1785355797.22282,
+    "ast_hash": "30f3290c4d2b81c745f3770f9958ec01",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/PipelineRunJpaRepository.java": {
+    "mtime": 1785110618.0282671,
+    "ast_hash": "565781b79c5cb623e174060dafb29403",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/ProjectJpaRepository.java": {
+    "mtime": 1785107388.8086817,
+    "ast_hash": "e0e196b636ccf6ca1ca2b00d927e5b66",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/ProjectMembershipJpaRepository.java": {
+    "mtime": 1785108322.2809393,
+    "ast_hash": "7ce1519bd3751e08b1af6dbdc1f0f722",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/ProjectSecretBindingJpaRepository.java": {
+    "mtime": 1785129089.778059,
+    "ast_hash": "9ba467a536410a5e6e17f94f59280956",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/SecretJpaRepository.java": {
+    "mtime": 1785129089.7782397,
+    "ast_hash": "8f2869b5681afd54208ae7a575625e6a",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/ServiceJpaRepository.java": {
+    "mtime": 1785107390.6948557,
+    "ast_hash": "213e996b0135f2e9432d4d59738b66ed",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/UsageRecordJpaRepository.java": {
+    "mtime": 1785384546.1970444,
+    "ast_hash": "8b986983f1dcf5fe92ccd5dfc0dd5f11",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/persistence/jpa/repository/UserJpaRepository.java": {
+    "mtime": 1785100209.8080359,
+    "ast_hash": "231cda95e418f1e16992b31d3013753a",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/proxmox/ProxmoxHttpGateway.java": {
+    "mtime": 1785178476.761568,
+    "ast_hash": "1ce1c01fe98f6ffc0555387012b7ba94",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/proxmox/ProxmoxVmProvisionerAdapter.java": {
+    "mtime": 1785217213.0813715,
+    "ast_hash": "e7125b032bf0460701c3ee72d5289d48",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/retention/EnvRetentionPolicyAdapter.java": {
+    "mtime": 1785110635.0193686,
+    "ast_hash": "e3da04d4757fba728f1dcb9f96255769",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/retention/RetentionPurgeScheduler.java": {
+    "mtime": 1785110635.0213764,
+    "ast_hash": "0532604f4b66efd74ada22b8da81f253",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/security/AesSecretCipherAdapter.java": {
+    "mtime": 1785106824.293708,
+    "ast_hash": "030ec1cb073fd5e5d587b208c57375e6",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/security/AtlasUserPrincipal.java": {
+    "mtime": 1785100491.4954464,
+    "ast_hash": "5eee9e29fe7168f8a61388148b89cfa3",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/security/BcryptPasswordEncoderAdapter.java": {
+    "mtime": 1785100494.1992495,
+    "ast_hash": "7b915408677a2e5baba1bfa7ce17bbc8",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/security/JwtAuthenticationFilter.java": {
+    "mtime": 1785100239.4900365,
+    "ast_hash": "4062fecb47bd4575de177dedd2172722",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/security/JwtTokenProvider.java": {
+    "mtime": 1785100232.862971,
+    "ast_hash": "1a25dfa4450da030073dad72fb5a4abc",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/security/SecurityContextCurrentUserAdapter.java": {
+    "mtime": 1785108316.763788,
+    "ast_hash": "01dd812418c9cd32d0718ec347d11346",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/webhook/InMemoryWebhookRateLimiter.java": {
+    "mtime": 1785109316.9699016,
+    "ast_hash": "eae427af9731f94261d51753b13471a3",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/worker/JobWorkerScheduler.java": {
+    "mtime": 1785267020.4299223,
+    "ast_hash": "c7ded228b0e53286f7611bd02148b408",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/workspace/ConfigurableWorkspacePathResolver.java": {
+    "mtime": 1785106867.9475996,
+    "ast_hash": "6b4075b46229c0d746ae1a5bc7e18fed",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V10__rbac_audit.sql": {
+    "mtime": 1785108244.101594,
+    "ast_hash": "7f833ef06627cfe00650d09bc7a737bc",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V11__pipeline_webhooks.sql": {
+    "mtime": 1785109148.2898726,
+    "ast_hash": "fb693fb51d624f56406da7f024d645fc",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V12__domains.sql": {
+    "mtime": 1785113280.7746897,
+    "ast_hash": "98a3fa5b3b15f14eab36c35b06ee0bea",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V13__alerts_notifications.sql": {
+    "mtime": 1785119011.1180348,
+    "ast_hash": "123feb60548ed69c3edd7408fc6d7f8a",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V14__service_exposure.sql": {
+    "mtime": 1785127840.6715991,
+    "ast_hash": "3e2bca3e503d20dfc46b3733c7e8f3e2",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V15__cron_jobs.sql": {
+    "mtime": 1785127900.6653898,
+    "ast_hash": "774847ec733731273451226fe7b43466",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V16__project_secrets.sql": {
+    "mtime": 1785129089.7783978,
+    "ast_hash": "9e78f28bcc9ce82b9ca0524c295468cb",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V17__jobs_stale_running_index.sql": {
+    "mtime": 1785266977.852803,
+    "ast_hash": "69311bb10b99f2f640e33b23b8b3dcd8",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V18__optional_compose_path.sql": {
+    "mtime": 1785358159.5959857,
+    "ast_hash": "eb778f4f82d9272c8aa88f70d29ac7db",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V19__optional_pipeline_host.sql": {
+    "mtime": 1785359006.8919365,
+    "ast_hash": "45ec0f1213747fa306bd22cc7c13af0e",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V1__users.sql": {
+    "mtime": 1785100184.4816344,
+    "ast_hash": "5c85a924d77778ec375b4412b5de0e3e",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V20__host_runtime_capabilities.sql": {
+    "mtime": 1785362441.4925432,
+    "ast_hash": "e5ab3a389f4dc19a815e12e02c90d4fc",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V21__billing_usage.sql": {
+    "mtime": 1785384546.2293406,
+    "ast_hash": "860a99a3e20880c4deb241465348c326",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V22__projects_name_lower_index.sql": {
+    "mtime": 1785385729.974296,
+    "ast_hash": "44a1bff03b7a820fad9d152926631212",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V2__applications.sql": {
+    "mtime": 1785100185.3791518,
+    "ast_hash": "a8506093203ff90599e853d1efb95c4d",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V3__hosts.sql": {
+    "mtime": 1785100186.5660388,
+    "ast_hash": "29d1fc07af6e1b5313f3c4556c3be8e8",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V4__deployments.sql": {
+    "mtime": 1785100186.9214494,
+    "ast_hash": "0cdc7fe29822d923867dcad431031925",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V5__jobs.sql": {
+    "mtime": 1785107055.67296,
+    "ast_hash": "b9e25c550970520937ec30d6e6e2bdbb",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V6__secrets.sql": {
+    "mtime": 1785106709.0031173,
+    "ast_hash": "2ccce895484cf044fb3381506c0a523b",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V7__hosts_connection.sql": {
+    "mtime": 1785106709.6071866,
+    "ast_hash": "61cd18c1de8dc46d3e910bb33ca48019",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V8__projects_services.sql": {
+    "mtime": 1785107337.6831803,
+    "ast_hash": "368f06b6569e8cc4e068e0d6e190050a",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/resources/db/migration/V9__pipelines.sql": {
+    "mtime": 1785108052.4348495,
+    "ast_hash": "58c70309d9221e80a1fc51dbe4ea920c",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/adapter/observability/EnvObservabilitySettingsAdapterTest.java": {
+    "mtime": 1785107959.359769,
+    "ast_hash": "3fa30ad9746660eb52df0807ed6e59d9",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/adapter/runtime/ComposeRuntimeOrchestratorAdapterTest.java": {
+    "mtime": 1785358578.8125181,
+    "ast_hash": "18e8f8fa3b9c2fed0f18cdd43fca270d",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/adapter/runtime/ProcessCommandRunnerContractTest.java": {
+    "mtime": 1785106967.1686919,
+    "ast_hash": "e371d410b7cd6c48825d697a6fd8a261",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/adapter/runtime/ProcessContainerRuntimeAdapterParseTest.java": {
+    "mtime": 1785107906.3853261,
+    "ast_hash": "6413ba1b9e212d269d27c9c1c0cd010c",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/backup/PgDumpDatabaseBackupAdapterTest.java": {
+    "mtime": 1785112350.9424078,
+    "ast_hash": "b6d949f3b7758aa76dc4ec349ed78586",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/billing/LocalFeatureFlagAdapterTest.java": {
+    "mtime": 1785387464.3730447,
+    "ast_hash": "0f420b9b252a7dab316842a2c763a645",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/billing/LocalPlanEntitlementAdapterTest.java": {
+    "mtime": 1785387471.8497455,
+    "ast_hash": "3711f3907189eee2e3ae43933614a646",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/database/PostgresProjectDatabaseProvisionerAdapterTest.java": {
+    "mtime": 1785386799.3354013,
+    "ast_hash": "61925031b8b77604785c568f56558f2c",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/networking/CloudflareApiErrorMessagesTest.java": {
+    "mtime": 1785364130.4151912,
+    "ast_hash": "28fcc0fc03bb89d66aeaeb7b11083cbf",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/networking/CloudflareDnsAdapterTest.java": {
+    "mtime": 1785364146.6446693,
+    "ast_hash": "531276e09d799926d37ac8977c3f183b",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/networking/CloudflareTunnelAdapterTest.java": {
+    "mtime": 1785364134.6643224,
+    "ast_hash": "a262656d572bd009d0f46f2435d48203",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/networking/StaticTraefikMetadataAdapterTest.java": {
+    "mtime": 1785113328.6192234,
+    "ast_hash": "690a04321799989c8ad1646b69f536aa",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/proxmox/ProxmoxVmProvisionerAdapterTest.java": {
+    "mtime": 1785216055.084019,
+    "ast_hash": "abf13b5f8ad5ca025f2885056bb4856d",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/webhook/InMemoryWebhookRateLimiterTest.java": {
+    "mtime": 1785109214.5018158,
+    "ast_hash": "280155ce8fa7c1d7245c9b19d7e69442",
+    "semantic_hash": ""
+  },
+  "backend/settings.gradle.kts": {
+    "mtime": 1785100108.9254217,
+    "ast_hash": "56df2959b6aa5526c8a0b8fb756ea112",
+    "semantic_hash": ""
+  },
+  "docker/postgres/init-apps-db.sql": {
+    "mtime": 1785386209.686289,
+    "ast_hash": "630d4dab7d2815409e3c0e5c4cf28545",
+    "semantic_hash": ""
+  },
+  "docs/.obsidian/app.json": {
+    "mtime": 1785384765.599521,
+    "ast_hash": "d867055477bdab9d4c008cb2cfcb2895",
+    "semantic_hash": ""
+  },
+  "docs/.obsidian/appearance.json": {
+    "mtime": 1785384767.7224486,
+    "ast_hash": "ef96d6fba1c04453e9d1c74cf8824663",
+    "semantic_hash": ""
+  },
+  "docs/.obsidian/community-plugins.json": {
+    "mtime": 1785384830.482226,
+    "ast_hash": "58e0494c51d30eb3494f7c9198986bb9",
+    "semantic_hash": ""
+  },
+  "docs/.obsidian/core-plugins.json": {
+    "mtime": 1785384770.3181057,
+    "ast_hash": "737468f4f1833dd3baafe1a6ebffb609",
+    "semantic_hash": ""
+  },
+  "docs/.obsidian/graph.json": {
+    "mtime": 1785384770.6650617,
+    "ast_hash": "0e418c1be1f811c67f7aa3f8f3021241",
+    "semantic_hash": ""
+  },
+  "docs/.obsidian/types.json": {
+    "mtime": 1785384830.4828656,
+    "ast_hash": "8a80554c91d9fca8acb82f023de02f11",
+    "semantic_hash": ""
+  },
+  "frontend/.oxlintrc.json": {
+    "mtime": 1785100587.3935947,
+    "ast_hash": "029f4905006c1fffd96bc863e2d98d3e",
+    "semantic_hash": ""
+  },
+  "frontend/package.json": {
+    "mtime": 1785100788.1041074,
+    "ast_hash": "3c046a74b401858757918e4c92421a31",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/App.tsx": {
+    "mtime": 1785100742.985339,
+    "ast_hash": "114548ba50bf5aa44565cc73a5ccb391",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/AppRouter.tsx": {
+    "mtime": 1785384546.1996553,
+    "ast_hash": "d9c2da84d62474780461022b7c203e13",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/theme.ts": {
+    "mtime": 1785102653.7527282,
+    "ast_hash": "1ad9a06e448c9c82831c97400314b306",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/alerts/AlertsPage.tsx": {
+    "mtime": 1785214039.9507482,
+    "ast_hash": "b6b31357fa4f53b1f452f8c79e47c353",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/audit/AuditListPage.tsx": {
+    "mtime": 1785387568.760948,
+    "ast_hash": "8510e8c3e7505afd8a0c8378b7d02792",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/auth/AuthContext.tsx": {
+    "mtime": 1785128320.0344355,
+    "ast_hash": "2d10ef98916643082196c710c544cf0e",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/auth/LoginPage.tsx": {
+    "mtime": 1785128337.2726407,
+    "ast_hash": "54b5dfff0760ccae419c7c75198f7adb",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/auth/ProtectedRoute.tsx": {
+    "mtime": 1785100669.9368982,
+    "ast_hash": "dcc54632777bc3d07478a880193af715",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/auth/authHost.ts": {
+    "mtime": 1785128296.600839,
+    "ast_hash": "feb2f2fa4e480a0d9fe82d40331aad92",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/billing/BillingPage.tsx": {
+    "mtime": 1785387578.3899698,
+    "ast_hash": "e22bf0781a423255692ecf0a237d5b7f",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/cron/CronJobsPage.tsx": {
+    "mtime": 1785214034.8537192,
+    "ast_hash": "eedf799ee02c6424634a9f7149ba5c27",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/dashboard/DashboardPage.tsx": {
+    "mtime": 1785214072.0641425,
+    "ast_hash": "56943876705b6db030938813bacd16e1",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/deployments/DeploymentDetailPage.tsx": {
+    "mtime": 1785360021.3902197,
+    "ast_hash": "1f79176874192415b26069aa36f04a51",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/deployments/DeploymentFormPage.tsx": {
+    "mtime": 1785107604.7044783,
+    "ast_hash": "b9d5f6532d05f6a1bb0c33a04168e602",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/deployments/DeploymentsListPage.tsx": {
+    "mtime": 1785214021.4064927,
+    "ast_hash": "9123cac37ae14492d34cc23b35ff85c3",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/hosts/HostDetailPage.tsx": {
+    "mtime": 1785360020.745275,
+    "ast_hash": "5a544777da847842ad205616e451051e",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/hosts/HostFormPage.tsx": {
+    "mtime": 1785214071.5183687,
+    "ast_hash": "2e23b9bd883f3bcf76b3d762ea42d54f",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/hosts/HostsListPage.tsx": {
+    "mtime": 1785384546.1899219,
+    "ast_hash": "af0200727cd1e4ca480fb72df8cbf0ea",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/pipelines/PipelineDetailPage.tsx": {
+    "mtime": 1785360020.070474,
+    "ast_hash": "0cfdc2a08c1cd1e773242134b9ef1222",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/pipelines/PipelineFormPage.tsx": {
+    "mtime": 1785359107.8400185,
+    "ast_hash": "9e427fd7adb85fa14fcdf18ff0d405bf",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/pipelines/PipelinesListPage.tsx": {
+    "mtime": 1785359115.5435517,
+    "ast_hash": "e3e8e85a76cd70d93d94faf9c7510d39",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/platform/useFeatureFlags.ts": {
+    "mtime": 1785387512.703376,
+    "ast_hash": "604694f61437051ab7c73faa9665dfa3",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/profile/ProfilePage.tsx": {
+    "mtime": 1785102736.4308298,
+    "ast_hash": "6173cc3ff55f1929c19ad8e00561146d",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/projects/ProjectAutoDeployPanel.tsx": {
+    "mtime": 1785355948.2581248,
+    "ast_hash": "af13fe9aee5e06a7c1afeb0eea04645a",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/projects/ProjectDatabasePanel.tsx": {
+    "mtime": 1785386892.4984126,
+    "ast_hash": "60a68920051d04eb4b51bd26349cae90",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/projects/ProjectDetailPage.tsx": {
+    "mtime": 1785386234.6238093,
+    "ast_hash": "35d2091fdc7326429e5500e9954241c8",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/projects/ProjectDomainsPanel.tsx": {
+    "mtime": 1785364158.364421,
+    "ast_hash": "c4f0726bbd529a0769316b4737c57ae7",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/projects/ProjectFormPage.tsx": {
+    "mtime": 1785358186.4941852,
+    "ast_hash": "47fc08ce06e3b4cc6540516f91869bf0",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/projects/ProjectMembersPanel.tsx": {
+    "mtime": 1785214090.0895479,
+    "ast_hash": "2fa294353ba3fd84d6bc029f371793cd",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/projects/ProjectSecretsPanel.tsx": {
+    "mtime": 1785521760.9789894,
+    "ast_hash": "175158efc9926186c88b4c3e84dcbfac",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/projects/ProjectsListPage.tsx": {
+    "mtime": 1785358195.757364,
+    "ast_hash": "7aba151954b09deb7aa6dd0ea372e9fe",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/projects/cloudflareScopesFailure.ts": {
+    "mtime": 1785364137.1101198,
+    "ast_hash": "3d629ff7c41c3fbf0825a7ce7e7ace5b",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/secrets/CloudflareTokenScopesHint.tsx": {
+    "mtime": 1785357589.9838834,
+    "ast_hash": "2c7a9d184260a4daa96d94639d3a38df",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/secrets/SecretsListPage.tsx": {
+    "mtime": 1785521761.2882934,
+    "ast_hash": "47d7d1aa2a0e78cda5f081064989eac0",
+    "semantic_hash": ""
+  },
+  "frontend/src/features/secrets/knownSecretHints.ts": {
+    "mtime": 1785521726.646577,
+    "ast_hash": "f4f7e0fb823f80874bbaeb42831dac57",
+    "semantic_hash": ""
+  },
+  "frontend/src/main.tsx": {
+    "mtime": 1785100743.4738884,
+    "ast_hash": "5ae71df3ccec1aa0fc376cd0ca196a4b",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/api/client.ts": {
+    "mtime": 1785106023.5227244,
+    "ast_hash": "4333a07bc8ca8150c973acc206dd6d11",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/api/endpoints.ts": {
+    "mtime": 1785521726.3658736,
+    "ast_hash": "8620f9c656b0458cb6f78a84a7376062",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/ConfirmDialog.tsx": {
+    "mtime": 1785102740.6711466,
+    "ast_hash": "d2f9c1e61123a701c21daa382eea52ac",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/DataTableFrame.tsx": {
+    "mtime": 1785107687.5370624,
+    "ast_hash": "58c1cb0659b309d1edf3dccef85e7706",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/DetailPanel.tsx": {
+    "mtime": 1785102639.538488,
+    "ast_hash": "02001afc5bc62b01abddbe866256d473",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/EmptyState.tsx": {
+    "mtime": 1785107682.458228,
+    "ast_hash": "eb93543e54f05df973735ee4c408c2cb",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/LogViewer.tsx": {
+    "mtime": 1785107684.6675105,
+    "ast_hash": "f125c1501ed67110b5285f84e53a0c7b",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/PageHeader.tsx": {
+    "mtime": 1785360021.824078,
+    "ast_hash": "19ae05e88f2e247e8af9e28f9cbd5fa6",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/PageShell.tsx": {
+    "mtime": 1785360018.900243,
+    "ast_hash": "1751766ba969b1eb998e1c761d772b34",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/QueryState.tsx": {
+    "mtime": 1785107678.5680811,
+    "ast_hash": "bf2506cf20a56b455e33c6c1c9979e03",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/RowOverflowMenu.tsx": {
+    "mtime": 1785213988.4641998,
+    "ast_hash": "891b651682cc50b0c524e4653e8a21f5",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/components/StatusChip.tsx": {
+    "mtime": 1785384546.2002127,
+    "ast_hash": "b4fdccdf911618847c26f1fd0cfdb034",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/layout/AppLayout.tsx": {
+    "mtime": 1785387567.5542927,
+    "ast_hash": "6f3f5238f10a2e91655116883dc19373",
+    "semantic_hash": ""
+  },
+  "frontend/src/shared/types/api.ts": {
+    "mtime": 1785387513.4964094,
+    "ast_hash": "8334ffbe733bdaac045d004a99548864",
+    "semantic_hash": ""
+  },
+  "frontend/tsconfig.app.json": {
+    "mtime": 1785100587.3953197,
+    "ast_hash": "5f2dafd737dea8a4ddcbb10f5113ac5a",
+    "semantic_hash": ""
+  },
+  "frontend/tsconfig.json": {
+    "mtime": 1785100587.395435,
+    "ast_hash": "a3d39fa780ebff65444de257f291ce6c",
+    "semantic_hash": ""
+  },
+  "frontend/tsconfig.node.json": {
+    "mtime": 1785100587.39554,
+    "ast_hash": "f9cb81ddcea69ffdab672fc8c48dca66",
+    "semantic_hash": ""
+  },
+  "frontend/vite.config.ts": {
+    "mtime": 1785100643.4172254,
+    "ast_hash": "c7a75474cc34e2053ecd8eec9abf64c5",
+    "semantic_hash": ""
+  },
+  "scripts/deploy-vm.sh": {
+    "mtime": 1785109075.531264,
+    "ast_hash": "52fbf38d89937b338190ad4720ff21c8",
+    "semantic_hash": ""
+  },
+  "scripts/deploy.sh": {
+    "mtime": 1785128179.809685,
+    "ast_hash": "b7cbade8e7b025782b117dbab6a3914e",
+    "semantic_hash": ""
+  },
+  "scripts/setup-graphify.sh": {
+    "mtime": 1785384812.7240942,
+    "ast_hash": "6676032065f12490eead62dcd08b78e4",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/brandkit/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "cd3701c774e9bd7ce4fc9078377d517f",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/brutalist-skill/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "9e673477ecc2eaf4a230c8326cbc2f0d",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/gpt-tasteskill/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "0968d17fda872b36dc35e6bcc0c9af36",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/graphify/SKILL.md": {
+    "mtime": 1785384761.9769804,
+    "ast_hash": "dfb0a6554c4af62df6effc61c6c7d245",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/image-to-code-skill/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "442613e4710f0005b94f1c4b1d3ac246",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/imagegen-frontend-mobile/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "4c84e37e50e610779a71e0fb0a198963",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/imagegen-frontend-web/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "208c5866f7320c7f842283b312a00e17",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/minimalist-skill/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "c7f814d7df4b1b0e3eebf706a6d74adf",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/output-skill/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "5ed528ceb72c5d089757ba70c5a434e8",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/redesign-skill/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "31d802d02ccb9f5da82d99156af36317",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/soft-skill/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "269e37851b3a17693d8052f5f8002cfc",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/stitch-skill/DESIGN.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "ee7cc02dcc99eda38299a5a6f6727563",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/stitch-skill/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "82dc71a62461f956b5666c1041efc886",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/taste-skill-v1/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "d0ee97b35983cf5e786e5b65994a2ecb",
+    "semantic_hash": ""
+  },
+  ".cursor/skills/taste-skill/SKILL.md": {
+    "mtime": 1784966505.0,
+    "ast_hash": "6f73606d20cd948b471b1ce1767aab50",
+    "semantic_hash": ""
+  },
+  ".github/workflows/deploy-production.yml": {
+    "mtime": 1785109075.5776563,
+    "ast_hash": "920b52d3338cc23523bd76267a1cef8e",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1785384830.0394843,
+    "ast_hash": "d3a7b5a93cc78e4c4c84eb576f97a679",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/resources/application-docker.yml": {
+    "mtime": 1785386210.1837082,
+    "ast_hash": "ab237f7b2706db87f1af2d948e24b9c9",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/resources/application-local.yml": {
+    "mtime": 1785100316.475623,
+    "ast_hash": "ecd6904d18cdf9e53cc7c6578093caeb",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/resources/application-test.yml": {
+    "mtime": 1785112472.8908284,
+    "ast_hash": "c377a40929fb3266a9db81ae18742edc",
+    "semantic_hash": ""
+  },
+  "backend/bootstrap/src/main/resources/application.yml": {
+    "mtime": 1785387426.9237556,
+    "ast_hash": "68e31c2250e3e03aa38e8655cb946db4",
+    "semantic_hash": ""
+  },
+  "docker-compose.yml": {
+    "mtime": 1785386201.4112785,
+    "ast_hash": "bf577613cd0ad309e908b5d90c8ae303",
+    "semantic_hash": ""
+  },
+  "docs/README.md": {
+    "mtime": 1785384815.6956835,
+    "ast_hash": "60de91233ffcc0da54e6c769a6771567",
+    "semantic_hash": ""
+  },
+  "docs/api/conventions.md": {
+    "mtime": 1785364433.88651,
+    "ast_hash": "85f6ccb084a1294c1eb1b8e4833db7fe",
+    "semantic_hash": ""
+  },
+  "docs/api/deprecations.md": {
+    "mtime": 1785364426.540688,
+    "ast_hash": "63b6bc1e5b89810402b8bce69b06ecf1",
+    "semantic_hash": ""
+  },
+  "docs/api/endpoints.md": {
+    "mtime": 1785521835.3560684,
+    "ast_hash": "7cd3d4a32c6174890574fb5adfdbc534",
+    "semantic_hash": ""
+  },
+  "docs/api/openapi.md": {
+    "mtime": 1785364426.9478989,
+    "ast_hash": "d5d1db754ddc4356511ae5760b80fd47",
+    "semantic_hash": ""
+  },
+  "docs/architecture/backend.md": {
+    "mtime": 1785364496.2232983,
+    "ast_hash": "8722dd168f6a55e4c799235c523b31dc",
+    "semantic_hash": ""
+  },
+  "docs/architecture/events.md": {
+    "mtime": 1785106412.3162482,
+    "ast_hash": "3e5a2ae55f8d6379f50f6f1787990b3c",
+    "semantic_hash": ""
+  },
+  "docs/architecture/frontend.md": {
+    "mtime": 1785384546.2002833,
+    "ast_hash": "8915d65f33bd67919d116aed525128c6",
+    "semantic_hash": ""
+  },
+  "docs/architecture/gateway.md": {
+    "mtime": 1785364652.9703217,
+    "ast_hash": "ba7539f68ce716fce697956599c3aa89",
+    "semantic_hash": ""
+  },
+  "docs/architecture/observability.md": {
+    "mtime": 1785106423.9336605,
+    "ast_hash": "ef3cc7bf3bcb2d3cdd2852901c03d395",
+    "semantic_hash": ""
+  },
+  "docs/architecture/overview.md": {
+    "mtime": 1785106361.8355205,
+    "ast_hash": "63a90eacd9a7968f48cdf743d3c18ed4",
+    "semantic_hash": ""
+  },
+  "docs/architecture/security.md": {
+    "mtime": 1785387605.9435134,
+    "ast_hash": "59fe005ac46d9bb9a338392ab540919c",
+    "semantic_hash": ""
+  },
+  "docs/architecture/workers-queues.md": {
+    "mtime": 1785267082.3026938,
+    "ast_hash": "9b734f421d63de66ddbfc01c53ddaa79",
+    "semantic_hash": ""
+  },
+  "docs/database/indexing-scalability.md": {
+    "mtime": 1785385867.972654,
+    "ast_hash": "d557054e0a6c644afaad61ceec44ccb1",
+    "semantic_hash": ""
+  },
+  "docs/database/schema.md": {
+    "mtime": 1785129089.7794435,
+    "ast_hash": "1e371a7db69e65d0f621ebaaf37526cf",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0001-hexagonal-architecture.md": {
+    "mtime": 1785106527.8383539,
+    "ast_hash": "279fe64a5c98fb8dd5f323fce00fcb6f",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0002-single-tenant-install.md": {
+    "mtime": 1785106529.8295758,
+    "ast_hash": "d88d41fe31345b2aaa263805f04012c7",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0003-authentik-sso.md": {
+    "mtime": 1785106532.0339732,
+    "ast_hash": "fb3e04e01b145ed902d26aaf094da1f1",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0004-application-to-project-evolution.md": {
+    "mtime": 1785364438.5032575,
+    "ast_hash": "d6e05779baffa3fe24ac89bd2c458e6a",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0005-workers-and-job-queue.md": {
+    "mtime": 1785106535.250456,
+    "ast_hash": "753003df06d003035b46709961596775",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0006-event-driven-boundaries.md": {
+    "mtime": 1785106536.523277,
+    "ast_hash": "9cb322db468d836abf530a33e3a9e987",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0007-observability-external-stack.md": {
+    "mtime": 1785106538.2167785,
+    "ast_hash": "dc851d6b7a40be2d0bb21e8cbcff3e54",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0008-api-versioning.md": {
+    "mtime": 1785106538.4374864,
+    "ast_hash": "eb26f494475eba54d59cab8aadea2169",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0009-embedded-worker.md": {
+    "mtime": 1785107073.8249483,
+    "ast_hash": "8ac0659fa57aa3554c258bc1c4b7a525",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0010-autopilot-placement.md": {
+    "mtime": 1785179418.486729,
+    "ast_hash": "7c57f71a978b060762f9cd6545764084",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0011-autopilot-tunnel-ingress.md": {
+    "mtime": 1785180341.9937508,
+    "ast_hash": "aebd821e8dcb1acfd9c496022316759d",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0012-autopilot-proxmox-provisioner.md": {
+    "mtime": 1785216073.9245067,
+    "ast_hash": "4c3a942acb6d353393bf521aed43e11b",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0013-autopilot-dns-cname.md": {
+    "mtime": 1785180306.9829059,
+    "ast_hash": "11df30b5c37cab249d65f7f23c1e03dd",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0014-project-manifest-runtime.md": {
+    "mtime": 1785526368.9003167,
+    "ast_hash": "ab36cfee9a53495d26ef28ac31ee522f",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0015-project-database-access.md": {
+    "mtime": 1785387001.484382,
+    "ast_hash": "c184627adaab0ba8cd8fd1d5834e8462",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0016-public-app-hardening.md": {
+    "mtime": 1785384546.2001858,
+    "ast_hash": "ec00801ea06cfd24a614f7446fe000eb",
+    "semantic_hash": ""
+  },
+  "docs/decisions/ADR-0017-platform-provided-ai.md": {
+    "mtime": 1785521788.2770078,
+    "ast_hash": "a3bec179667c5ae595927c3b1719690a",
+    "semantic_hash": ""
+  },
+  "docs/deployment/app-migrations.md": {
+    "mtime": 1785521841.1920965,
+    "ast_hash": "4fa6a381624c7ed321895b77e8d89429",
+    "semantic_hash": ""
+  },
+  "docs/deployment/backup-restore.md": {
+    "mtime": 1785213650.051869,
+    "ast_hash": "68175b1f449cd3fdfc8da1bffaf24f27",
+    "semantic_hash": ""
+  },
+  "docs/deployment/cicd-atlas-self.md": {
+    "mtime": 1785127571.482878,
+    "ast_hash": "0233f5576082261dabe460dd53ac7ae8",
+    "semantic_hash": ""
+  },
+  "docs/deployment/cicd.md": {
+    "mtime": 1785364438.1489735,
+    "ast_hash": "cb8fc3dfa36538cac8fa22de15dfd397",
+    "semantic_hash": ""
+  },
+  "docs/deployment/public-customer-hostname.md": {
+    "mtime": 1785387196.3580132,
+    "ast_hash": "264c6aa1c0f518fb31ad701d6ac32d12",
+    "semantic_hash": ""
+  },
+  "docs/deployment/runtime.md": {
+    "mtime": 1785387608.7722254,
+    "ast_hash": "88bdbf956fd5a1016f205d7374535ec9",
+    "semantic_hash": ""
+  },
+  "docs/deployment/webhooks-edge.md": {
+    "mtime": 1785364768.4860597,
+    "ast_hash": "d9db74a23c6358a24585d499175dae41",
+    "semantic_hash": ""
+  },
+  "docs/domain/bounded-contexts.md": {
+    "mtime": 1785106472.8528962,
+    "ast_hash": "acb3b0d8d9ff4dc0df6cccc7d186d332",
+    "semantic_hash": ""
+  },
+  "docs/domain/model.md": {
+    "mtime": 1785106472.4265456,
+    "ast_hash": "f0b9f1191d4af759157f42de5e956ad5",
+    "semantic_hash": ""
+  },
+  "docs/modules/catalog.md": {
+    "mtime": 1785384546.1996744,
+    "ast_hash": "ba76e797ea0b9f4fdab1937e2ed5ac83",
+    "semantic_hash": ""
+  },
+  "docs/modules/config-security.md": {
+    "mtime": 1785521821.3219676,
+    "ast_hash": "70b0295e7958530be04ef7d320309adb",
+    "semantic_hash": ""
+  },
+  "docs/modules/core-delivery.md": {
+    "mtime": 1785522962.8557796,
+    "ast_hash": "150eb7431d4ce4cf5de9ce3591749f68",
+    "semantic_hash": ""
+  },
+  "docs/modules/data-protection.md": {
+    "mtime": 1785106459.2423556,
+    "ast_hash": "546e06e72ee5a146de4177b1c61ef07b",
+    "semantic_hash": ""
+  },
+  "docs/modules/identity.md": {
+    "mtime": 1785106455.4906094,
+    "ast_hash": "71102d54378ccfc60a0b8385f60558a7",
+    "semantic_hash": ""
+  },
+  "docs/modules/networking.md": {
+    "mtime": 1785364164.5605485,
+    "ast_hash": "68904721572b121baeb0c9e7901169f5",
+    "semantic_hash": ""
+  },
+  "docs/modules/observability-modules.md": {
+    "mtime": 1785106446.2292576,
+    "ast_hash": "4f130c349110b9ccdc0a1cab4f0f0ad3",
+    "semantic_hash": ""
+  },
+  "docs/modules/platform.md": {
+    "mtime": 1785387602.263612,
+    "ast_hash": "28c5e1bd171117c6373a2e32e99753d0",
+    "semantic_hash": ""
+  },
+  "docs/modules/runtime.md": {
+    "mtime": 1785387009.0468895,
+    "ast_hash": "31980fa22a21734ab07c5f8f0fb6e5fd",
+    "semantic_hash": ""
+  },
+  "docs/product/autopilot-placement.md": {
+    "mtime": 1785526363.0389516,
+    "ast_hash": "7f294921d0b9de7a87d1b3f44ca182b8",
+    "semantic_hash": ""
+  },
+  "docs/product/platform-provided-ai.md": {
+    "mtime": 1785521792.1939616,
+    "ast_hash": "8824727260c9939ebf33dc156b9c2e74",
+    "semantic_hash": ""
+  },
+  "docs/product/project-database-access.md": {
+    "mtime": 1785387003.2760963,
+    "ast_hash": "554814516863f0aa06a1cdebd37a1e30",
+    "semantic_hash": ""
+  },
+  "docs/product/public-app-hardening.md": {
+    "mtime": 1785384546.2947938,
+    "ast_hash": "a4fbb8e0cdef0e445c313c1dd9e55a51",
+    "semantic_hash": ""
+  },
+  "docs/roadmap/next-step.md": {
+    "mtime": 1785526349.9594934,
+    "ast_hash": "83cb46630c26fd46963850df26e18887",
+    "semantic_hash": ""
+  },
+  "docs/roadmap/versions.md": {
+    "mtime": 1785526358.6872447,
+    "ast_hash": "a30dc41ea8a6534d641ab061f6af7715",
+    "semantic_hash": ""
+  },
+  "docs/schemas/atlas.project.example.yml": {
+    "mtime": 1785522989.2506125,
+    "ast_hash": "fcaacd439eb435e8121996198e23f1e1",
+    "semantic_hash": ""
+  },
+  "docs/ux/components-states.md": {
+    "mtime": 1785106492.9741151,
+    "ast_hash": "d68a06ea0e39b08a70f2fead5eab2a11",
+    "semantic_hash": ""
+  },
+  "docs/ux/flows.md": {
+    "mtime": 1785359154.281267,
+    "ast_hash": "4d84c18cd20688c3083a512d470c1d75",
+    "semantic_hash": ""
+  },
+  "docs/ux/information-architecture.md": {
+    "mtime": 1785129089.7801163,
+    "ast_hash": "ee64a6690ed72b3e830532be911918c3",
+    "semantic_hash": ""
+  },
+  "frontend/README.md": {
+    "mtime": 1785100587.3933158,
+    "ast_hash": "10495bfcc6c568eca4dab6dd5df795d3",
+    "semantic_hash": ""
+  },
+  "frontend/index.html": {
+    "mtime": 1785100644.495261,
+    "ast_hash": "6483add24d9ad1245bb1b129ef41372c",
+    "semantic_hash": ""
+  },
+  "frontend/public/favicon.svg": {
+    "mtime": 1785100647.0611458,
+    "ast_hash": "d3dcf9e4509a3f7e3881de5e7ef4defa",
+    "semantic_hash": ""
+  },
+  "frontend/public/icons.svg": {
+    "mtime": 1785100587.3941395,
+    "ast_hash": "3b4fcfcf393eca4d264dca4a4663bc37",
+    "semantic_hash": ""
+  },
+  "frontend/src/assets/hero.png": {
+    "mtime": 1785100587.3946552,
+    "ast_hash": "aead493361b27e7510691c5d7072dfc1",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/secret/DeleteSecretUseCase.java": {
+    "mtime": 1785521692.3016946,
+    "ast_hash": "c325eb6035a68f825d01fc520814095a",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/secret/DeleteSecretUseCaseTest.java": {
+    "mtime": 1785521720.0098796,
+    "ast_hash": "fd324d2e33ee61fc6bc0beae0c241cbe",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/runtime/PodmanRuntimeOrchestratorAdapter.java": {
+    "mtime": 1785522832.1598482,
+    "ast_hash": "d6bd6db94d2848612f37a6303b7ae8c3",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/adapter/runtime/RoutingRuntimeOrchestratorAdapter.java": {
+    "mtime": 1785525199.3690312,
+    "ast_hash": "7dd62493daaaf6850bcdd83d632f0504",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/adapter/runtime/PodmanRuntimeOrchestratorAdapterTest.java": {
+    "mtime": 1785522862.6308312,
+    "ast_hash": "5650e5830955a977b73ffb85e035ca48",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/test/java/com/atlas/infrastructure/adapter/runtime/RoutingRuntimeOrchestratorAdapterTest.java": {
+    "mtime": 1785522863.027167,
+    "ast_hash": "0220314064a1f08cd5146149a2364e11",
+    "semantic_hash": ""
+  },
+  "scripts/seed-project-secrets.sh": {
+    "mtime": 1785521808.9978535,
+    "ast_hash": "004772b870791687a1886a5ec99f8f00",
+    "semantic_hash": ""
+  },
+  "docs/product/secrets-for-apps.md": {
+    "mtime": 1785521789.2440422,
+    "ast_hash": "3448ee0d16b4b995d4d8db44d147c0ef",
+    "semantic_hash": ""
+  },
+  "backend/application/src/main/java/com/atlas/application/deployment/ResolvePlacementRuntimeCapabilityUseCase.java": {
+    "mtime": 1785526401.6418579,
+    "ast_hash": "e0fc5f3503267dff87d30c91cf3c98f5",
+    "semantic_hash": ""
+  },
+  "backend/application/src/test/java/com/atlas/application/deployment/ResolvePlacementRuntimeCapabilityUseCaseTest.java": {
+    "mtime": 1785526335.1348255,
+    "ast_hash": "df8678121845751c1304991e6cd08b70",
+    "semantic_hash": ""
+  },
+  "backend/infrastructure/src/main/java/com/atlas/infrastructure/workspace/ConfigurablePlacementWorkspacePathResolver.java": {
+    "mtime": 1785526275.0546634,
+    "ast_hash": "639f6d712f5a13810943e1d13e530be4",
+    "semantic_hash": ""
+  }
+}

@@ -108,6 +108,179 @@
         }
       }
     },
+    "/api/v1/secrets" : {
+      "get" : {
+        "tags" : [ "secret-controller" ],
+        "operationId" : "list",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SecretResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "secret-controller" ],
+        "operationId" : "upsert",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateSecretRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SecretResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "secret-controller" ],
+        "operationId" : "create",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateSecretRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SecretResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/secrets" : {
+      "get" : {
+        "tags" : [ "project-secret-controller" ],
+        "operationId" : "list_1",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProjectSecretEntryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "project-secret-controller" ],
+        "operationId" : "upsertOwned",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateSecretRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SecretResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "project-secret-controller" ],
+        "operationId" : "createOwned",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateSecretRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SecretResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/memberships/{membershipId}" : {
       "put" : {
         "tags" : [ "project-membership-controller" ],
@@ -1002,57 +1175,10 @@
         }
       }
     },
-    "/api/v1/secrets" : {
-      "get" : {
-        "tags" : [ "secret-controller" ],
-        "operationId" : "list",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/SecretResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "secret-controller" ],
-        "operationId" : "create",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreateSecretRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SecretResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/projects" : {
       "get" : {
         "tags" : [ "Projects" ],
-        "operationId" : "list_1",
+        "operationId" : "list_2",
         "parameters" : [ {
           "name" : "name",
           "in" : "query",
@@ -1238,71 +1364,6 @@
         }
       }
     },
-    "/api/v1/projects/{projectId}/secrets" : {
-      "get" : {
-        "tags" : [ "project-secret-controller" ],
-        "operationId" : "list_2",
-        "parameters" : [ {
-          "name" : "projectId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ProjectSecretEntryResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "project-secret-controller" ],
-        "operationId" : "createOwned",
-        "parameters" : [ {
-          "name" : "projectId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreateSecretRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SecretResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/projects/{projectId}/secrets/bindings" : {
       "post" : {
         "tags" : [ "project-secret-controller" ],
@@ -1398,6 +1459,79 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ProjectMembershipResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/mail/send" : {
+      "post" : {
+        "tags" : [ "Project mail" ],
+        "summary" : "Send transactional email via platform SMTP relay",
+        "operationId" : "send",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "X-Atlas-Mail-Token",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SendProjectMailRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SendProjectMailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/mail/provision" : {
+      "post" : {
+        "tags" : [ "Project mail" ],
+        "summary" : "Provision SMTP secrets (smtp.* + mail.api_token) for deploy envFrom",
+        "operationId" : "provision",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectMailProvisionResponse"
                 }
               }
             }
@@ -1510,7 +1644,7 @@
       "post" : {
         "tags" : [ "Project database" ],
         "summary" : "Provision schema + migrator/read roles; store db.url / db.schema secrets",
-        "operationId" : "provision",
+        "operationId" : "provision_1",
         "parameters" : [ {
           "name" : "projectId",
           "in" : "path",
@@ -1593,6 +1727,43 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ProjectDatabaseCredentialResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/database/console-session" : {
+      "post" : {
+        "tags" : [ "Project database" ],
+        "summary" : "Issue TTL creds + one-time pgweb Connect Backend launch URL (no password in browser)",
+        "operationId" : "openConsole",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IssueProjectDatabaseCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectDatabaseConsoleSessionResponse"
                 }
               }
             }
@@ -2604,6 +2775,25 @@
         }
       }
     },
+    "/api/v1/settings/mail" : {
+      "get" : {
+        "tags" : [ "Settings" ],
+        "summary" : "Platform SMTP relay settings (no secrets)",
+        "operationId" : "mail",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MailSettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/features" : {
       "get" : {
         "tags" : [ "Settings" ],
@@ -2691,11 +2881,39 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/mail" : {
+      "get" : {
+        "tags" : [ "Project mail" ],
+        "summary" : "Project mail status (never returns credentials)",
+        "operationId" : "status",
+        "parameters" : [ {
+          "name" : "projectId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectMailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/database" : {
       "get" : {
         "tags" : [ "Project database" ],
         "summary" : "Project DB status (schema metadata; never returns credentials)",
-        "operationId" : "status",
+        "operationId" : "status_1",
         "parameters" : [ {
           "name" : "projectId",
           "in" : "path",
@@ -3148,6 +3366,26 @@
         }
       }
     },
+    "/api/v1/secrets/{secretId}" : {
+      "delete" : {
+        "tags" : [ "secret-controller" ],
+        "operationId" : "delete_10",
+        "parameters" : [ {
+          "name" : "secretId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/secrets/{secretId}" : {
       "delete" : {
         "tags" : [ "project-secret-controller" ],
@@ -3301,6 +3539,44 @@
           "status" : {
             "type" : "string",
             "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "CreateSecretRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "value" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "value" ]
+      },
+      "SecretResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "projectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
           },
           "createdAt" : {
             "type" : "string",
@@ -3849,7 +4125,7 @@
             "enum" : [ "REGISTERED", "READY", "DEPLOYING", "RUNNING", "STOPPED", "FAILED" ]
           }
         },
-        "required" : [ "branch", "composePath", "name", "repositoryUrl", "status" ]
+        "required" : [ "branch", "name", "repositoryUrl", "status" ]
       },
       "ApplicationResponse" : {
         "type" : "object",
@@ -4035,44 +4311,6 @@
           }
         }
       },
-      "CreateSecretRequest" : {
-        "type" : "object",
-        "properties" : {
-          "name" : {
-            "type" : "string",
-            "maxLength" : 255,
-            "minLength" : 0
-          },
-          "value" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "name", "value" ]
-      },
-      "SecretResponse" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "projectId" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "createdAt" : {
-            "type" : "string",
-            "format" : "date-time"
-          },
-          "updatedAt" : {
-            "type" : "string",
-            "format" : "date-time"
-          }
-        }
-      },
       "CreateProjectRequest" : {
         "type" : "object",
         "properties" : {
@@ -4186,6 +4424,69 @@
         },
         "required" : [ "role", "userId" ]
       },
+      "SendProjectMailRequest" : {
+        "type" : "object",
+        "properties" : {
+          "to" : {
+            "type" : "string"
+          },
+          "cc" : {
+            "type" : "string"
+          },
+          "bcc" : {
+            "type" : "string"
+          },
+          "subject" : {
+            "type" : "string"
+          },
+          "textBody" : {
+            "type" : "string"
+          },
+          "htmlBody" : {
+            "type" : "string"
+          },
+          "apiToken" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "subject", "textBody", "to" ]
+      },
+      "SendProjectMailResponse" : {
+        "type" : "object",
+        "properties" : {
+          "sent" : {
+            "type" : "boolean"
+          },
+          "detail" : {
+            "type" : "string"
+          },
+          "remainingToday" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "ProjectMailProvisionResponse" : {
+        "type" : "object",
+        "properties" : {
+          "from" : {
+            "type" : "string"
+          },
+          "host" : {
+            "type" : "string"
+          },
+          "port" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tls" : {
+            "type" : "boolean"
+          },
+          "rotated" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "CreateDomainRequest" : {
         "type" : "object",
         "properties" : {
@@ -4247,6 +4548,37 @@
             "type" : "string"
           },
           "connectionUrl" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "ttlMinutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "ProjectDatabaseConsoleSessionResponse" : {
+        "type" : "object",
+        "properties" : {
+          "consoleUrl" : {
+            "type" : "string"
+          },
+          "schema" : {
+            "type" : "string"
+          },
+          "database" : {
+            "type" : "string"
+          },
+          "server" : {
+            "type" : "string"
+          },
+          "role" : {
+            "type" : "string"
+          },
+          "profile" : {
             "type" : "string"
           },
           "expiresAt" : {
@@ -4632,7 +4964,7 @@
             "minLength" : 0
           }
         },
-        "required" : [ "branch", "composePath", "name", "repositoryUrl" ]
+        "required" : [ "branch", "name", "repositoryUrl" ]
       },
       "DeployApplicationRequest" : {
         "type" : "object",
@@ -4726,6 +5058,34 @@
           }
         }
       },
+      "MailSettingsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "configured" : {
+            "type" : "boolean"
+          },
+          "host" : {
+            "type" : "string"
+          },
+          "port" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "fromDomain" : {
+            "type" : "string"
+          },
+          "tls" : {
+            "type" : "boolean"
+          },
+          "auth" : {
+            "type" : "boolean"
+          },
+          "dailySendLimitPerProject" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "FeatureFlagsResponse" : {
         "type" : "object",
         "properties" : {
@@ -4800,6 +5160,41 @@
           }
         }
       },
+      "ProjectMailResponse" : {
+        "type" : "object",
+        "properties" : {
+          "provisionerConfigured" : {
+            "type" : "boolean"
+          },
+          "provisioned" : {
+            "type" : "boolean"
+          },
+          "from" : {
+            "type" : "string"
+          },
+          "host" : {
+            "type" : "string"
+          },
+          "port" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tls" : {
+            "type" : "boolean"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "remainingSendsToday" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dailySendLimit" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "ProjectDatabaseResponse" : {
         "type" : "object",
         "properties" : {
@@ -4822,6 +5217,12 @@
             "type" : "string"
           },
           "message" : {
+            "type" : "string"
+          },
+          "consoleConfigured" : {
+            "type" : "boolean"
+          },
+          "consoleUrl" : {
             "type" : "string"
           }
         }

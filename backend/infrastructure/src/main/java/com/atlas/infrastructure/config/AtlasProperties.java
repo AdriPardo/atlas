@@ -16,6 +16,7 @@ public class AtlasProperties {
     private final Networking networking = new Networking();
     private final Proxmox proxmox = new Proxmox();
     private final AppDatabase appDatabase = new AppDatabase();
+    private final AppSmtp appSmtp = new AppSmtp();
     private final DbConsole dbConsole = new DbConsole();
     private final Plan plan = new Plan();
     private final Features features = new Features();
@@ -70,6 +71,10 @@ public class AtlasProperties {
 
     public AppDatabase getAppDatabase() {
         return appDatabase;
+    }
+
+    public AppSmtp getAppSmtp() {
+        return appSmtp;
     }
 
     public DbConsole getDbConsole() {
@@ -146,6 +151,133 @@ public class AtlasProperties {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+    }
+
+    /**
+     * Platform SMTP (own Postfix or external relay) for apps + alert emails (ADR-0018). Blank host =
+     * mail stub only.
+     */
+    public static class AppSmtp {
+        private String host = "";
+        /**
+         * Hostname injected into apps ({@code SMTP_HOST}). Blank → same as {@code host}. Set when apps
+         * cannot resolve docker DNS (e.g. {@code host.docker.internal} or {@code mail.example.com}).
+         */
+        private String appHost = "";
+        private int port = 25;
+        private String username = "";
+        private String password = "";
+        /** Domain appended to project slug for From addresses (e.g. mail.atlasops.dev). */
+        private String fromDomain = "mail.atlas.local";
+        /** Default From for Atlas alert emails; blank → noreply@fromDomain. */
+        private String alertFrom = "";
+        private boolean tls = false;
+        /** When false, relay accepts unauthenticated clients (internal Postfix / Mailpit). */
+        private boolean auth = false;
+        /** Soft cap on HTTP/API sends per project per UTC day. */
+        private int dailySendLimitPerProject = 500;
+        /** Auto-write SMTP_* into deploy {@code .env} and provision secrets if missing. */
+        private boolean autoInjectOnDeploy = true;
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
+        }
+
+        public String getAppHost() {
+            return appHost;
+        }
+
+        public void setAppHost(String appHost) {
+            this.appHost = appHost;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public void setPort(int port) {
+            this.port = port;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getFromDomain() {
+            return fromDomain;
+        }
+
+        public void setFromDomain(String fromDomain) {
+            this.fromDomain = fromDomain;
+        }
+
+        public String getAlertFrom() {
+            return alertFrom;
+        }
+
+        public void setAlertFrom(String alertFrom) {
+            this.alertFrom = alertFrom;
+        }
+
+        public boolean isTls() {
+            return tls;
+        }
+
+        public void setTls(boolean tls) {
+            this.tls = tls;
+        }
+
+        public boolean isAuth() {
+            return auth;
+        }
+
+        public void setAuth(boolean auth) {
+            this.auth = auth;
+        }
+
+        public int getDailySendLimitPerProject() {
+            return dailySendLimitPerProject;
+        }
+
+        public void setDailySendLimitPerProject(int dailySendLimitPerProject) {
+            this.dailySendLimitPerProject = dailySendLimitPerProject;
+        }
+
+        public boolean isAutoInjectOnDeploy() {
+            return autoInjectOnDeploy;
+        }
+
+        public void setAutoInjectOnDeploy(boolean autoInjectOnDeploy) {
+            this.autoInjectOnDeploy = autoInjectOnDeploy;
+        }
+
+        public boolean isConfigured() {
+            return host != null && !host.isBlank();
+        }
+
+        /** Hostname apps should dial; falls back to {@link #host}. */
+        public String resolveAppHost() {
+            if (appHost != null && !appHost.isBlank()) {
+                return appHost.trim();
+            }
+            return host == null ? "" : host.trim();
         }
     }
 

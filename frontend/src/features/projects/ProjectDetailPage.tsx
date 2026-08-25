@@ -30,6 +30,7 @@ import { ProjectMembersPanel } from './ProjectMembersPanel'
 import { ProjectDomainsPanel } from './ProjectDomainsPanel'
 import { ProjectSecretsPanel } from './ProjectSecretsPanel'
 import { ProjectDatabasePanel } from './ProjectDatabasePanel'
+import { ProjectMailPanel } from './ProjectMailPanel'
 import { ProjectAutoDeployPanel } from './ProjectAutoDeployPanel'
 
 export function ProjectDetailPage() {
@@ -156,6 +157,8 @@ export function ProjectDetailPage() {
             />
 
             <ProjectDatabasePanel projectId={id} />
+
+            <ProjectMailPanel projectId={id} />
 
             <ProjectSecretsPanel projectId={id} />
 

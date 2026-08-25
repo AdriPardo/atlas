@@ -52,6 +52,13 @@ public final class EnvFromSecretRef {
             case "ai.provider" -> "AI_PROVIDER";
             case "ai.api_key" -> "AI_API_KEY";
             case "ai.base_url" -> "AI_BASE_URL";
+            case "smtp.host" -> "SMTP_HOST";
+            case "smtp.port" -> "SMTP_PORT";
+            case "smtp.user" -> "SMTP_USER";
+            case "smtp.password" -> "SMTP_PASSWORD";
+            case "smtp.from" -> "SMTP_FROM";
+            case "smtp.tls" -> "SMTP_TLS";
+            case "mail.api_token" -> "MAIL_API_TOKEN";
             default -> secretRef.replace('.', '_').replace('-', '_').toUpperCase(Locale.ROOT);
         };
     }

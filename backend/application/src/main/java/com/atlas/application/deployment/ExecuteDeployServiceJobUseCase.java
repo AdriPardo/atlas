@@ -1,5 +1,6 @@
 package com.atlas.application.deployment;
 
+import com.atlas.application.mail.ProvisionProjectMailUseCase;
 import com.atlas.application.manifest.ComposePathResolver;
 import com.atlas.application.networking.EnsureDomainDnsCnameUseCase;
 import com.atlas.application.networking.EnsureDomainTunnelIngressUseCase;
@@ -12,12 +13,14 @@ import com.atlas.application.port.out.GitRepositoryPort;
 import com.atlas.application.port.out.HostCommandPort;
 import com.atlas.application.port.out.HostRepositoryPort;
 import com.atlas.application.port.out.ProjectRepositoryPort;
+import com.atlas.application.port.out.ProjectSmtpProvisionerPort;
 import com.atlas.application.port.out.RuntimeOrchestratorPort;
 import com.atlas.application.port.out.ServiceRepositoryPort;
 import com.atlas.application.secret.ResolveSecretValueUseCase;
 import com.atlas.domain.deployment.Deployment;
 import com.atlas.domain.host.ConnectionType;
 import com.atlas.domain.host.Host;
+import com.atlas.domain.mail.ProjectMailNames;
 import com.atlas.domain.manifest.EnvFromSecretRef;
 import com.atlas.domain.networking.Domain;
 import com.atlas.domain.observability.AlertEventType;
@@ -60,6 +63,8 @@ public class ExecuteDeployServiceJobUseCase {
     private final EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
     private final EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase;
     private final ComposePathResolver composePathResolver;
+    private final ProvisionProjectMailUseCase provisionProjectMailUseCase;
+    private final ProjectSmtpProvisionerPort smtpProvisioner;
     private final TransactionTemplate transactionTemplate;
 
     @Autowired
@@ -77,6 +82,8 @@ public class ExecuteDeployServiceJobUseCase {
             EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
             EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase,
             EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase,
+            ProvisionProjectMailUseCase provisionProjectMailUseCase,
+            ProjectSmtpProvisionerPort smtpProvisioner,
             PlatformTransactionManager transactionManager) {
         this(
                 deploymentRepository,
@@ -92,6 +99,8 @@ public class ExecuteDeployServiceJobUseCase {
                 evaluateProductAlertsUseCase,
                 ensureDomainTunnelIngressUseCase,
                 ensureDomainDnsCnameUseCase,
+                provisionProjectMailUseCase,
+                smtpProvisioner,
                 new ComposePathResolver(),
                 transactionManager);
     }
@@ -110,6 +119,8 @@ public class ExecuteDeployServiceJobUseCase {
             EvaluateProductAlertsUseCase evaluateProductAlertsUseCase,
             EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase,
             EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase,
+            ProvisionProjectMailUseCase provisionProjectMailUseCase,
+            ProjectSmtpProvisionerPort smtpProvisioner,
             ComposePathResolver composePathResolver,
             PlatformTransactionManager transactionManager) {
         this.deploymentRepository = deploymentRepository;
@@ -125,6 +136,8 @@ public class ExecuteDeployServiceJobUseCase {
         this.evaluateProductAlertsUseCase = evaluateProductAlertsUseCase;
         this.ensureDomainTunnelIngressUseCase = ensureDomainTunnelIngressUseCase;
         this.ensureDomainDnsCnameUseCase = ensureDomainDnsCnameUseCase;
+        this.provisionProjectMailUseCase = provisionProjectMailUseCase;
+        this.smtpProvisioner = smtpProvisioner;
         this.composePathResolver = composePathResolver;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
@@ -177,6 +190,7 @@ public class ExecuteDeployServiceJobUseCase {
 
             injectEnvFromSecrets(
                     workspace, loaded.project().getId(), compose.envFromSecrets(), logSink);
+            ensurePlatformSmtp(workspace, loaded.project(), logSink);
             ensureProductionBuildEnv(workspace, compose.minifyEnabled(), logSink);
             logPublicTlsPolicy(loaded.service(), compose.requireTlsEnabled(), logSink);
 
@@ -354,6 +368,57 @@ public class ExecuteDeployServiceJobUseCase {
             throw ex;
         } catch (Exception ex) {
             throw new DomainException("Failed to inject envFrom secrets: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * ADR-0018: when platform SMTP is configured, auto-provision project secrets (first deploy) and
+     * always write {@code SMTP_*} into workspace {@code .env} so apps can send without declaring
+     * envFrom. Skips when {@code atlas.app-smtp.auto-inject-on-deploy=false}.
+     */
+    private void ensurePlatformSmtp(Path workspace, Project project, Consumer<String> logSink) {
+        if (!smtpProvisioner.isConfigured() || !smtpProvisioner.autoInjectOnDeploy()) {
+            return;
+        }
+        transactionTemplate.executeWithoutResult(status -> {
+            provisionProjectMailUseCase
+                    .ensureProvisionedForDeploy(project.getId())
+                    .ifPresent(outcome -> logSink.accept(
+                            "Platform SMTP auto-provisioned (from=" + outcome.from() + ")"));
+        });
+        try {
+            Path envFile = workspace.resolve(".env");
+            String body = Files.exists(envFile) ? Files.readString(envFile) : "";
+            String from = ProjectMailNames.senderAddress(project.getSlug(), smtpProvisioner.fromDomain());
+            String host = smtpProvisioner.hostForApps();
+            body = upsertEnvLine(body, "SMTP_HOST", host);
+            body = upsertEnvLine(body, "SMTP_PORT", String.valueOf(smtpProvisioner.port()));
+            body = upsertEnvLine(body, "SMTP_FROM", from);
+            body = upsertEnvLine(body, "MAIL_FROM", from);
+            body = upsertEnvLine(body, "SMTP_TLS", Boolean.toString(smtpProvisioner.tls()));
+            if (smtpProvisioner.auth()) {
+                Optional<String> user =
+                        resolveSecretValue.forProject(project.getId(), ProjectMailNames.SMTP_USER_SECRET);
+                Optional<String> pass = resolveSecretValue.forProject(
+                        project.getId(), ProjectMailNames.SMTP_PASSWORD_SECRET);
+                if (user.isPresent()) {
+                    body = upsertEnvLine(body, "SMTP_USER", user.get());
+                }
+                if (pass.isPresent()) {
+                    body = upsertEnvLine(body, "SMTP_PASSWORD", pass.get());
+                }
+            } else {
+                body = upsertEnvLine(body, "SMTP_USER", "");
+                body = upsertEnvLine(body, "SMTP_PASSWORD", "");
+            }
+            if (!body.isEmpty() && !body.endsWith("\n")) {
+                body = body + "\n";
+            }
+            Files.writeString(envFile, body);
+            logSink.accept(
+                    "Platform SMTP injected into .env (host=" + host + ":" + smtpProvisioner.port() + ")");
+        } catch (Exception ex) {
+            throw new DomainException("Failed to inject platform SMTP env: " + ex.getMessage());
         }
     }
 

@@ -39,6 +39,10 @@ Without zone/tunnel/token, Atlas still returns the exact paste values (mode `MAN
 - One token with both scopes is fine; same secret name `cloudflare.api.token`.
 - **HTTP 403** on Ensure → API/UI message `token scopes insufficient` (not a raw Cloudflare dump). Fix scopes under Org secrets / Project secrets, then retry. Copy blocks still work as fallback.
 
+## Platform AI WebUI
+
+Ops surface (not a customer app): `https://ai.atlasops.dev` — see [ai-public-hostname.md](./ai-public-hostname.md). Authentik ForwardAuth + Atlas Admins (like Grafana). Ollama stays LAN-only.
+
 ## Manual step (Zero Trust) — only if Ensure is MANUAL/FAILED
 
 Cloudflare Zero Trust → Networks → Tunnels → (atlas tunnel) → **Public Hostname** → Add:
@@ -66,8 +70,8 @@ Docker DNS will resolve those names to platform containers. Prefer `db` / `cache
 
 Reelpath (`docker-compose.atlas.yml`) enables `AUTH_REQUIRED` but historically only ran migrations on API start — **no users** until seed.
 
-- Seed creates owner from `DEFAULT_ADMIN_EMAIL` / `DEFAULT_ADMIN_PASSWORD` with `SEED_DEMO=false`.
-- Compose should run `seed:ci` after migrate (idempotent upsert).
+- Seed creates owner from `DEFAULT_ADMIN_EMAIL` / `DEFAULT_ADMIN_PASSWORD` with `SEED_DEMO=false` **only if user missing** — never overwrites existing `passwordHash`.
+- Compose may run `seed:ci` after migrate (safe for re-deploys; password preserved).
 - **Migrate ownership:** API entrypoint already runs Prisma (`migrate:deploy:ci`). Until that moves out of the container start, **omit** `runtime.migrateCommand` in `atlas.yml` (Atlas hook would double-run). See [app-migrations.md](./app-migrations.md).
 - Recovery if DB has orgs/plans but empty `User`:
 

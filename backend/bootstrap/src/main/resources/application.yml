@@ -107,6 +107,20 @@ atlas:
   db-console:
     public-url: ${ATLAS_DB_CONSOLE_URL:}
     connect-token: ${ATLAS_DB_CONSOLE_CONNECT_TOKEN:}
+  # ADR-0018: platform SMTP (own Postfix or external). Blank host = stub only.
+  app-smtp:
+    host: ${ATLAS_APP_SMTP_HOST:}
+    # Hostname apps dial (SMTP_HOST). Blank → same as host.
+    app-host: ${ATLAS_APP_SMTP_APP_HOST:}
+    port: ${ATLAS_APP_SMTP_PORT:25}
+    username: ${ATLAS_APP_SMTP_USERNAME:}
+    password: ${ATLAS_APP_SMTP_PASSWORD:}
+    from-domain: ${ATLAS_APP_SMTP_FROM_DOMAIN:mail.atlas.local}
+    alert-from: ${ATLAS_APP_SMTP_ALERT_FROM:}
+    tls: ${ATLAS_APP_SMTP_TLS:false}
+    auth: ${ATLAS_APP_SMTP_AUTH:false}
+    daily-send-limit-per-project: ${ATLAS_APP_SMTP_DAILY_LIMIT:500}
+    auto-inject-on-deploy: ${ATLAS_APP_SMTP_AUTO_INJECT:true}
   proxmox:
     # Autopilot ISOLATED placement (optional). Secret proxmox.api.token via Secrets UI.
     api-url: ${ATLAS_PROXMOX_API_URL:}

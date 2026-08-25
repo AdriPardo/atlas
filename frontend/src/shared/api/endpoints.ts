@@ -30,6 +30,9 @@ import type {
   ProjectDatabaseCredential,
   ProjectDatabaseCredentialListItem,
   ProjectDatabaseConsoleSession,
+  ProjectMailStatus,
+  ProjectMailProvisionResult,
+  SendProjectMailResult,
   SecretMeta,
   Service,
   ServiceExposure,
@@ -320,4 +323,15 @@ export const projectDatabaseApi = {
       .then((r) => r.data),
   revokeCredential: (projectId: string, role: string) =>
     api.delete(`/projects/${projectId}/database/credentials/${encodeURIComponent(role)}`),
+}
+
+export const projectMailApi = {
+  status: (projectId: string) =>
+    api.get<ProjectMailStatus>(`/projects/${projectId}/mail`).then((r) => r.data),
+  provision: (projectId: string) =>
+    api.post<ProjectMailProvisionResult>(`/projects/${projectId}/mail/provision`).then((r) => r.data),
+  send: (
+    projectId: string,
+    body: { to: string; subject: string; textBody: string; cc?: string; bcc?: string; htmlBody?: string },
+  ) => api.post<SendProjectMailResult>(`/projects/${projectId}/mail/send`, body).then((r) => r.data),
 }
