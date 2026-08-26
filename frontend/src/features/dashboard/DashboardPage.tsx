@@ -80,6 +80,7 @@ export function DashboardPage() {
         <QueryState
           isLoading={statsQuery.isLoading}
           isError={statsQuery.isError}
+          error={statsQuery.error}
           onRetry={() => statsQuery.refetch()}
           errorMessage="Could not load dashboard stats."
         >
@@ -159,6 +160,7 @@ export function DashboardPage() {
           <QueryState
             isLoading={deploymentsQuery.isLoading}
             isError={deploymentsQuery.isError}
+            error={deploymentsQuery.error}
             onRetry={() => deploymentsQuery.refetch()}
             skeleton="table"
             errorMessage="Could not load recent deployments."

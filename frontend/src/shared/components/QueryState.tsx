@@ -1,9 +1,12 @@
 import { Alert, Box, Button, Skeleton, Stack } from '@mui/material'
 import type { ReactNode } from 'react'
+import { getApiErrorMessage } from '../api/queryErrors'
 
 interface QueryStateProps {
   isLoading: boolean
   isError: boolean
+  /** Axios/query error — used to show status (502, network, …) when errorMessage omitted. */
+  error?: unknown
   errorMessage?: string
   onRetry?: () => void
   skeleton?: 'page' | 'table' | 'detail'
@@ -49,6 +52,7 @@ function LoadingSkeleton({ variant }: { variant: 'page' | 'table' | 'detail' }) 
 export function QueryState({
   isLoading,
   isError,
+  error,
   errorMessage,
   onRetry,
   skeleton = 'page',
@@ -58,6 +62,7 @@ export function QueryState({
     return <LoadingSkeleton variant={skeleton} />
   }
   if (isError) {
+    const message = getApiErrorMessage(error, errorMessage)
     return (
       <Alert
         severity="error"
@@ -70,7 +75,7 @@ export function QueryState({
           ) : undefined
         }
       >
-        {errorMessage ?? 'Something went wrong. Check your connection and try again.'}
+        {message}
       </Alert>
     )
   }
