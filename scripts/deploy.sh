@@ -64,7 +64,10 @@ NEW_SHA="$(git rev-parse HEAD)"
 log "deploying commit: $NEW_SHA"
 
 if [[ -x scripts/ensure-prod-traefik-routers.sh ]]; then
+  log "ensuring Traefik API routers..."
   bash scripts/ensure-prod-traefik-routers.sh
+else
+  log "WARN: scripts/ensure-prod-traefik-routers.sh missing or not executable"
 fi
 
 # Prefer production compose file if present (prod customizations survive reset --hard)

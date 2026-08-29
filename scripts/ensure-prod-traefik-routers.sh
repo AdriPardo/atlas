@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
 # Idempotently patch docker-compose.prod.yml with Traefik routers required for SSO + API JWT.
-# Safe to run on every deploy — skips when labels already present.
 set -euo pipefail
 
 APP_DIR="${ATLAS_APP_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 PROD="$APP_DIR/docker-compose.prod.yml"
 
+log() { printf '[traefik] %s\n' "$*"; }
+
 if [[ ! -f "$PROD" ]]; then
-  echo "[traefik] no docker-compose.prod.yml — skip"
+  log "no docker-compose.prod.yml — skip"
   exit 0
 fi
 
-if grep -q 'traefik.http.routers.atlas-api' "$PROD"; then
-  echo "[traefik] atlas-api router already present"
+if grep -q 'traefik.http.routers.atlas-api.rule' "$PROD"; then
+  log "atlas-api router already present"
   exit 0
 fi
 
-echo "[traefik] patching $PROD with atlas-api + atlas-sso-bootstrap routers"
+log "patching $PROD"
 
 python3 - "$PROD" <<'PY'
 import pathlib
@@ -24,10 +25,6 @@ import sys
 
 path = pathlib.Path(sys.argv[1])
 text = path.read_text()
-marker = 'traefik.http.routers.atlas-webhooks.rule'
-if marker not in text:
-    print("[traefik] ERROR: cannot find atlas-webhooks block to anchor patch", file=sys.stderr)
-    sys.exit(1)
 
 insert = """      - "traefik.http.routers.atlas-sso-bootstrap.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/v1/auth/sso/bootstrap`)"
       - "traefik.http.routers.atlas-sso-bootstrap.entrypoints=websecure"
@@ -45,12 +42,21 @@ insert = """      - "traefik.http.routers.atlas-sso-bootstrap.rule=Host(`atlas.a
       - "traefik.http.routers.atlas-api.priority=90"
 """
 
-anchor = '      - "traefik.http.routers.atlas-webhooks.rule'
-if insert.strip().splitlines()[0] in text:
-    print("[traefik] patch already applied")
-    sys.exit(0)
+anchors = [
+    '      - "traefik.http.routers.atlas-webhooks.rule',
+    '      - "traefik.http.routers.atlas.priority=1"',
+    '      - "traefik.http.services.atlas.loadbalancer.server.port=80"',
+]
 
-text = text.replace(anchor, insert + anchor, 1)
-path.write_text(text)
-print("[traefik] patched successfully")
+for anchor in anchors:
+    if anchor in text:
+        text = text.replace(anchor, insert + anchor, 1)
+        path.write_text(text)
+        print("patched via anchor:", anchor[:48])
+        sys.exit(0)
+
+print("ERROR: no anchor found in docker-compose.prod.yml", file=sys.stderr)
+sys.exit(1)
 PY
+
+log "patch OK"
