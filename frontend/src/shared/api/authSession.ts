@@ -10,6 +10,8 @@ const SSO_REDIRECT_TTL_MS = 60_000
 export type SsoFailureCode =
   | 'redirect_blocked'
   | 'token_rejected'
+  | 'jwt_invalid'
+  | 'user_not_found'
   | 'sso_disabled'
   | 'identity_missing'
   | 'mint_failed'
@@ -37,12 +39,22 @@ export function consumeSsoError(): SsoFailureCode | null {
   return code as SsoFailureCode
 }
 
+export function mapMeFailureStatus(status?: number): SsoFailureCode {
+  if (status === 404) return 'user_not_found'
+  if (status === 403) return 'jwt_invalid'
+  return 'token_rejected'
+}
+
 export function ssoErrorMessage(code: SsoFailureCode): string {
   switch (code) {
     case 'redirect_blocked':
       return 'El flujo SSO se interrumpió antes de guardar el token. Pulsa reintentar para volver a Authentik.'
+    case 'jwt_invalid':
+      return 'Atlas no aceptó el JWT de sesión (inválido o caducado). Pulsa reintentar para obtener uno nuevo.'
+    case 'user_not_found':
+      return 'El JWT es válido pero el usuario no existe en la base de datos Atlas. Contacta al administrador o reintenta el SSO.'
     case 'token_rejected':
-      return 'Atlas rechazó la sesión tras el login (JWT inválido o usuario no encontrado en la base de datos).'
+      return 'Atlas rechazó la sesión tras el login. Reintenta el SSO.'
     case 'sso_disabled':
       return 'SSO Authentik está desactivado en el servidor Atlas.'
     case 'identity_missing':
@@ -68,7 +80,7 @@ export function isSsoRedirectInFlight(): boolean {
 
 /**
  * One-shot full-page SSO bootstrap. Traefik router `atlas-sso-bootstrap` runs ForwardAuth
- * so the backend receives X-authentik-* and mints JWT into localStorage.
+ * so the backend receives X-authentik-* and mints JWT into a session cookie.
  *
  * @returns false when a redirect is already in flight (caller must not retry).
  */
@@ -88,10 +100,7 @@ export function redirectToSsoBootstrap(returnTo?: string): boolean {
   return true
 }
 
-/**
- * Prod: JWT only via full-page bootstrap (XHR lacks ForwardAuth headers on mint path).
- * Dev: return stored local token.
- */
+/** Prod: JWT via bootstrap cookie or localStorage. Dev: stored local token. */
 export async function refreshAuthToken(): Promise<string | null> {
   return tokenStorage.get()
 }

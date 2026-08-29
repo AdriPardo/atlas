@@ -3,16 +3,20 @@ package com.atlas.api.web;
 import com.atlas.application.auth.AuthenticateFromAuthentikUseCase;
 import com.atlas.application.auth.AuthenticateFromAuthentikUseCase.AuthentikIdentity;
 import com.atlas.domain.shared.UnauthorizedException;
+import com.atlas.infrastructure.security.AtlasAuthCookieNames;
 import com.atlas.infrastructure.security.AuthentikHeaderNames;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,8 +24,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Browser-navigation SSO bootstrap. Traefik ForwardAuth injects {@code X-authentik-*} only on
- * document requests — not on SPA XHR — so prod mints JWT via full-page GET here, stores it in
- * {@code localStorage}, then redirects back to the SPA.
+ * document requests — not on SPA XHR — so prod mints JWT via full-page GET here, sets a session
+ * cookie, then redirects back to the SPA (no inline JS — survives CSP on securityHeaders).
  */
 @Controller
 @RequestMapping("/api/v1/auth")
@@ -31,7 +35,7 @@ public class SsoBootstrapController {
     private static final Logger log = LoggerFactory.getLogger(SsoBootstrapController.class);
 
     /** Must match {@code frontend/src/shared/api/tokenStorage.ts}. */
-    static final String TOKEN_STORAGE_KEY = "atlas.token";
+    static final String TOKEN_STORAGE_KEY = AtlasAuthCookieNames.TOKEN;
 
     static final String SSO_ERROR_STORAGE_KEY = "atlas.sso.error";
     static final String SSO_REDIRECT_STORAGE_KEY = "atlas.sso.redirect";
@@ -40,7 +44,7 @@ public class SsoBootstrapController {
 
     private final AuthenticateFromAuthentikUseCase authenticateFromAuthentikUseCase;
 
-    @GetMapping(value = "/sso/bootstrap", produces = MediaType.TEXT_HTML_VALUE)
+    @GetMapping("/sso/bootstrap")
     public void bootstrap(
             HttpServletRequest request,
             HttpServletResponse response,
@@ -48,13 +52,15 @@ public class SsoBootstrapController {
             throws IOException {
         String safeReturnTo = sanitizeReturnTo(returnTo);
         String username = header(request, AuthentikHeaderNames.USERNAME);
+        String email = header(request, AuthentikHeaderNames.EMAIL);
         boolean hasUsername = username != null && !username.isBlank();
         boolean hasGroups = header(request, AuthentikHeaderNames.GROUPS) != null;
 
         log.info(
-                "SSO bootstrap: usernamePresent={} groupsPresent={} returnTo={}",
+                "SSO bootstrap: usernamePresent={} groupsPresent={} emailDomain={} returnTo={}",
                 hasUsername,
                 hasGroups,
+                emailDomain(email),
                 safeReturnTo);
 
         if (!hasUsername) {
@@ -68,11 +74,11 @@ public class SsoBootstrapController {
             var result = authenticateFromAuthentikUseCase.execute(new AuthentikIdentity(
                     username,
                     header(request, AuthentikHeaderNames.GROUPS),
-                    header(request, AuthentikHeaderNames.EMAIL),
+                    email,
                     header(request, AuthentikHeaderNames.NAME),
                     header(request, AuthentikHeaderNames.UID)));
             log.info("SSO bootstrap: JWT minted for username={}", username.trim());
-            writeBootstrapHtml(response, result.accessToken(), safeReturnTo);
+            completeBootstrapSession(response, result.accessToken(), result.expiresIn(), safeReturnTo);
         } catch (UnauthorizedException ex) {
             String code = mapFailureCode(ex);
             log.warn("SSO bootstrap failed for username={}: {} ({})", username.trim(), code, ex.getMessage());
@@ -120,6 +126,13 @@ public class SsoBootstrapController {
         return sb.toString();
     }
 
+    private static String emailDomain(String email) {
+        if (email == null || !email.contains("@")) {
+            return "n/a";
+        }
+        return email.substring(email.indexOf('@') + 1);
+    }
+
     private static String buildBootstrapUrl(HttpServletRequest request, String returnTo) {
         String scheme = forwarded(request, "X-Forwarded-Proto", request.getScheme());
         String host = forwarded(request, "X-Forwarded-Host", request.getHeader("Host"));
@@ -135,38 +148,18 @@ public class SsoBootstrapController {
         return value == null || value.isBlank() ? fallback : value.split(",")[0].trim();
     }
 
-    private static void writeBootstrapHtml(HttpServletResponse response, String accessToken, String returnTo)
+    private void completeBootstrapSession(
+            HttpServletResponse response, String accessToken, long maxAgeSeconds, String returnTo)
             throws IOException {
-        String html =
-                """
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                  <meta charset="utf-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1">
-                  <title>Signing in…</title>
-                </head>
-                <body>
-                  <p>Signing in to Atlas…</p>
-                  <script>
-                    sessionStorage.removeItem(%s);
-                    sessionStorage.removeItem(%s);
-                    localStorage.setItem(%s, %s);
-                    window.location.replace(%s);
-                  </script>
-                </body>
-                </html>
-                """
-                        .formatted(
-                                toJsString(SSO_REDIRECT_STORAGE_KEY),
-                                toJsString(SSO_ERROR_STORAGE_KEY),
-                                toJsString(TOKEN_STORAGE_KEY),
-                                toJsString(accessToken),
-                                toJsString(returnTo));
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType(MediaType.TEXT_HTML_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write(html);
+        ResponseCookie cookie = ResponseCookie.from(TOKEN_STORAGE_KEY, accessToken)
+                .path("/")
+                .maxAge(Duration.ofSeconds(maxAgeSeconds))
+                .secure(true)
+                .sameSite("Lax")
+                .httpOnly(false)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        response.sendRedirect(returnTo);
     }
 
     private static void writeBootstrapErrorHtml(

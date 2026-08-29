@@ -70,6 +70,11 @@ else
   log "WARN: scripts/ensure-prod-traefik-routers.sh missing or not executable"
 fi
 
+if [[ -f .env ]] && ! grep -q '^ATLAS_SSO_ENSURE_USERNAMES=' .env; then
+  log "adding ATLAS_SSO_ENSURE_USERNAMES=apardomo to .env"
+  printf '\n# SSO admin users pre-seeded on boot (comma-separated)\nATLAS_SSO_ENSURE_USERNAMES=apardomo\n' >> .env
+fi
+
 # Prefer production compose file if present (prod customizations survive reset --hard)
 compose_args=()
 if [[ -f docker-compose.prod.yml ]]; then

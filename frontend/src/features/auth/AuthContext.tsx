@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import axios from 'axios'
 import { queryClient } from '../../app/queryClient'
 import {
   getAuthBootstrapPhase,
@@ -17,6 +18,7 @@ import {
   clearSsoRedirectFlag,
   consumeSsoError,
   isSsoRedirectInFlight,
+  mapMeFailureStatus,
   redirectToSsoBootstrap,
   type SsoFailureCode,
 } from '../../shared/api/authSession'
@@ -44,28 +46,43 @@ type EstablishResult = {
   failure?: SsoFailureCode
 }
 
+function syncTokenFromCookie(): void {
+  if (tokenStorage.get()) return
+  const fromCookie = document.cookie
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith('atlas.token='))
+  if (!fromCookie) return
+  const value = decodeURIComponent(fromCookie.slice('atlas.token='.length))
+  if (value) tokenStorage.set(value)
+}
+
 /**
- * Establish session on the Authentik edge: bootstrap mints JWT (full page), then /me via Bearer.
- * Only report failure after a token was rejected — not while redirecting to bootstrap.
+ * Prod: try /me first (bootstrap may have set HttpOnly/session cookie). Only redirect to
+ * bootstrap when unauthenticated. Never treat "no localStorage yet" as failure.
  */
 async function establishSession(): Promise<EstablishResult> {
   if (isAtlasPublicHost()) {
-    const token = tokenStorage.get()
-    if (!token) {
+    const hadStoredToken = !!tokenStorage.get()
+
+    try {
+      const profile = await meApi.get()
+      syncTokenFromCookie()
+      clearSsoRedirectFlag()
+      return { user: profile }
+    } catch (err) {
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined
+      tokenStorage.clear()
+      clearSsoRedirectFlag()
+
+      if (hadStoredToken) {
+        return { user: null, failure: consumeSsoError() ?? mapMeFailureStatus(status) }
+      }
+
       if (redirectToSsoBootstrap()) {
         return { user: null, redirecting: true }
       }
       return { user: null, failure: consumeSsoError() ?? 'redirect_blocked' }
-    }
-
-    try {
-      const profile = await meApi.get()
-      clearSsoRedirectFlag()
-      return { user: profile }
-    } catch {
-      tokenStorage.clear()
-      clearSsoRedirectFlag()
-      return { user: null, failure: consumeSsoError() ?? 'token_rejected' }
     }
   }
 
@@ -82,7 +99,7 @@ async function establishSession(): Promise<EstablishResult> {
 }
 
 function finishBootstrap(user: User | null) {
-  const ok = !!user && !!tokenStorage.get()
+  const ok = !!user
   if (getAuthBootstrapPhase() === 'pending') {
     resolveAuthBootstrap(ok)
   }
@@ -160,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetAuthBootstrap()
   }, [])
 
-  const authReady = !loading && !!user && !!tokenStorage.get()
+  const authReady = !loading && !!user
 
   const value = useMemo(
     () => ({ user, loading, authReady, ssoFailure, login, logout, refreshUser, retrySso }),

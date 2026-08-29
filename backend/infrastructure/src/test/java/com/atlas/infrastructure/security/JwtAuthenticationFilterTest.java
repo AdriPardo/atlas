@@ -1,11 +1,13 @@
 package com.atlas.infrastructure.security;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.atlas.application.port.out.UserRepositoryPort;
 import com.atlas.domain.user.Role;
 import com.atlas.domain.user.User;
+import jakarta.servlet.http.Cookie;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -77,5 +79,12 @@ class JwtAuthenticationFilterTest {
         AtlasUserPrincipal principal =
                 (AtlasUserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         org.junit.jupiter.api.Assertions.assertEquals(Role.OPERATOR.name(), principal.getRole());
+    }
+
+    @Test
+    void resolvesTokenFromSessionCookie() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setCookies(new Cookie(AtlasAuthCookieNames.TOKEN, "cookie-jwt"));
+        assertEquals("cookie-jwt", JwtAuthenticationFilter.resolveToken(request));
     }
 }

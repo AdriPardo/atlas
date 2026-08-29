@@ -4,6 +4,7 @@ import com.atlas.application.port.out.PasswordEncoderPort;
 import com.atlas.infrastructure.persistence.jpa.entity.UserJpaEntity;
 import com.atlas.infrastructure.persistence.jpa.repository.UserJpaRepository;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,10 @@ public class AdminUserInitializer implements ApplicationRunner {
     @Value("${atlas.security.admin.password}")
     private String adminPassword;
 
+    /** Extra SSO usernames to seed as ADMIN if missing (comma-separated), e.g. {@code apardomo}. */
+    @Value("${atlas.security.sso.ensure-usernames:}")
+    private String ensureUsernames;
+
     public AdminUserInitializer(UserJpaRepository userRepository, PasswordEncoderPort passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -37,6 +42,12 @@ public class AdminUserInitializer implements ApplicationRunner {
         userRepository
                 .findByUsernameIgnoreCase(adminUsername)
                 .ifPresentOrElse(this::syncAdminPassword, this::seedAdmin);
+
+        Arrays.stream(ensureUsernames.split(","))
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .filter(name -> !name.equalsIgnoreCase(adminUsername))
+                .forEach(this::ensureAdminUser);
     }
 
     private void seedAdmin() {
@@ -48,6 +59,21 @@ public class AdminUserInitializer implements ApplicationRunner {
         admin.setCreatedAt(Instant.now());
         userRepository.save(admin);
         log.info("Seeded default admin user '{}'", adminUsername);
+    }
+
+    private void ensureAdminUser(String username) {
+        userRepository.findByUsernameIgnoreCase(username).ifPresentOrElse(
+                existing -> log.debug("SSO ensure user '{}' already exists", username),
+                () -> {
+                    UserJpaEntity user = new UserJpaEntity();
+                    user.setId(UUID.randomUUID());
+                    user.setUsername(username);
+                    user.setPasswordHash(passwordEncoder.encode("sso-ensure-" + UUID.randomUUID()));
+                    user.setRole("ADMIN");
+                    user.setCreatedAt(Instant.now());
+                    userRepository.save(user);
+                    log.info("Seeded SSO ensure admin user '{}'", username);
+                });
     }
 
     private void syncAdminPassword(UserJpaEntity admin) {

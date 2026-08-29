@@ -46,6 +46,9 @@ atlas:
       enabled: ${ATLAS_AUTHENTIK_ENABLED:false}
       # Group name substring → ADMIN; everyone else → OPERATOR (Authentik: pipe-separated groups).
       admin-group: ${ATLAS_AUTHENTIK_ADMIN_GROUP:Atlas Admins}
+    sso:
+      # Pre-seed ADMIN users for SSO (comma-separated usernames), e.g. apardomo
+      ensure-usernames: ${ATLAS_SSO_ENSURE_USERNAMES:}
   worker:
     # Same process as API for MVP. Split later with SPRING_PROFILES_ACTIVE=worker + atlas.worker.enabled=true only on worker.
     enabled: ${ATLAS_WORKER_ENABLED:true}

@@ -22,6 +22,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.atlas.api.web.SsoBootstrapController;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -137,18 +139,27 @@ class AtlasIntegrationTest {
     }
 
     @Test
-    void ssoBootstrapMintsJwtInHtml() throws Exception {
-        mockMvc.perform(get("/api/v1/auth/sso/bootstrap")
+    void ssoBootstrapSetsSessionCookieAndRedirects() throws Exception {
+        MvcResult bootstrap = mockMvc.perform(get("/api/v1/auth/sso/bootstrap")
                         .header("X-authentik-username", "bootstrap-user")
                         .header("X-authentik-groups", "Atlas Admins")
                         .header("X-authentik-email", "bootstrap@example.com")
                         .header("Host", "atlas.atlasops.dev")
                         .header("X-Forwarded-Proto", "https"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                        .string("Location", "/"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie()
+                        .exists(SsoBootstrapController.TOKEN_STORAGE_KEY))
+                .andReturn();
+
+        jakarta.servlet.http.Cookie cookie =
+                bootstrap.getResponse().getCookie(SsoBootstrapController.TOKEN_STORAGE_KEY);
+
+        mockMvc.perform(get("/api/v1/me").cookie(cookie))
                 .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
-                        .string(org.hamcrest.Matchers.containsString("atlas.token")))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
-                        .string(org.hamcrest.Matchers.containsString("bootstrap-user")));
+                .andExpect(jsonPath("$.username").value("bootstrap-user"))
+                .andExpect(jsonPath("$.role").value("ADMIN"));
     }
 
     @Test
