@@ -3,6 +3,20 @@ const PUBLIC_HOSTS = new Set(['atlas.atlasops.dev'])
 
 export const PUBLIC_ATLAS_URL = 'https://atlas.atlasops.dev/'
 
+/** Authentik embedded outpost — triggers ForwardAuth sign-in (full navigation). */
+export const AUTHENTIK_OUTPOST_START_PATH = '/outpost.goauthentik.io/start'
+
+/** URL that sends the browser through Traefik ForwardAuth → Authentik login. */
+export function authentikSignInUrl(returnTo = `${window.location.origin}/`): string {
+  const target = returnTo.startsWith('http') ? returnTo : `${window.location.origin}${returnTo}`
+  return `${window.location.origin}${AUTHENTIK_OUTPOST_START_PATH}?rd=${encodeURIComponent(target)}`
+}
+
+/** Full-page redirect to Authentik (never rely on client-side /login for prod SSO). */
+export function redirectToAuthentikSignIn(returnTo?: string): void {
+  window.location.assign(authentikSignInUrl(returnTo))
+}
+
 export function isAtlasPublicHost(hostname = window.location.hostname): boolean {
   return PUBLIC_HOSTS.has(hostname)
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -22,6 +22,7 @@ import {
   allowLocalLogin,
   isAtlasPublicHost,
   isDirectAccessHost,
+  redirectToAuthentikSignIn,
 } from './authHost'
 
 const schema = z.object({
@@ -53,8 +54,22 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
+  useEffect(() => {
+    if (publicHost && !loading && !user) {
+      redirectToAuthentikSignIn(`${window.location.origin}/`)
+    }
+  }, [publicHost, loading, user])
+
   if (!loading && user) {
     return <Navigate to="/" replace />
+  }
+
+  if (publicHost && !user) {
+    return (
+      <Box minHeight="100dvh" display="flex" alignItems="center" justifyContent="center">
+        <Typography color="text.secondary">Redirecting to Authentik…</Typography>
+      </Box>
+    )
   }
 
   const onSubmit = handleSubmit(async (values) => {
@@ -76,11 +91,10 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
         navigate('/')
         return
       }
-      // No Atlas JWT yet — full navigation so ForwardAuth can complete Authentik.
-      window.location.assign(publicHost ? `${window.location.origin}/` : PUBLIC_ATLAS_URL)
     } catch {
-      window.location.assign(publicHost ? `${window.location.origin}/` : PUBLIC_ATLAS_URL)
+      // fall through to ForwardAuth sign-in
     }
+    redirectToAuthentikSignIn(publicHost ? `${window.location.origin}/` : PUBLIC_ATLAS_URL)
   }
 
   return (
