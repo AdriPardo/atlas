@@ -5,6 +5,20 @@
 # Local/dev: use docker-compose.yml instead.
 
 services:
+  # ADR-0018: own Postfix MTA on atlas-internal (no Mailpit in prod).
+  smtp:
+    image: boky/postfix:latest
+    restart: unless-stopped
+    environment:
+      ALLOWED_SENDER_DOMAINS: ${ATLAS_APP_SMTP_FROM_DOMAIN:-mail.example.com}
+      HOSTNAME: smtp.${ATLAS_APP_SMTP_FROM_DOMAIN:-mail.example.com}
+      RELAYHOST: ${ATLAS_SMTP_RELAYHOST:-}
+      POSTFIX_inet_protocols: ipv4
+    ports:
+      - "${ATLAS_SMTP_HOST_PORT:-2525}:25"
+    networks:
+      - internal
+
   backend:
     build:
       context: .
@@ -50,6 +64,9 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+    depends_on:
+      smtp:
+        condition: service_started
     networks:
       - internal
 
