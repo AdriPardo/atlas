@@ -78,11 +78,11 @@ class SendProjectMailUseCaseTest {
     }
 
     @Test
-    void sessionWithDeploySkipsMailApiToken() {
+    void sessionWithWriteSkipsMailApiToken() {
         Project project = Project.create("demo", "d");
         projectId = project.getId();
-        doNothing().when(authorizationService).require(projectId, ProjectPermission.DEPLOY);
-        when(authorizationService.can(projectId, ProjectPermission.DEPLOY)).thenReturn(true);
+        doNothing().when(authorizationService).require(projectId, ProjectPermission.WRITE);
+        when(authorizationService.can(projectId, ProjectPermission.WRITE)).thenReturn(true);
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(secretRepository.existsByProjectIdAndName(projectId, ProjectMailNames.SMTP_HOST_SECRET))
                 .thenReturn(true);
@@ -112,8 +112,8 @@ class SendProjectMailUseCaseTest {
     void tokenOnlyCallerRequiresMailApiToken() {
         Project project = Project.create("demo", "d");
         projectId = project.getId();
-        doNothing().when(authorizationService).require(projectId, ProjectPermission.DEPLOY);
-        when(authorizationService.can(projectId, ProjectPermission.DEPLOY)).thenReturn(false);
+        doNothing().when(authorizationService).require(projectId, ProjectPermission.WRITE);
+        when(authorizationService.can(projectId, ProjectPermission.WRITE)).thenReturn(false);
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(secretRepository.existsByProjectIdAndName(projectId, ProjectMailNames.SMTP_HOST_SECRET))
                 .thenReturn(true);
@@ -144,8 +144,8 @@ class SendProjectMailUseCaseTest {
     void tokenOnlyCallerAcceptsValidMailApiToken() {
         Project project = Project.create("demo", "d");
         projectId = project.getId();
-        doNothing().when(authorizationService).require(projectId, ProjectPermission.DEPLOY);
-        when(authorizationService.can(projectId, ProjectPermission.DEPLOY)).thenReturn(false);
+        doNothing().when(authorizationService).require(projectId, ProjectPermission.WRITE);
+        when(authorizationService.can(projectId, ProjectPermission.WRITE)).thenReturn(false);
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(secretRepository.existsByProjectIdAndName(projectId, ProjectMailNames.SMTP_HOST_SECRET))
                 .thenReturn(true);

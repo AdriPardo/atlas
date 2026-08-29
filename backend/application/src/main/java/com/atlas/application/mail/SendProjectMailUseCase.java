@@ -51,7 +51,7 @@ public class SendProjectMailUseCase {
 
     @Transactional
     public SendMailResult execute(UUID projectId, SendMailCommand command) {
-        authorizationService.require(projectId, ProjectPermission.DEPLOY);
+        authorizationService.require(projectId, ProjectPermission.WRITE);
         Project project = requireProject(projectId);
         requireProvisioned(projectId);
         verifyApiTokenIfConfigured(projectId, command.apiToken());
@@ -102,8 +102,8 @@ public class SendProjectMailUseCase {
     }
 
     private void verifyApiTokenIfConfigured(UUID projectId, Optional<String> provided) {
-        // UI test send and other session-authenticated deploy operators skip mail.api_token.
-        if (authorizationService.can(projectId, ProjectPermission.DEPLOY)) {
+        // UI test send and session-authenticated writers skip mail.api_token.
+        if (authorizationService.can(projectId, ProjectPermission.WRITE)) {
             return;
         }
         if (!secretRepository.existsByProjectIdAndName(projectId, ProjectMailNames.MAIL_API_TOKEN_SECRET)) {

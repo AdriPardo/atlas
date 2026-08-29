@@ -14,8 +14,14 @@ services:
       HOSTNAME: smtp.${ATLAS_APP_SMTP_FROM_DOMAIN:-mail.example.com}
       RELAYHOST: ${ATLAS_SMTP_RELAYHOST:-}
       POSTFIX_inet_protocols: ipv4
+      DKIM_AUTOGENERATE: "true"
+      DKIM_SELECTOR: "default"
     ports:
       - "${ATLAS_SMTP_HOST_PORT:-2525}:25"
+    volumes:
+      - smtp_opendkim_keys:/etc/opendkim/keys
+      # boky/postfix runs OpenDKIM via supervisord; patch init.d so health checks pass.
+      - ./docker/smtp/10-opendkim-supervisord.sh:/docker-entrypoint-init.d/10-opendkim-supervisord.sh:ro
     networks:
       - internal
 
@@ -118,6 +124,7 @@ services:
 volumes:
   atlas_workspaces:
   atlas_backups:
+  smtp_opendkim_keys:
 
 networks:
   public:
