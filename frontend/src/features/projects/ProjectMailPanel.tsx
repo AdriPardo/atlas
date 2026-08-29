@@ -136,11 +136,12 @@ export function ProjectMailPanel({ projectId }: { projectId: string }) {
                     Send test email
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Uses platform relay. Apps should use SMTP env vars or call this API with{' '}
+                    Uses platform relay with your Atlas session. Deployed apps should use SMTP env vars or
+                    the HTTP API with{' '}
                     <Typography component="span" className="atlas-mono" sx={{ fontSize: '0.85em' }}>
                       {MAIL_API_TOKEN_SECRET}
-                    </Typography>{' '}
-                    when required.
+                    </Typography>
+                    .
                   </Typography>
                   <TextField
                     size="small"

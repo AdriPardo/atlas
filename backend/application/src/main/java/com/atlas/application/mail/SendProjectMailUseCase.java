@@ -102,6 +102,10 @@ public class SendProjectMailUseCase {
     }
 
     private void verifyApiTokenIfConfigured(UUID projectId, Optional<String> provided) {
+        // UI test send and other session-authenticated deploy operators skip mail.api_token.
+        if (authorizationService.can(projectId, ProjectPermission.DEPLOY)) {
+            return;
+        }
         if (!secretRepository.existsByProjectIdAndName(projectId, ProjectMailNames.MAIL_API_TOKEN_SECRET)) {
             return;
         }
