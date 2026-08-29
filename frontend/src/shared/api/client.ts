@@ -52,7 +52,7 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    if (config && !config._authRetry && (status === 401 || status === 403)) {
+    if (config && !config._authRetry && status === 401) {
       if (isPublicAuthPath(url)) {
         return Promise.reject(error)
       }

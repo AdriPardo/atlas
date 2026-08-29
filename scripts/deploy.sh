@@ -63,6 +63,10 @@ git reset --hard "$TARGET_REF"
 NEW_SHA="$(git rev-parse HEAD)"
 log "deploying commit: $NEW_SHA"
 
+if [[ -x scripts/ensure-prod-traefik-routers.sh ]]; then
+  bash scripts/ensure-prod-traefik-routers.sh
+fi
+
 # Prefer production compose file if present (prod customizations survive reset --hard)
 compose_args=()
 if [[ -f docker-compose.prod.yml ]]; then

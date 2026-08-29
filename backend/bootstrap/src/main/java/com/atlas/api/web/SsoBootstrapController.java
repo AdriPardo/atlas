@@ -122,6 +122,7 @@ public class SsoBootstrapController {
                 <body>
                   <p>Signing in to Atlas…</p>
                   <script>
+                    sessionStorage.removeItem("atlas.sso.redirect");
                     localStorage.setItem(%s, %s);
                     window.location.replace(%s);
                   </script>

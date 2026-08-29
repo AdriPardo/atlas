@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,7 +17,6 @@ import {
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import { useAuth } from './AuthContext'
-import { redirectToSsoBootstrap } from '../../shared/api/authSession'
 import {
   PUBLIC_ATLAS_URL,
   allowLocalLogin,
@@ -41,7 +40,7 @@ interface LoginPageProps {
 export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
   const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
-  const { login, user, loading } = useAuth()
+  const { login, user, loading, retrySso } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [ssoBusy, setSsoBusy] = useState(false)
@@ -54,12 +53,6 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
-
-  useEffect(() => {
-    if (publicHost && !loading && !user) {
-      redirectToSsoBootstrap('/')
-    }
-  }, [publicHost, loading, user])
 
   if (!loading && user) {
     return <Navigate to="/" replace />
@@ -87,7 +80,7 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
     setSsoBusy(true)
     setError(null)
     if (publicHost) {
-      redirectToSsoBootstrap('/')
+      void retrySso()
       return
     }
     redirectToAuthentikSignIn(PUBLIC_ATLAS_URL)

@@ -1,19 +1,10 @@
-import { useEffect } from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { Box, CircularProgress } from '@mui/material'
+import { Navigate, Outlet } from 'react-router-dom'
+import { Alert, Box, Button, CircularProgress, Stack } from '@mui/material'
 import { useAuth } from './AuthContext'
-import { redirectToSsoBootstrap } from '../../shared/api/authSession'
 import { isAtlasPublicHost } from './authHost'
 
 export function ProtectedRoute() {
-  const { user, loading, authReady } = useAuth()
-  const location = useLocation()
-
-  useEffect(() => {
-    if (!loading && !user && isAtlasPublicHost()) {
-      redirectToSsoBootstrap(`${location.pathname}${location.search}`)
-    }
-  }, [loading, user, location.pathname, location.search])
+  const { user, loading, authReady, ssoFailed, retrySso } = useAuth()
 
   if (loading || (user && !authReady)) {
     return (
@@ -25,6 +16,21 @@ export function ProtectedRoute() {
 
   if (!user) {
     if (isAtlasPublicHost()) {
+      if (ssoFailed) {
+        return (
+          <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" px={2}>
+            <Stack spacing={2} maxWidth={420} textAlign="center">
+              <Alert severity="warning">
+                No se pudo completar el inicio de sesión SSO. Comprueba que tu usuario tiene acceso
+                a Atlas en Authentik.
+              </Alert>
+              <Button variant="contained" onClick={() => void retrySso()}>
+                Reintentar inicio de sesión
+              </Button>
+            </Stack>
+          </Box>
+        )
+      }
       return (
         <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center">
           <CircularProgress />

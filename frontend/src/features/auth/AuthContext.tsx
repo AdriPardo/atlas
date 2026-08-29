@@ -13,7 +13,10 @@ import {
   resetAuthBootstrap,
   resolveAuthBootstrap,
 } from '../../shared/api/authBootstrap'
-import { redirectToSsoBootstrap } from '../../shared/api/authSession'
+import {
+  clearSsoRedirectFlag,
+  redirectToSsoBootstrap,
+} from '../../shared/api/authSession'
 import { tokenStorage } from '../../shared/api/client'
 import { meApi, authApi } from '../../shared/api/endpoints'
 import type { User } from '../../shared/types/api'
@@ -29,15 +32,14 @@ interface AuthContextValue {
   login: (username: string, password: string) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
-  /** Re-probe /auth/sso (e.g. after ForwardAuth cookie is ready). */
   retrySso: () => Promise<User | null>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 /**
- * Establish session: always mint JWT before /me on the Authentik edge.
- * Never treat /me success without a stored bearer token as authenticated.
+ * Establish session on the Authentik edge: bootstrap mints JWT (full page), then /me via Bearer.
+ * Never redirect again when /me fails — that caused outpost ↔ SPA loops.
  */
 async function establishSession(): Promise<User | null> {
   if (isAtlasPublicHost()) {
@@ -46,11 +48,14 @@ async function establishSession(): Promise<User | null> {
       redirectToSsoBootstrap()
       return null
     }
+
     try {
-      return await meApi.get()
+      const profile = await meApi.get()
+      clearSsoRedirectFlag()
+      return profile
     } catch {
       tokenStorage.clear()
-      redirectToSsoBootstrap()
+      clearSsoRedirectFlag()
       return null
     }
   }
@@ -103,19 +108,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const retrySso = useCallback(async () => {
     setLoading(true)
     setSsoFailed(false)
+    clearSsoRedirectFlag()
     resetAuthBootstrap()
-    try {
-      const profile = await establishSession()
-      setUser(profile)
-      setSsoFailed(isAtlasPublicHost() && !profile)
-      finishBootstrap(profile)
-      if (profile && tokenStorage.get()) {
-        await queryClient.invalidateQueries()
-      }
-      return profile
-    } finally {
-      setLoading(false)
-    }
+    redirectToSsoBootstrap('/')
+    return null
   }, [])
 
   useEffect(() => {
@@ -128,12 +124,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const profile = await meApi.get()
     setUser(profile)
     setSsoFailed(false)
+    clearSsoRedirectFlag()
     finishBootstrap(profile)
     await queryClient.invalidateQueries()
   }, [])
 
   const logout = useCallback(() => {
     tokenStorage.clear()
+    clearSsoRedirectFlag()
     setUser(null)
     queryClient.clear()
     if (getAuthBootstrapPhase() === 'pending') {
