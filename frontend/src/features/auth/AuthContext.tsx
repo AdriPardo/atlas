@@ -36,8 +36,21 @@ async function sleep(ms: number) {
 
 async function tryAuthentikSso(): Promise<User | null> {
   try {
+    if (isAtlasPublicHost()) {
+      // ForwardAuth headers may authenticate /me even when Traefik strips Authorization.
+      try {
+        const profile = await meApi.get()
+        void refreshAuthToken(1).catch(() => undefined)
+        return profile
+      } catch {
+        /* mint JWT below */
+      }
+    }
+
     const result = await authApi.sso()
-    tokenStorage.set(result.accessToken)
+    if (result?.accessToken) {
+      tokenStorage.set(result.accessToken)
+    }
     return await meApi.get()
   } catch {
     return null
@@ -160,7 +173,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear()
   }, [])
 
-  const authReady = !loading && !!user && !!tokenStorage.get()
+  const authReady =
+    !loading && !!user && (isAtlasPublicHost() ? true : !!tokenStorage.get())
 
   const value = useMemo(
     () => ({ user, loading, authReady, ssoFailed, login, logout, refreshUser, retrySso }),

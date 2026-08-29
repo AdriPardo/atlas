@@ -1,5 +1,6 @@
 package com.atlas.api.config;
 
+import com.atlas.infrastructure.security.AuthentikHeaderAuthenticationFilter;
 import com.atlas.infrastructure.security.JwtAuthenticationFilter;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AuthentikHeaderAuthenticationFilter authentikHeaderAuthenticationFilter;
     private final Environment environment;
 
     @Value("${atlas.security.cors.allowed-origins}")
@@ -59,7 +61,8 @@ public class SecurityConfig {
                     }
                     auth.anyRequest().authenticated();
                 })
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(authentikHeaderAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, AuthentikHeaderAuthenticationFilter.class);
 
         return http.build();
     }

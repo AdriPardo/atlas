@@ -122,6 +122,16 @@ class AtlasIntegrationTest {
     }
 
     @Test
+    void authentikHeadersAuthenticateMeWithoutJwt() throws Exception {
+        mockMvc.perform(get("/api/v1/me")
+                        .header("X-authentik-username", "header-only-user")
+                        .header("X-authentik-groups", "operators"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("header-only-user"))
+                .andExpect(jsonPath("$.role").value("OPERATOR"));
+    }
+
+    @Test
     void authentikSsoWithoutHeadersReturnsUnauthorized() throws Exception {
         mockMvc.perform(get("/api/v1/auth/sso")).andExpect(status().isUnauthorized());
     }

@@ -3,7 +3,7 @@ import { isAtlasPublicHost } from '../../features/auth/authHost'
 import { tokenStorage } from './tokenStorage'
 
 /** Bare client for SSO — avoids axios auth-interceptor loops. */
-const ssoClient = axios.create({ baseURL: '/api/v1' })
+export const ssoClient = axios.create({ baseURL: '/api/v1' })
 
 let refreshPromise: Promise<string | null> | null = null
 

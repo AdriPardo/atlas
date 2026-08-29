@@ -5,6 +5,7 @@ import com.atlas.api.dto.response.LoginResponse;
 import com.atlas.application.auth.AuthenticateFromAuthentikUseCase;
 import com.atlas.application.auth.AuthenticateFromAuthentikUseCase.AuthentikIdentity;
 import com.atlas.application.auth.AuthenticateUserUseCase;
+import com.atlas.infrastructure.security.AuthentikHeaderNames;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    public static final String HEADER_USERNAME = "X-authentik-username";
-    public static final String HEADER_GROUPS = "X-authentik-groups";
-    public static final String HEADER_EMAIL = "X-authentik-email";
-    public static final String HEADER_NAME = "X-authentik-name";
-    public static final String HEADER_UID = "X-authentik-uid";
+    /** @deprecated use {@link AuthentikHeaderNames} */
+    @Deprecated
+    public static final String HEADER_USERNAME = AuthentikHeaderNames.USERNAME;
+    /** @deprecated use {@link AuthentikHeaderNames} */
+    @Deprecated
+    public static final String HEADER_GROUPS = AuthentikHeaderNames.GROUPS;
+    /** @deprecated use {@link AuthentikHeaderNames} */
+    @Deprecated
+    public static final String HEADER_EMAIL = AuthentikHeaderNames.EMAIL;
+    /** @deprecated use {@link AuthentikHeaderNames} */
+    @Deprecated
+    public static final String HEADER_NAME = AuthentikHeaderNames.NAME;
+    /** @deprecated use {@link AuthentikHeaderNames} */
+    @Deprecated
+    public static final String HEADER_UID = AuthentikHeaderNames.UID;
 
     private final AuthenticateUserUseCase authenticateUserUseCase;
     private final AuthenticateFromAuthentikUseCase authenticateFromAuthentikUseCase;
@@ -52,11 +63,11 @@ public class AuthController {
 
     private ResponseEntity<LoginResponse> sso(HttpServletRequest request) {
         var result = authenticateFromAuthentikUseCase.execute(new AuthentikIdentity(
-                header(request, HEADER_USERNAME),
-                header(request, HEADER_GROUPS),
-                header(request, HEADER_EMAIL),
-                header(request, HEADER_NAME),
-                header(request, HEADER_UID)));
+                header(request, AuthentikHeaderNames.USERNAME),
+                header(request, AuthentikHeaderNames.GROUPS),
+                header(request, AuthentikHeaderNames.EMAIL),
+                header(request, AuthentikHeaderNames.NAME),
+                header(request, AuthentikHeaderNames.UID)));
         return ResponseEntity.ok(new LoginResponse(result.accessToken(), result.tokenType(), result.expiresIn()));
     }
 

@@ -39,7 +39,7 @@ interface LoginPageProps {
 export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
   const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
-  const { login, user, loading, retrySso } = useAuth()
+  const { login, user, loading, retrySso, ssoFailed } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [ssoBusy, setSsoBusy] = useState(false)
@@ -76,7 +76,7 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
         navigate('/')
         return
       }
-      // No Atlas JWT yet — bounce through Traefik so ForwardAuth can complete Authentik.
+      // No Atlas JWT yet — full navigation so ForwardAuth can complete Authentik.
       window.location.assign(publicHost ? `${window.location.origin}/` : PUBLIC_ATLAS_URL)
     } catch {
       window.location.assign(publicHost ? `${window.location.origin}/` : PUBLIC_ATLAS_URL)
@@ -200,10 +200,12 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
                   </Typography>
                 </Box>
 
-                <Alert severity="info" variant="outlined">
-                  If you landed here, Atlas could not mint a JWT from Authentik headers. Complete
-                  Authentik login and retry.
-                </Alert>
+                {ssoFailed && (
+                  <Alert severity="info" variant="outlined">
+                    If you landed here, Atlas could not mint a JWT from Authentik headers. Complete
+                    Authentik login and retry.
+                  </Alert>
+                )}
 
                 {error && (
                   <Alert severity="error" variant="outlined">

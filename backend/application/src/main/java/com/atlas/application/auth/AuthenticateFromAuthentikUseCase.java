@@ -45,6 +45,18 @@ public class AuthenticateFromAuthentikUseCase {
 
     @Transactional
     public AuthenticationResult execute(AuthentikIdentity identity) {
+        User user = resolveUser(identity);
+        String token = tokenProvider.generateToken(user);
+        return new AuthenticationResult(token, "Bearer", tokenProvider.getExpirationSeconds());
+    }
+
+    /**
+     * Provisions or syncs the Atlas user from ForwardAuth headers. Used by {@code /auth/sso} and by
+     * {@link com.atlas.infrastructure.security.AuthentikHeaderAuthenticationFilter} when Traefik strips
+     * {@code Authorization} but still injects {@code X-authentik-*} on every browser request.
+     */
+    @Transactional
+    public User resolveUser(AuthentikIdentity identity) {
         if (!enabled) {
             throw new UnauthorizedException("Authentik SSO is not enabled");
         }
@@ -55,13 +67,10 @@ public class AuthenticateFromAuthentikUseCase {
         String username = identity.username().trim();
         Role role = mapRole(identity.groups());
 
-        User user = userRepository
+        return userRepository
                 .findByUsername(username)
                 .map(existing -> syncRole(existing, role))
                 .orElseGet(() -> provision(username, role));
-
-        String token = tokenProvider.generateToken(user);
-        return new AuthenticationResult(token, "Bearer", tokenProvider.getExpirationSeconds());
     }
 
     private User syncRole(User existing, Role role) {

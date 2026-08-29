@@ -33,6 +33,10 @@ api.interceptors.response.use(
       if (url.includes('/auth/sso') || url.includes('/auth/login')) {
         return Promise.reject(error)
       }
+      // Auth bootstrap owns /me failures — refreshing SSO here causes /sso + /me retry storms.
+      if (status === 403 && url.endsWith('/me')) {
+        return Promise.reject(error)
+      }
 
       const newToken = await refreshAuthToken(status === 403 ? 2 : 3)
       if (newToken) {

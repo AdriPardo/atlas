@@ -1,4 +1,5 @@
 import { api } from './client'
+import { ssoClient } from './authSession'
 import type {
   AlertEventType,
   AlertRule,
@@ -49,7 +50,7 @@ export const authApi = {
   login: (username: string, password: string) =>
     api.post<LoginResponse>('/auth/login', { username, password }).then((r) => r.data),
   /** Mint Atlas JWT from Authentik ForwardAuth headers (no body). */
-  sso: () => api.get<LoginResponse>('/auth/sso').then((r) => r.data),
+  sso: () => ssoClient.get<LoginResponse>('/auth/sso').then((r) => r.data),
 }
 
 export const meApi = {
