@@ -13,6 +13,8 @@ import {
   DialogTitle,
   MenuItem,
   Stack,
+  Tab,
+  Tabs,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -33,6 +35,7 @@ import { ProjectSecretsPanel } from './ProjectSecretsPanel'
 import { ProjectDatabasePanel } from './ProjectDatabasePanel'
 import { ProjectMailPanel } from './ProjectMailPanel'
 import { ProjectAutoDeployPanel } from './ProjectAutoDeployPanel'
+import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import { useAuthReady } from '../auth/useAuthReady'
 
 export function ProjectDetailPage() {
@@ -41,6 +44,7 @@ export function ProjectDetailPage() {
   const queryClient = useQueryClient()
   const authReady = useAuthReady()
   const [deployOpen, setDeployOpen] = useState(false)
+  const [detailTab, setDetailTab] = useState(0)
   const [hostId, setHostId] = useState('')
   const [serviceId, setServiceId] = useState('')
   const [exposure, setExposure] = useState<ServiceExposure>('PUBLIC')
@@ -90,9 +94,9 @@ export function ProjectDetailPage() {
     <PageShell>
       <PageHeader
         title={query.data?.name ?? 'Project'}
-        description="Connect the app; Atlas places and deploys it."
+        description="Connect repo, deploy, then open Integrations for DB, mail, or domains."
         actions={
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Button component={RouterLink} to="/projects">
               Back
             </Button>
@@ -115,74 +119,113 @@ export function ProjectDetailPage() {
         errorMessage="Could not load this project."
       >
         {query.data && (
-          <Stack spacing={3}>
-            <DetailPanel>
-              <DetailField label="Status">
-                <StatusChip label={query.data.status} />
-              </DetailField>
-              <DetailField label="Slug" mono>
-                {query.data.slug}
-              </DetailField>
-              <DetailField label="Description">{query.data.description || 'No description'}</DetailField>
-              <DetailField label="Created">{new Date(query.data.createdAt).toLocaleString()}</DetailField>
-              <DetailField label="Updated">{new Date(query.data.updatedAt).toLocaleString()}</DetailField>
-            </DetailPanel>
+          <Stack spacing={2.5}>
+            <Tabs
+              value={detailTab}
+              onChange={(_, value: number) => setDetailTab(value)}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{
+                borderBottom: 1,
+                borderColor: 'divider',
+                minHeight: 42,
+                '& .MuiTab-root': { minHeight: 42, textTransform: 'none', fontWeight: 600 },
+              }}
+            >
+              <Tab label="Overview" />
+              <Tab label="Integrations" />
+              <Tab label="Access" />
+            </Tabs>
 
-            <DetailPanel>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Services
-              </Typography>
-              {servicesQuery.isError ? (
-                <Alert severity="error" variant="outlined" sx={{ mb: 1 }}>
-                  {getApiErrorMessage(servicesQuery.error, 'Could not load services for this project.')}
-                </Alert>
-              ) : null}
-              {(servicesQuery.data?.content ?? []).map((svc) => (
-                <Stack key={svc.id} spacing={1} sx={{ mb: 2 }}>
-                  <DetailField label="Name">
-                    {svc.name} <StatusChip label={svc.status} />
+            {detailTab === 0 && (
+              <Stack spacing={3}>
+                <DetailPanel>
+                  <DetailField label="Status">
+                    <StatusChip label={query.data.status} />
                   </DetailField>
-                  <DetailField label="Exposure">
-                    <StatusChip label={svc.exposure ?? 'PUBLIC'} />
+                  <DetailField label="Slug" mono>
+                    {query.data.slug}
                   </DetailField>
-                  <DetailField label="Repository" mono>
-                    {svc.repositoryUrl}
-                  </DetailField>
-                  <DetailField label="Branch" mono>
-                    {svc.branch}
-                  </DetailField>
-                  <DetailField label="Runtime path" mono>
-                    {svc.composePath?.trim()
-                      ? svc.composePath
-                      : 'from atlas.yml (runtime.composeFile)'}
-                  </DetailField>
-                  <DetailField label="Domain">{svc.domain || '-'}</DetailField>
-                </Stack>
-              ))}
-              {(servicesQuery.data?.content.length ?? 0) === 0 && (
+                  <DetailField label="Description">{query.data.description || 'No description'}</DetailField>
+                  <DetailField label="Created">{new Date(query.data.createdAt).toLocaleString()}</DetailField>
+                  <DetailField label="Updated">{new Date(query.data.updatedAt).toLocaleString()}</DetailField>
+                </DetailPanel>
+
+                <DetailPanel>
+                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                    Services
+                  </Typography>
+                  {servicesQuery.isError ? (
+                    <Alert severity="error" variant="outlined" sx={{ mb: 1 }}>
+                      {getApiErrorMessage(servicesQuery.error, 'Could not load services for this project.')}
+                    </Alert>
+                  ) : null}
+                  {(servicesQuery.data?.content ?? []).map((svc) => (
+                    <Stack key={svc.id} spacing={1} sx={{ mb: 2 }}>
+                      <DetailField label="Name">
+                        {svc.name} <StatusChip label={svc.status} />
+                      </DetailField>
+                      <DetailField label="Exposure">
+                        <StatusChip label={svc.exposure ?? 'PUBLIC'} />
+                      </DetailField>
+                      <DetailField label="Repository" mono>
+                        {svc.repositoryUrl}
+                      </DetailField>
+                      <DetailField label="Branch" mono>
+                        {svc.branch}
+                      </DetailField>
+                      <DetailField label="Runtime path" mono>
+                        {svc.composePath?.trim()
+                          ? svc.composePath
+                          : 'from atlas.yml (runtime.composeFile)'}
+                      </DetailField>
+                      <DetailField label="Domain">{svc.domain || '-'}</DetailField>
+                    </Stack>
+                  ))}
+                  {(servicesQuery.data?.content.length ?? 0) === 0 && (
+                    <Typography variant="body2" color="text.secondary">
+                      No services yet.
+                    </Typography>
+                  )}
+                </DetailPanel>
+
+                <ProjectAutoDeployPanel
+                  projectId={id}
+                  services={servicesQuery.data?.content ?? []}
+                />
+              </Stack>
+            )}
+
+            {detailTab === 1 && (
+              <Stack spacing={2}>
                 <Typography variant="body2" color="text.secondary">
-                  No services yet.
+                  Database, mail, and domains — expand only what you need.
                 </Typography>
-              )}
-            </DetailPanel>
+                <CollapsibleSection title="Database" summary="Provision schema, credentials, pgweb console">
+                  <ProjectDatabasePanel projectId={id} />
+                </CollapsibleSection>
+                <CollapsibleSection title="Mail" summary="SMTP relay, test send, daily limits">
+                  <ProjectMailPanel projectId={id} />
+                </CollapsibleSection>
+                <CollapsibleSection title="Domains" summary="Cloudflare tunnel, DNS, certificates">
+                  <ProjectDomainsPanel
+                    projectId={id}
+                    services={servicesQuery.data?.content ?? []}
+                  />
+                </CollapsibleSection>
+              </Stack>
+            )}
 
-            <ProjectAutoDeployPanel
-              projectId={id}
-              services={servicesQuery.data?.content ?? []}
-            />
-
-            <ProjectDatabasePanel projectId={id} />
-
-            <ProjectMailPanel projectId={id} />
-
-            <ProjectSecretsPanel projectId={id} />
-
-            <ProjectDomainsPanel
-              projectId={id}
-              services={servicesQuery.data?.content ?? []}
-            />
-
-            <ProjectMembersPanel projectId={id} />
+            {detailTab === 2 && (
+              <Stack spacing={2}>
+                <CollapsibleSection title="Secrets" summary="Project-scoped credentials">
+                  <ProjectSecretsPanel projectId={id} />
+                </CollapsibleSection>
+                <CollapsibleSection title="Members" summary="Roles and access">
+                  <ProjectMembersPanel projectId={id} />
+                </CollapsibleSection>
+              </Stack>
+            )}
           </Stack>
         )}
       </QueryState>

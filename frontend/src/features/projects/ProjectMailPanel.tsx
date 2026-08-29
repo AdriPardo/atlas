@@ -8,6 +8,7 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 import { projectMailApi } from '../../shared/api/endpoints'
+import { getApiErrorMessage } from '../../shared/api/queryErrors'
 import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
 import { QueryState } from '../../shared/components/QueryState'
 import { StatusChip } from '../../shared/components/StatusChip'
@@ -69,7 +70,12 @@ export function ProjectMailPanel({ projectId }: { projectId: string }) {
           . Manual provision still works for rotate.
         </Typography>
 
-        <QueryState isLoading={statusQuery.isLoading} isError={statusQuery.isError}>
+        <QueryState
+          isLoading={statusQuery.isLoading}
+          isError={statusQuery.isError}
+          error={statusQuery.error}
+          errorMessage="Could not load mail settings for this project."
+        >
           {data && (
             <Stack spacing={1.5}>
               <DetailField label="Status">
@@ -104,14 +110,10 @@ export function ProjectMailPanel({ projectId }: { projectId: string }) {
               </Alert>
               {provisionMutation.isError && (
                 <Alert severity="error" variant="outlined">
-                  {(() => {
-                    const apiMessage =
-                      (provisionMutation.error as { response?: { data?: { message?: string } } })
-                        ?.response?.data?.message
-                    return apiMessage?.trim()
-                      ? apiMessage
-                      : 'Provision failed. Check ATLAS_APP_SMTP_HOST on the Atlas install.'
-                  })()}
+                  {getApiErrorMessage(
+                    provisionMutation.error,
+                    'Provision failed. Check ATLAS_APP_SMTP_HOST on the Atlas install.',
+                  )}
                 </Alert>
               )}
               {provisionMutation.isSuccess && (
@@ -176,12 +178,10 @@ export function ProjectMailPanel({ projectId }: { projectId: string }) {
                   </Button>
                   {sendMutation.isError && (
                     <Alert severity="error" variant="outlined">
-                      {(() => {
-                        const apiMessage =
-                          (sendMutation.error as { response?: { data?: { message?: string } } })
-                            ?.response?.data?.message
-                        return apiMessage?.trim() ? apiMessage : 'Send failed.'
-                      })()}
+                      {getApiErrorMessage(
+                        sendMutation.error,
+                        'Send failed. You need Developer or Operator role on this project.',
+                      )}
                     </Alert>
                   )}
                   {sendResult && sendMutation.isSuccess && (

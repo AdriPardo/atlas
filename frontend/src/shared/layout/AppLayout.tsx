@@ -46,14 +46,27 @@ interface NavItem {
 
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
-    label: 'Operate',
+    label: 'Main',
     items: [
       { to: '/', label: 'Dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
       { to: '/projects', label: 'Projects', icon: <FolderOutlinedIcon fontSize="small" /> },
-      { to: '/hosts', label: 'Hosts · adv.', icon: <DnsOutlinedIcon fontSize="small" /> },
       { to: '/deployments', label: 'Deployments', icon: <RocketLaunchOutlinedIcon fontSize="small" /> },
       { to: '/pipelines', label: 'Pipelines', icon: <AccountTreeOutlinedIcon fontSize="small" /> },
-      { to: '/audit', label: 'Audit', icon: <PolicyOutlinedIcon fontSize="small" />, adminOnly: true },
+    ],
+  },
+  {
+    label: 'More',
+    items: [
+      { to: '/hosts', label: 'Hosts', icon: <DnsOutlinedIcon fontSize="small" /> },
+      { to: '/alerts', label: 'Alerts', icon: <NotificationsOutlinedIcon fontSize="small" /> },
+      { to: '/cron', label: 'Cron jobs', icon: <ScheduleOutlinedIcon fontSize="small" /> },
+      { to: '/secrets', label: 'Org secrets', icon: <VpnKeyOutlinedIcon fontSize="small" /> },
+    ],
+  },
+  {
+    label: 'Admin',
+    items: [
+      { to: '/audit', label: 'Audit log', icon: <PolicyOutlinedIcon fontSize="small" />, adminOnly: true },
       {
         to: '/billing',
         label: 'Billing',
@@ -61,9 +74,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
         flag: 'billing',
         adminOnly: true,
       },
-      { to: '/alerts', label: 'Alerts', icon: <NotificationsOutlinedIcon fontSize="small" /> },
-      { to: '/cron', label: 'Cron', icon: <ScheduleOutlinedIcon fontSize="small" /> },
-      { to: '/secrets', label: 'Org secrets', icon: <VpnKeyOutlinedIcon fontSize="small" /> },
     ],
   },
   {
@@ -164,7 +174,16 @@ export function AppLayout({ mode, onToggleMode }: AppLayoutProps) {
       </Toolbar>
 
       <Box sx={{ px: 1.25, pt: 0.5, flex: 1, overflowY: 'auto' }}>
-        {navGroups.map((group) => (
+        {navGroups
+          .filter((group) => {
+            if (group.label !== 'Admin') return true
+            return group.items.some((item) => {
+              if (item.adminOnly && !isAdmin) return false
+              if (item.flag === 'billing' && !billingEnabled) return false
+              return true
+            })
+          })
+          .map((group) => (
           <Box key={group.label} sx={{ mb: 1.75 }}>
             <Typography
               variant="overline"
