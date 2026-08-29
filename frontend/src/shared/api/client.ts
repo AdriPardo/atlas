@@ -1,11 +1,12 @@
-import axios from 'axios'
+import axios, { type InternalAxiosRequestConfig } from 'axios'
+import { isAtlasPublicHost } from '../../features/auth/authHost'
+import { refreshAuthToken } from './authSession'
+import { tokenStorage } from './tokenStorage'
 
-const TOKEN_KEY = 'atlas.token'
+export { tokenStorage } from './tokenStorage'
 
-export const tokenStorage = {
-  get: () => localStorage.getItem(TOKEN_KEY),
-  set: (token: string) => localStorage.setItem(TOKEN_KEY, token),
-  clear: () => localStorage.removeItem(TOKEN_KEY),
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  _authRetry?: boolean
 }
 
 export const api = axios.create({
@@ -23,18 +24,39 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      const url = String(error.config?.url ?? '')
-      // SSO probe failing is expected without Authentik headers (local/dev).
+  async (error) => {
+    const config = error.config as RetryableRequestConfig | undefined
+    const status = error.response?.status
+    const url = String(config?.url ?? '')
+
+    if (config && !config._authRetry && (status === 401 || status === 403)) {
+      if (url.includes('/auth/sso') || url.includes('/auth/login')) {
+        return Promise.reject(error)
+      }
+
+      const newToken = await refreshAuthToken(status === 403 ? 2 : 3)
+      if (newToken) {
+        config._authRetry = true
+        config.headers.Authorization = `Bearer ${newToken}`
+        return api.request(config)
+      }
+    }
+
+    if (status === 401) {
       if (url.includes('/auth/sso')) {
         return Promise.reject(error)
       }
       tokenStorage.clear()
-      if (!window.location.pathname.startsWith('/login')) {
+      // Public Authentik edge: reload so ForwardAuth can re-establish session.
+      if (isAtlasPublicHost()) {
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.reload()
+        }
+      } else if (!window.location.pathname.startsWith('/login')) {
         window.location.assign('/login')
       }
     }
+
     return Promise.reject(error)
   },
 )

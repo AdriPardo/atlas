@@ -33,11 +33,13 @@ import { ProjectSecretsPanel } from './ProjectSecretsPanel'
 import { ProjectDatabasePanel } from './ProjectDatabasePanel'
 import { ProjectMailPanel } from './ProjectMailPanel'
 import { ProjectAutoDeployPanel } from './ProjectAutoDeployPanel'
+import { useAuthReady } from '../auth/useAuthReady'
 
 export function ProjectDetailPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const authReady = useAuthReady()
   const [deployOpen, setDeployOpen] = useState(false)
   const [hostId, setHostId] = useState('')
   const [serviceId, setServiceId] = useState('')
@@ -47,13 +49,13 @@ export function ProjectDetailPage() {
   const query = useQuery({
     queryKey: ['projects', id],
     queryFn: () => projectsApi.get(id),
-    enabled: !!id,
+    enabled: authReady && !!id,
   })
 
   const servicesQuery = useQuery({
     queryKey: ['projects', id, 'services'],
     queryFn: () => projectsApi.listServices(id, { size: 50 }),
-    enabled: !!id && !query.isError,
+    enabled: authReady && !!id && !query.isError,
   })
 
   const hostsQuery = useQuery({

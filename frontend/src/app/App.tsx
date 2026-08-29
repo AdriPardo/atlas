@@ -1,21 +1,10 @@
 import { useMemo, useState } from 'react'
 import { CssBaseline, ThemeProvider } from '@mui/material'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '../features/auth/AuthContext'
-import { isTransientApiError } from '../shared/api/queryErrors'
+import { queryClient } from './queryClient'
 import { createAtlasTheme } from './theme'
 import { AppRouter } from './AppRouter'
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // Edge/proxy 502s and brief backend restarts — same class of flake SSO already retries.
-      retry: (failureCount, error) => failureCount < 3 && isTransientApiError(error),
-      retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 4000),
-      refetchOnWindowFocus: false,
-    },
-  },
-})
 
 const THEME_KEY = 'atlas.theme'
 

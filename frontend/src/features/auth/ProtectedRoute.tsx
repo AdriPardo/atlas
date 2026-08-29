@@ -3,9 +3,9 @@ import { Box, CircularProgress } from '@mui/material'
 import { useAuth } from './AuthContext'
 
 export function ProtectedRoute() {
-  const { user, loading } = useAuth()
+  const { user, loading, authReady } = useAuth()
 
-  if (loading) {
+  if (loading || (user && !authReady)) {
     return (
       <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center">
         <CircularProgress />

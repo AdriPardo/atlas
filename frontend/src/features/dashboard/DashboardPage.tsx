@@ -21,6 +21,7 @@ import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { useAuth } from '../auth/AuthContext'
+import { useAuthReady } from '../auth/useAuthReady'
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -36,11 +37,17 @@ function relativeTime(iso: string): string {
 
 export function DashboardPage() {
   const { user } = useAuth()
+  const authReady = useAuthReady()
   const navigate = useNavigate()
-  const statsQuery = useQuery({ queryKey: ['dashboard-stats'], queryFn: meApi.stats })
+  const statsQuery = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: meApi.stats,
+    enabled: authReady,
+  })
   const deploymentsQuery = useQuery({
     queryKey: ['deployments', 'recent'],
     queryFn: () => deploymentsApi.list({ page: 0, size: 8, sort: 'createdAt,desc' }),
+    enabled: authReady,
   })
 
   const projectCount = statsQuery.data?.projects ?? statsQuery.data?.applications ?? 0
