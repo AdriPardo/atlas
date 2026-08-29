@@ -24,6 +24,7 @@ import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
+import { useAuthReady } from '../auth/useAuthReady'
 
 export function HostsListPage() {
   const [hostname, setHostname] = useState('')
@@ -31,10 +32,12 @@ export function HostsListPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const authReady = useAuthReady()
 
   const query = useQuery({
     queryKey: ['hosts', hostname],
     queryFn: () => hostsApi.list({ hostname: hostname || undefined, page: 0, size: 50 }),
+    enabled: authReady,
   })
 
   const removeMutation = useMutation({
@@ -72,7 +75,12 @@ export function HostsListPage() {
           />
         }
       >
-        <QueryState isLoading={query.isLoading} isError={query.isError}>
+        <QueryState
+          isLoading={!authReady || query.isLoading}
+          isError={query.isError}
+          error={query.error}
+          onRetry={() => query.refetch()}
+        >
           {rows.length === 0 ? (
             <Box p={2}>
               <EmptyState

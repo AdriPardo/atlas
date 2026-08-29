@@ -1,6 +1,10 @@
 import { Alert, Box, Button, Skeleton, Stack } from '@mui/material'
 import type { ReactNode } from 'react'
-import { getApiErrorMessage } from '../api/queryErrors'
+import {
+  getApiErrorMessage,
+  isForbiddenApiError,
+  isUnauthorizedApiError,
+} from '../api/queryErrors'
 
 interface QueryStateProps {
   isLoading: boolean
@@ -62,10 +66,13 @@ export function QueryState({
     return <LoadingSkeleton variant={skeleton} />
   }
   if (isError) {
-    const message = getApiErrorMessage(error, errorMessage)
+    const authBlocked = isForbiddenApiError(error) || isUnauthorizedApiError(error)
+    const message = authBlocked
+      ? 'Session not ready or access denied. Wait a moment, then retry — or reload if this persists.'
+      : getApiErrorMessage(error, errorMessage)
     return (
       <Alert
-        severity="error"
+        severity={authBlocked ? 'warning' : 'error'}
         variant="outlined"
         action={
           onRetry ? (

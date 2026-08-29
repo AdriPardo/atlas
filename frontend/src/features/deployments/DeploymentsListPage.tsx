@@ -26,6 +26,7 @@ import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
+import { useAuthReady } from '../auth/useAuthReady'
 
 const STATUS_FILTERS: Array<{ label: string; value: DeploymentStatus | 'ALL' }> = [
   { label: 'All', value: 'ALL' },
@@ -40,10 +41,12 @@ export function DeploymentsListPage() {
   const [statusFilter, setStatusFilter] = useState<DeploymentStatus | 'ALL'>('ALL')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const authReady = useAuthReady()
 
   const query = useQuery({
     queryKey: ['deployments'],
     queryFn: () => deploymentsApi.list({ page: 0, size: 50, sort: 'createdAt,desc' }),
+    enabled: authReady,
   })
 
   const removeMutation = useMutation({
@@ -94,8 +97,9 @@ export function DeploymentsListPage() {
         }
       >
         <QueryState
-          isLoading={query.isLoading}
+          isLoading={!authReady || query.isLoading}
           isError={query.isError}
+          error={query.error}
           onRetry={() => query.refetch()}
           skeleton="table"
           errorMessage="Could not load deployments."

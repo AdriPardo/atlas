@@ -8,6 +8,11 @@ import {
   type ReactNode,
 } from 'react'
 import { queryClient } from '../../app/queryClient'
+import {
+  getAuthBootstrapPhase,
+  resetAuthBootstrap,
+  resolveAuthBootstrap,
+} from '../../shared/api/authBootstrap'
 import { refreshAuthToken } from '../../shared/api/authSession'
 import { tokenStorage } from '../../shared/api/client'
 import { meApi, authApi } from '../../shared/api/endpoints'
@@ -30,50 +35,38 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-async function sleep(ms: number) {
-  await new Promise((resolve) => setTimeout(resolve, ms))
-}
+/**
+ * Establish session: always mint JWT before /me on the Authentik edge.
+ * Never treat /me success without a stored bearer token as authenticated.
+ */
+async function establishSession(): Promise<User | null> {
+  if (isAtlasPublicHost()) {
+    const token = await refreshAuthToken(4)
+    if (!token) return null
+    try {
+      return await meApi.get()
+    } catch {
+      tokenStorage.clear()
+      return null
+    }
+  }
 
-async function tryAuthentikSso(): Promise<User | null> {
+  if (!tokenStorage.get()) return null
+
   try {
-    if (isAtlasPublicHost()) {
-      // ForwardAuth headers may authenticate /me even when Traefik strips Authorization.
-      try {
-        const profile = await meApi.get()
-        await refreshAuthToken(2).catch(() => undefined)
-        return profile
-      } catch {
-        /* mint JWT below */
-      }
-    }
-
-    const result = await authApi.sso()
-    if (result?.accessToken) {
-      tokenStorage.set(result.accessToken)
-    }
     return await meApi.get()
   } catch {
+    tokenStorage.clear()
     return null
   }
 }
 
-/** Retry SSO — covers brief backend restarts / 502 while Traefik already authenticated. */
-async function tryAuthentikSsoWithRetry(attempts = 3): Promise<User | null> {
-  for (let i = 0; i < attempts; i += 1) {
-    const user = await tryAuthentikSso()
-    if (user) return user
-    if (i < attempts - 1) {
-      await sleep(350 * (i + 1))
-    }
+function finishBootstrap(user: User | null) {
+  const ok = !!user && !!tokenStorage.get()
+  if (getAuthBootstrapPhase() === 'pending') {
+    resolveAuthBootstrap(ok)
   }
-  return null
-}
-
-async function settleAuthenticatedSession(user: User | null) {
-  if (user && tokenStorage.get()) {
-    await queryClient.invalidateQueries()
-  }
-  return user
+  return ok
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -84,48 +77,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = useCallback(async () => {
     setLoading(true)
     setSsoFailed(false)
+    if (getAuthBootstrapPhase() !== 'pending') {
+      resetAuthBootstrap()
+    }
     try {
-      // On the Authentik edge, always re-mint JWT so role claims match Authentik groups + DB.
-      if (isAtlasPublicHost()) {
-        const token = await refreshAuthToken(4)
-        if (token) {
-          try {
-            const profile = await meApi.get()
-            setUser(await settleAuthenticatedSession(profile))
-            return
-          } catch {
-            tokenStorage.clear()
-          }
-        }
+      const profile = await establishSession()
+      setUser(profile)
+      setSsoFailed(isAtlasPublicHost() && !profile)
+      if (finishBootstrap(profile) && profile) {
+        await queryClient.invalidateQueries()
       }
-
-      if (tokenStorage.get()) {
-        try {
-          const profile = await meApi.get()
-          setUser(await settleAuthenticatedSession(profile))
-          // Prod: background SSO refresh when stale token worked but ForwardAuth may be ready now.
-          if (isAtlasPublicHost()) {
-            void refreshAuthToken(2).then(async (fresh) => {
-              if (!fresh) return
-              try {
-                const refreshed = await meApi.get()
-                setUser(refreshed)
-                await queryClient.invalidateQueries()
-              } catch {
-                /* keep current session */
-              }
-            })
-          }
-          return
-        } catch {
-          tokenStorage.clear()
-        }
-      }
-
-      const attempts = isAtlasPublicHost() ? 4 : 2
-      const ssoUser = await tryAuthentikSsoWithRetry(attempts)
-      setUser(await settleAuthenticatedSession(ssoUser))
-      setSsoFailed(!ssoUser)
+    } catch {
+      setUser(null)
+      setSsoFailed(isAtlasPublicHost())
+      finishBootstrap(null)
     } finally {
       setLoading(false)
     }
@@ -134,21 +99,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const retrySso = useCallback(async () => {
     setLoading(true)
     setSsoFailed(false)
+    resetAuthBootstrap()
     try {
-      const token = await refreshAuthToken(isAtlasPublicHost() ? 4 : 2)
-      if (token) {
-        try {
-          const profile = await meApi.get()
-          setUser(await settleAuthenticatedSession(profile))
-          return profile
-        } catch {
-          tokenStorage.clear()
-        }
+      const profile = await establishSession()
+      setUser(profile)
+      setSsoFailed(isAtlasPublicHost() && !profile)
+      finishBootstrap(profile)
+      if (profile && tokenStorage.get()) {
+        await queryClient.invalidateQueries()
       }
-      const ssoUser = await tryAuthentikSsoWithRetry(isAtlasPublicHost() ? 4 : 2)
-      setUser(await settleAuthenticatedSession(ssoUser))
-      setSsoFailed(!ssoUser)
-      return ssoUser
+      return profile
     } finally {
       setLoading(false)
     }
@@ -164,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const profile = await meApi.get()
     setUser(profile)
     setSsoFailed(false)
+    finishBootstrap(profile)
     await queryClient.invalidateQueries()
   }, [])
 
@@ -171,10 +132,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenStorage.clear()
     setUser(null)
     queryClient.clear()
+    if (getAuthBootstrapPhase() === 'pending') {
+      resolveAuthBootstrap(false)
+    }
+    resetAuthBootstrap()
   }, [])
 
-  const authReady =
-    !loading && !!user && (isAtlasPublicHost() ? true : !!tokenStorage.get())
+  const authReady = !loading && !!user && !!tokenStorage.get()
 
   const value = useMemo(
     () => ({ user, loading, authReady, ssoFailed, login, logout, refreshUser, retrySso }),

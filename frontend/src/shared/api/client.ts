@@ -1,6 +1,11 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
 import { isAtlasPublicHost } from '../../features/auth/authHost'
-import { refreshAuthToken } from './authSession'
+import {
+  getAuthBootstrapPhase,
+  isAuthBootstrapReady,
+  waitForAuthBootstrap,
+} from './authBootstrap'
+import { isPublicAuthPath, refreshAuthToken } from './authSession'
 import { tokenStorage } from './tokenStorage'
 
 export { tokenStorage } from './tokenStorage'
@@ -14,7 +19,21 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
+  const url = String(config.url ?? '')
+
+  if (!isPublicAuthPath(url) && isAtlasPublicHost() && !isAuthBootstrapReady()) {
+    const token = tokenStorage.get()
+    // Bootstrap calls /me right after /sso mints JWT — must not wait on self.
+    const bootstrapMe = token && url.endsWith('/me')
+    if (!bootstrapMe) {
+      const ready = await waitForAuthBootstrap()
+      if (!ready) {
+        return Promise.reject(new axios.CanceledError('Auth bootstrap incomplete'))
+      }
+    }
+  }
+
   const token = tokenStorage.get()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -29,12 +48,16 @@ api.interceptors.response.use(
     const status = error.response?.status
     const url = String(config?.url ?? '')
 
+    if (axios.isCancel(error)) {
+      return Promise.reject(error)
+    }
+
     if (config && !config._authRetry && (status === 401 || status === 403)) {
-      if (url.includes('/auth/sso') || url.includes('/auth/login')) {
+      if (isPublicAuthPath(url)) {
         return Promise.reject(error)
       }
-      // Auth bootstrap owns /me failures — refreshing SSO here causes /sso + /me retry storms.
-      if (status === 403 && url.endsWith('/me')) {
+      // Bootstrap owns initial /me — interceptor refresh here caused /sso + /me storms.
+      if (getAuthBootstrapPhase() === 'pending') {
         return Promise.reject(error)
       }
 
@@ -51,7 +74,6 @@ api.interceptors.response.use(
         return Promise.reject(error)
       }
       tokenStorage.clear()
-      // Public Authentik edge: reload so ForwardAuth can re-establish session.
       if (isAtlasPublicHost()) {
         if (!window.location.pathname.startsWith('/login')) {
           window.location.reload()

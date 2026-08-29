@@ -11,6 +11,10 @@ async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+function isPublicAuthPath(url: string): boolean {
+  return url.includes('/auth/sso') || url.includes('/auth/login')
+}
+
 /**
  * Mint a fresh Atlas JWT from Authentik ForwardAuth headers (prod) or keep local token.
  * Concurrent callers share one in-flight refresh (StrictMode / parallel 401s).
@@ -35,7 +39,7 @@ export async function refreshAuthToken(attempts = 3): Promise<string | null> {
           }
         }
       }
-      return tokenStorage.get()
+      return null
     }
     return tokenStorage.get()
   })().finally(() => {
@@ -48,3 +52,5 @@ export async function refreshAuthToken(attempts = 3): Promise<string | null> {
 export function hasAuthToken(): boolean {
   return !!tokenStorage.get()
 }
+
+export { isPublicAuthPath }
