@@ -5,7 +5,7 @@ import {
   isAuthBootstrapReady,
   waitForAuthBootstrap,
 } from './authBootstrap'
-import { isPublicAuthPath, refreshAuthToken } from './authSession'
+import { isPublicAuthPath, redirectToSsoBootstrap, refreshAuthToken } from './authSession'
 import { tokenStorage } from './tokenStorage'
 
 export { tokenStorage } from './tokenStorage'
@@ -61,7 +61,7 @@ api.interceptors.response.use(
         return Promise.reject(error)
       }
 
-      const newToken = await refreshAuthToken(status === 403 ? 2 : 3)
+      const newToken = await refreshAuthToken()
       if (newToken) {
         config._authRetry = true
         config.headers.Authorization = `Bearer ${newToken}`
@@ -75,9 +75,7 @@ api.interceptors.response.use(
       }
       tokenStorage.clear()
       if (isAtlasPublicHost()) {
-        if (!window.location.pathname.startsWith('/login')) {
-          window.location.reload()
-        }
+        redirectToSsoBootstrap()
       } else if (!window.location.pathname.startsWith('/login')) {
         window.location.assign('/login')
       }

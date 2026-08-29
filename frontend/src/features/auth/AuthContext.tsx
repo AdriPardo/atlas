@@ -13,7 +13,7 @@ import {
   resetAuthBootstrap,
   resolveAuthBootstrap,
 } from '../../shared/api/authBootstrap'
-import { refreshAuthToken } from '../../shared/api/authSession'
+import { redirectToSsoBootstrap } from '../../shared/api/authSession'
 import { tokenStorage } from '../../shared/api/client'
 import { meApi, authApi } from '../../shared/api/endpoints'
 import type { User } from '../../shared/types/api'
@@ -41,12 +41,16 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
  */
 async function establishSession(): Promise<User | null> {
   if (isAtlasPublicHost()) {
-    const token = await refreshAuthToken(4)
-    if (!token) return null
+    const token = tokenStorage.get()
+    if (!token) {
+      redirectToSsoBootstrap()
+      return null
+    }
     try {
       return await meApi.get()
     } catch {
       tokenStorage.clear()
+      redirectToSsoBootstrap()
       return null
     }
   }

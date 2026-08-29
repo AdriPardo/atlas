@@ -137,6 +137,31 @@ class AtlasIntegrationTest {
     }
 
     @Test
+    void ssoBootstrapMintsJwtInHtml() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/sso/bootstrap")
+                        .header("X-authentik-username", "bootstrap-user")
+                        .header("X-authentik-groups", "Atlas Admins")
+                        .header("X-authentik-email", "bootstrap@example.com")
+                        .header("Host", "atlas.atlasops.dev")
+                        .header("X-Forwarded-Proto", "https"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("atlas.token")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("bootstrap-user")));
+    }
+
+    @Test
+    void ssoBootstrapWithoutHeadersRedirectsToOutpost() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/sso/bootstrap")
+                        .header("Host", "atlas.atlasops.dev")
+                        .header("X-Forwarded-Proto", "https"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                        .string("Location", org.hamcrest.Matchers.containsString("outpost.goauthentik.io/start")));
+    }
+
+    @Test
     void authentikSsoMapsOperatorWithoutAdminGroup() throws Exception {
         MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
                         .header("X-authentik-username", "ops-user")

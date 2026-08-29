@@ -17,6 +17,7 @@ import {
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import { useAuth } from './AuthContext'
+import { redirectToSsoBootstrap } from '../../shared/api/authSession'
 import {
   PUBLIC_ATLAS_URL,
   allowLocalLogin,
@@ -40,7 +41,7 @@ interface LoginPageProps {
 export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
   const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
-  const { login, user, loading, retrySso, ssoFailed } = useAuth()
+  const { login, user, loading } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [ssoBusy, setSsoBusy] = useState(false)
@@ -56,7 +57,7 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
 
   useEffect(() => {
     if (publicHost && !loading && !user) {
-      redirectToAuthentikSignIn(`${window.location.origin}/`)
+      redirectToSsoBootstrap('/')
     }
   }, [publicHost, loading, user])
 
@@ -82,19 +83,14 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
     }
   })
 
-  const continueWithAuthentik = async () => {
+  const continueWithAuthentik = () => {
     setSsoBusy(true)
     setError(null)
-    try {
-      const ssoUser = await retrySso()
-      if (ssoUser) {
-        navigate('/')
-        return
-      }
-    } catch {
-      // fall through to ForwardAuth sign-in
+    if (publicHost) {
+      redirectToSsoBootstrap('/')
+      return
     }
-    redirectToAuthentikSignIn(publicHost ? `${window.location.origin}/` : PUBLIC_ATLAS_URL)
+    redirectToAuthentikSignIn(PUBLIC_ATLAS_URL)
   }
 
   return (
@@ -213,13 +209,6 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
                     disabled on this host.
                   </Typography>
                 </Box>
-
-                {ssoFailed && (
-                  <Alert severity="info" variant="outlined">
-                    If you landed here, Atlas could not mint a JWT from Authentik headers. Complete
-                    Authentik login and retry.
-                  </Alert>
-                )}
 
                 {error && (
                   <Alert severity="error" variant="outlined">
