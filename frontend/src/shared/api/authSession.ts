@@ -1,11 +1,18 @@
-import { isAtlasPublicHost } from '../../features/auth/authHost'
 import { tokenStorage } from './tokenStorage'
 
 /** Full-page SSO bootstrap — ForwardAuth headers only on document navigation. */
 export const SSO_BOOTSTRAP_PATH = '/api/v1/auth/sso/bootstrap'
 
 const SSO_REDIRECT_KEY = 'atlas.sso.redirect'
+const SSO_ERROR_KEY = 'atlas.sso.error'
 const SSO_REDIRECT_TTL_MS = 60_000
+
+export type SsoFailureCode =
+  | 'redirect_blocked'
+  | 'token_rejected'
+  | 'sso_disabled'
+  | 'identity_missing'
+  | 'mint_failed'
 
 function isPublicAuthPath(url: string): boolean {
   return url.includes('/auth/sso') || url.includes('/auth/login')
@@ -17,6 +24,34 @@ export function buildSsoBootstrapUrl(returnTo: string): string {
 
 export function clearSsoRedirectFlag(): void {
   sessionStorage.removeItem(SSO_REDIRECT_KEY)
+}
+
+export function setSsoError(code: SsoFailureCode): void {
+  sessionStorage.setItem(SSO_ERROR_KEY, code)
+}
+
+export function consumeSsoError(): SsoFailureCode | null {
+  const code = sessionStorage.getItem(SSO_ERROR_KEY)
+  sessionStorage.removeItem(SSO_ERROR_KEY)
+  if (!code) return null
+  return code as SsoFailureCode
+}
+
+export function ssoErrorMessage(code: SsoFailureCode): string {
+  switch (code) {
+    case 'redirect_blocked':
+      return 'El flujo SSO se interrumpió antes de guardar el token. Pulsa reintentar para volver a Authentik.'
+    case 'token_rejected':
+      return 'Atlas rechazó la sesión tras el login (JWT inválido o usuario no encontrado en la base de datos).'
+    case 'sso_disabled':
+      return 'SSO Authentik está desactivado en el servidor Atlas.'
+    case 'identity_missing':
+      return 'Authentik no inyectó cabeceras X-authentik-* en el bootstrap. Revisa ForwardAuth en Traefik.'
+    case 'mint_failed':
+      return 'No se pudo generar el token de sesión tras el login Authentik.'
+    default:
+      return 'Error de inicio de sesión SSO.'
+  }
 }
 
 /** True when we already sent the browser to SSO bootstrap recently (break redirect loops). */
@@ -47,6 +82,7 @@ export function redirectToSsoBootstrap(returnTo?: string): boolean {
       ? returnTo
       : `${window.location.pathname}${window.location.search}`
 
+  sessionStorage.removeItem(SSO_ERROR_KEY)
   sessionStorage.setItem(SSO_REDIRECT_KEY, String(Date.now()))
   window.location.replace(buildSsoBootstrapUrl(path))
   return true
@@ -57,9 +93,6 @@ export function redirectToSsoBootstrap(returnTo?: string): boolean {
  * Dev: return stored local token.
  */
 export async function refreshAuthToken(): Promise<string | null> {
-  if (isAtlasPublicHost()) {
-    return tokenStorage.get()
-  }
   return tokenStorage.get()
 }
 

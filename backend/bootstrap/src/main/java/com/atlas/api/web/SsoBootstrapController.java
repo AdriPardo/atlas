@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +28,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class SsoBootstrapController {
 
+    private static final Logger log = LoggerFactory.getLogger(SsoBootstrapController.class);
+
     /** Must match {@code frontend/src/shared/api/tokenStorage.ts}. */
     static final String TOKEN_STORAGE_KEY = "atlas.token";
+
+    static final String SSO_ERROR_STORAGE_KEY = "atlas.sso.error";
+    static final String SSO_REDIRECT_STORAGE_KEY = "atlas.sso.redirect";
 
     private static final String OUTPOST_START_PATH = "/outpost.goauthentik.io/start";
 
@@ -41,8 +48,16 @@ public class SsoBootstrapController {
             throws IOException {
         String safeReturnTo = sanitizeReturnTo(returnTo);
         String username = header(request, AuthentikHeaderNames.USERNAME);
+        boolean hasUsername = username != null && !username.isBlank();
+        boolean hasGroups = header(request, AuthentikHeaderNames.GROUPS) != null;
 
-        if (username == null || username.isBlank()) {
+        log.info(
+                "SSO bootstrap: usernamePresent={} groupsPresent={} returnTo={}",
+                hasUsername,
+                hasGroups,
+                safeReturnTo);
+
+        if (!hasUsername) {
             String bootstrapUrl = buildBootstrapUrl(request, safeReturnTo);
             String location = OUTPOST_START_PATH + "?rd=" + URLEncoder.encode(bootstrapUrl, StandardCharsets.UTF_8);
             response.sendRedirect(location);
@@ -56,12 +71,24 @@ public class SsoBootstrapController {
                     header(request, AuthentikHeaderNames.EMAIL),
                     header(request, AuthentikHeaderNames.NAME),
                     header(request, AuthentikHeaderNames.UID)));
+            log.info("SSO bootstrap: JWT minted for username={}", username.trim());
             writeBootstrapHtml(response, result.accessToken(), safeReturnTo);
         } catch (UnauthorizedException ex) {
-            String bootstrapUrl = buildBootstrapUrl(request, safeReturnTo);
-            String location = OUTPOST_START_PATH + "?rd=" + URLEncoder.encode(bootstrapUrl, StandardCharsets.UTF_8);
-            response.sendRedirect(location);
+            String code = mapFailureCode(ex);
+            log.warn("SSO bootstrap failed for username={}: {} ({})", username.trim(), code, ex.getMessage());
+            writeBootstrapErrorHtml(response, code, ex.getMessage(), safeReturnTo);
         }
+    }
+
+    static String mapFailureCode(UnauthorizedException ex) {
+        String message = ex.getMessage() == null ? "" : ex.getMessage().toLowerCase();
+        if (message.contains("not enabled")) {
+            return "sso_disabled";
+        }
+        if (message.contains("missing")) {
+            return "identity_missing";
+        }
+        return "mint_failed";
     }
 
     static String sanitizeReturnTo(String returnTo) {
@@ -122,7 +149,8 @@ public class SsoBootstrapController {
                 <body>
                   <p>Signing in to Atlas…</p>
                   <script>
-                    sessionStorage.removeItem("atlas.sso.redirect");
+                    sessionStorage.removeItem(%s);
+                    sessionStorage.removeItem(%s);
                     localStorage.setItem(%s, %s);
                     window.location.replace(%s);
                   </script>
@@ -130,6 +158,8 @@ public class SsoBootstrapController {
                 </html>
                 """
                         .formatted(
+                                toJsString(SSO_REDIRECT_STORAGE_KEY),
+                                toJsString(SSO_ERROR_STORAGE_KEY),
                                 toJsString(TOKEN_STORAGE_KEY),
                                 toJsString(accessToken),
                                 toJsString(returnTo));
@@ -137,6 +167,52 @@ public class SsoBootstrapController {
         response.setContentType(MediaType.TEXT_HTML_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.getWriter().write(html);
+    }
+
+    private static void writeBootstrapErrorHtml(
+            HttpServletResponse response, String errorCode, String detail, String returnTo)
+            throws IOException {
+        String html =
+                """
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                  <title>Error de inicio de sesión</title>
+                </head>
+                <body>
+                  <h1>No se pudo completar el inicio de sesión</h1>
+                  <p>%s</p>
+                  <p><a href="%s">Volver a Atlas</a></p>
+                  <script>
+                    sessionStorage.removeItem(%s);
+                    sessionStorage.setItem(%s, %s);
+                  </script>
+                </body>
+                </html>
+                """
+                        .formatted(
+                                escapeHtml(detail),
+                                escapeHtml(returnTo),
+                                toJsString(SSO_REDIRECT_STORAGE_KEY),
+                                toJsString(SSO_ERROR_STORAGE_KEY),
+                                toJsString(errorCode));
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType(MediaType.TEXT_HTML_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter().write(html);
+    }
+
+    private static String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
     }
 
     private static String header(HttpServletRequest request, String name) {
