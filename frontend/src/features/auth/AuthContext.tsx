@@ -40,7 +40,7 @@ async function tryAuthentikSso(): Promise<User | null> {
       // ForwardAuth headers may authenticate /me even when Traefik strips Authorization.
       try {
         const profile = await meApi.get()
-        void refreshAuthToken(1).catch(() => undefined)
+        await refreshAuthToken(2).catch(() => undefined)
         return profile
       } catch {
         /* mint JWT below */

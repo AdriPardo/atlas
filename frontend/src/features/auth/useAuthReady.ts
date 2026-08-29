@@ -1,8 +1,7 @@
 import { useAuth } from './AuthContext'
-import { hasAuthToken } from '../../shared/api/authSession'
 
-/** True when bootstrap finished and a bearer token is present for API calls. */
+/** True when bootstrap finished and session is ready for API queries. */
 export function useAuthReady(): boolean {
-  const { user, loading } = useAuth()
-  return !loading && !!user && hasAuthToken()
+  const { authReady } = useAuth()
+  return authReady
 }

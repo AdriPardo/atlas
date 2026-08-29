@@ -75,7 +75,12 @@ export function ProjectsListPage() {
           />
         }
       >
-        <QueryState isLoading={query.isLoading} isError={query.isError}>
+        <QueryState
+          isLoading={!authReady || query.isLoading}
+          isError={query.isError}
+          error={query.error}
+          onRetry={() => query.refetch()}
+        >
           {rows.length === 0 ? (
             <Box p={2}>
               <EmptyState
