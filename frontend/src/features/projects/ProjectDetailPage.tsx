@@ -20,6 +20,7 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { hostsApi, projectsApi, servicesApi } from '../../shared/api/endpoints'
+import { getApiErrorMessage } from '../../shared/api/queryErrors'
 import type { PlacementMode, ServiceExposure } from '../../shared/types/api'
 import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
@@ -52,7 +53,7 @@ export function ProjectDetailPage() {
   const servicesQuery = useQuery({
     queryKey: ['projects', id, 'services'],
     queryFn: () => projectsApi.listServices(id, { size: 50 }),
-    enabled: !!id,
+    enabled: !!id && !query.isError,
   })
 
   const hostsQuery = useQuery({
@@ -103,7 +104,14 @@ export function ProjectDetailPage() {
         }
       />
 
-      <QueryState isLoading={query.isLoading || servicesQuery.isLoading} isError={query.isError}>
+      <QueryState
+        isLoading={query.isLoading}
+        isError={query.isError}
+        error={query.error}
+        onRetry={() => query.refetch()}
+        skeleton="detail"
+        errorMessage="Could not load this project."
+      >
         {query.data && (
           <Stack spacing={3}>
             <DetailPanel>
@@ -122,6 +130,11 @@ export function ProjectDetailPage() {
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 Services
               </Typography>
+              {servicesQuery.isError ? (
+                <Alert severity="error" variant="outlined" sx={{ mb: 1 }}>
+                  {getApiErrorMessage(servicesQuery.error, 'Could not load services for this project.')}
+                </Alert>
+              ) : null}
               {(servicesQuery.data?.content ?? []).map((svc) => (
                 <Stack key={svc.id} spacing={1} sx={{ mb: 2 }}>
                   <DetailField label="Name">

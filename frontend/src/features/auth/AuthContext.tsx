@@ -61,6 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setSsoFailed(false)
     try {
+      // On the Authentik edge, always re-mint JWT so role claims match Authentik groups + DB.
+      if (isAtlasPublicHost()) {
+        const ssoUser = await tryAuthentikSsoWithRetry(4)
+        if (ssoUser) {
+          setUser(ssoUser)
+          return
+        }
+      }
+
       if (tokenStorage.get()) {
         try {
           setUser(await meApi.get())

@@ -1,5 +1,7 @@
 package com.atlas.infrastructure.security;
 
+import com.atlas.application.port.out.UserRepositoryPort;
+import com.atlas.domain.user.User;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,6 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepositoryPort userRepository;
 
     @Override
     protected void doFilterInternal(
@@ -31,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 UUID userId = jwtTokenProvider.getUserId(token);
                 String username = jwtTokenProvider.getUsername(token);
-                String role = jwtTokenProvider.getRole(token);
+                String role = resolveRole(userId, jwtTokenProvider.getRole(token));
                 AtlasUserPrincipal principal = new AtlasUserPrincipal(userId, username, role);
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
@@ -42,5 +45,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    /** DB is source of truth for role; JWT only proves identity (avoids stale OPERATOR claim vs ADMIN /me). */
+    private String resolveRole(UUID userId, String tokenRole) {
+        return userRepository
+                .findById(userId)
+                .map(User::getRole)
+                .map(Enum::name)
+                .orElse(tokenRole);
     }
 }
