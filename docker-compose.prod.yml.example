@@ -102,6 +102,9 @@ services:
       - "traefik.http.routers.atlas.tls.certresolver=cloudflare"
       - "traefik.http.routers.atlas.middlewares=authentik,securityHeaders@file,gzip@file"
       - "traefik.http.routers.atlas.priority=1"
+      # SSO bootstrap (/api/v1/auth/sso/bootstrap) stays on router `atlas` WITH authentik:
+      # post-login return needs ForwardAuth X-authentik-* headers to mint JWT. The SPA must
+      # start SSO via /outpost.goauthentik.io/start?rd=<bootstrap-url>, not a naked bootstrap GET.
       # GitHub/GitLab webhooks must NOT hit Authentik (302 → Invalid HTTP Response).
       # Token-auth lives in Atlas API (permitAll + webhook secret). Priority > atlas.
       - "traefik.http.routers.atlas-webhooks.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/v1/webhooks/`)"

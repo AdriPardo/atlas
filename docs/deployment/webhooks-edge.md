@@ -97,3 +97,45 @@ curl -sSI --max-redirs 0 "https://atlas.atlasops.dev/" | head -5
 - Path público solo bajo `/api/v1/webhooks/`; auth = token en URL + secret HMAC en API.
 - No ampliar exclusión a `/api/v1/` entero.
 - Backend sigue sin puerto público; tráfico webhook entra por Traefik → nginx → API.
+
+## SSO bootstrap (`/api/v1/auth/sso/bootstrap`)
+
+### Problema
+
+El SPA necesita un `GET` de documento a `/api/v1/auth/sso/bootstrap` para que Traefik
+ForwardAuth inyecte `X-authentik-*` y el backend escriba el JWT en `localStorage`.
+Si el navegador abre **bootstrap directamente** sin sesión Authentik, ForwardAuth puede
+responder **403** (“No tienes autorización…”) en lugar de dejar pasar la petición al
+backend (que redirigiría a `/outpost.goauthentik.io/start`).
+
+### Fix (dos capas)
+
+| Capa | Qué |
+|------|-----|
+| **Frontend** | `redirectToSsoBootstrap()` en prod → `/outpost.goauthentik.io/start?rd=<bootstrap-url>` (nunca bootstrap a pelo). |
+| **Traefik** | Bootstrap **permanece** en router `atlas` **con** middleware `authentik` (post-login necesita cabeceras). **No** crear router sin Authentik (rompe el mint JWT). |
+| **Spring** | `permitAll` en `GET /api/v1/auth/sso/bootstrap` (fallback local / bookmark). |
+
+### Flujo correcto
+
+```text
+SPA sin JWT
+  → outpost start ?rd=bootstrap-url
+  → Authentik login
+  → GET bootstrap (ForwardAuth + headers)
+  → HTML localStorage + redirect returnTo
+  → SPA con Bearer JWT
+```
+
+### Verificar
+
+```bash
+# Inicio SSO: 302 a Authentik (no 403)
+curl -sS -o /dev/null -w "%{http_code}\n" --max-redirs 0 \
+  "https://atlas.atlasops.dev/outpost.goauthentik.io/start?rd=https%3A%2F%2Fatlas.atlasops.dev%2Fapi%2Fv1%2Fauth%2Fsso%2Fbootstrap%3FreturnTo%3D%252F"
+# Esperado: 302
+
+# Bootstrap a pelo sin cookie: 302 o 403 según sesión; el SPA no debe usar esta URL como entrypoint.
+curl -sS -o /dev/null -w "%{http_code}\n" --max-redirs 0 \
+  "https://atlas.atlasops.dev/api/v1/auth/sso/bootstrap?returnTo=%2F"
+```

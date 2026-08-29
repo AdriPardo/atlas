@@ -1,4 +1,7 @@
-import { isAtlasPublicHost } from '../../features/auth/authHost'
+import {
+  AUTHENTIK_OUTPOST_START_PATH,
+  isAtlasPublicHost,
+} from '../../features/auth/authHost'
 import { tokenStorage } from './tokenStorage'
 
 /** Full-page SSO bootstrap — ForwardAuth headers only on document navigation. */
@@ -8,13 +11,31 @@ function isPublicAuthPath(url: string): boolean {
   return url.includes('/auth/sso') || url.includes('/auth/login')
 }
 
-/** Navigate to SSO bootstrap (or Authentik outpost via backend redirect). */
+export function buildSsoBootstrapUrl(returnTo: string): string {
+  return `${SSO_BOOTSTRAP_PATH}?returnTo=${encodeURIComponent(returnTo)}`
+}
+
+/**
+ * Navigate to SSO bootstrap. On the public Authentik edge, go through the embedded
+ * outpost first so ForwardAuth never returns 403 for an unauthenticated bootstrap GET.
+ * After login, Authentik returns to bootstrap with X-authentik-* headers and the API
+ * mints the JWT into localStorage.
+ */
 export function redirectToSsoBootstrap(returnTo?: string): void {
   const path =
     returnTo && returnTo.startsWith('/')
       ? returnTo
       : `${window.location.pathname}${window.location.search}`
-  window.location.assign(`${SSO_BOOTSTRAP_PATH}?returnTo=${encodeURIComponent(path)}`)
+
+  if (isAtlasPublicHost()) {
+    const bootstrapUrl = `${window.location.origin}${buildSsoBootstrapUrl(path)}`
+    window.location.assign(
+      `${AUTHENTIK_OUTPOST_START_PATH}?rd=${encodeURIComponent(bootstrapUrl)}`,
+    )
+    return
+  }
+
+  window.location.assign(buildSsoBootstrapUrl(path))
 }
 
 /**
