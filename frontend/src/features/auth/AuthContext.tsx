@@ -11,7 +11,7 @@ import { queryClient } from '../../app/queryClient'
 import { tokenStorage } from '../../shared/api/client'
 import { meApi, authApi } from '../../shared/api/endpoints'
 import type { User } from '../../shared/types/api'
-import { isAtlasPublicHost, redirectToAuthentikSignOut } from './authHost'
+import { isAtlasPublicHost, redirectToAuthentikSignIn, redirectToAuthentikSignOut } from './authHost'
 
 interface AuthContextValue {
   user: User | null
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const enterWithAuthentik = useCallback(() => {
     tokenStorage.clear()
-    window.location.assign('/')
+    redirectToAuthentikSignIn(`${window.location.origin}/`)
   }, [])
 
   useEffect(() => {

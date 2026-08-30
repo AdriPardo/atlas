@@ -184,7 +184,13 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
                   </Typography>
                 </Box>
 
-                <Button variant="contained" size="large" fullWidth onClick={enterWithAuthentik}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  type="button"
+                  onClick={enterWithAuthentik}
+                >
                   Entrar con Authentik
                 </Button>
 

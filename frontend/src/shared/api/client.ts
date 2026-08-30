@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { isAtlasPublicHost } from '../../features/auth/authHost'
+import { isAtlasPublicHost, redirectToAuthentikSignIn } from '../../features/auth/authHost'
 import { tokenStorage } from './tokenStorage'
 
 export { tokenStorage } from './tokenStorage'
@@ -27,7 +27,7 @@ api.interceptors.response.use(
     if (status === 401 && !url.includes('/auth/sso') && !url.includes('/auth/login')) {
       tokenStorage.clear()
       if (isAtlasPublicHost()) {
-        window.location.assign('/')
+        redirectToAuthentikSignIn(`${window.location.origin}/`)
       } else if (!window.location.pathname.startsWith('/login')) {
         window.location.assign('/login')
       }
