@@ -7,7 +7,6 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import axios from 'axios'
 import { queryClient } from '../../app/queryClient'
 import {
   getAuthBootstrapPhase,
@@ -17,15 +16,16 @@ import {
 import {
   clearSsoRedirectFlag,
   consumeSsoError,
+  forceSsoReauth,
   isSsoRedirectInFlight,
-  mapMeFailureStatus,
+  isTerminalSsoFailure,
   redirectToSsoBootstrap,
   type SsoFailureCode,
 } from '../../shared/api/authSession'
 import { tokenStorage } from '../../shared/api/client'
 import { meApi, authApi } from '../../shared/api/endpoints'
 import type { User } from '../../shared/types/api'
-import { isAtlasPublicHost } from './authHost'
+import { isAtlasPublicHost, redirectToAuthentikSignOut } from './authHost'
 
 interface AuthContextValue {
   user: User | null
@@ -58,31 +58,31 @@ function syncTokenFromCookie(): void {
 }
 
 /**
- * Prod: try /me first (bootstrap may have set HttpOnly/session cookie). Only redirect to
- * bootstrap when unauthenticated. Never treat "no localStorage yet" as failure.
+ * Prod SSO flow:
+ * 1. Probe /me with stored Bearer (or bootstrap cookie).
+ * 2. On failure → clear stale JWT and full-page redirect: Authentik outpost → bootstrap → JWT → SPA.
+ * 3. Never show jwt_invalid without attempting Authentik login.
  */
 async function establishSession(): Promise<EstablishResult> {
   if (isAtlasPublicHost()) {
-    const hadStoredToken = !!tokenStorage.get()
+    const bootstrapError = consumeSsoError()
+    if (bootstrapError && isTerminalSsoFailure(bootstrapError)) {
+      return { user: null, failure: bootstrapError }
+    }
 
     try {
       const profile = await meApi.get()
       syncTokenFromCookie()
       clearSsoRedirectFlag()
       return { user: profile }
-    } catch (err) {
-      const status = axios.isAxiosError(err) ? err.response?.status : undefined
+    } catch {
       tokenStorage.clear()
       clearSsoRedirectFlag()
-
-      if (hadStoredToken) {
-        return { user: null, failure: consumeSsoError() ?? mapMeFailureStatus(status) }
-      }
 
       if (redirectToSsoBootstrap()) {
         return { user: null, redirecting: true }
       }
-      return { user: null, failure: consumeSsoError() ?? 'redirect_blocked' }
+      return { user: null, failure: 'redirect_blocked' }
     }
   }
 
@@ -132,7 +132,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       setUser(null)
-      setSsoFailure(isAtlasPublicHost() ? 'mint_failed' : null)
+      if (isAtlasPublicHost()) {
+        forceSsoReauth('/')
+        return
+      }
       finishBootstrap(null)
     } finally {
       if (!isSsoRedirectInFlight()) {
@@ -144,9 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const retrySso = useCallback(async () => {
     setLoading(true)
     setSsoFailure(null)
-    clearSsoRedirectFlag()
-    resetAuthBootstrap()
-    redirectToSsoBootstrap('/')
+    forceSsoReauth('/')
     return null
   }, [])
 
@@ -175,6 +176,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       resolveAuthBootstrap(false)
     }
     resetAuthBootstrap()
+    if (isAtlasPublicHost()) {
+      redirectToAuthentikSignOut()
+    }
   }, [])
 
   const authReady = !loading && !!user

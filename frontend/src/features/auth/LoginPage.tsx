@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -53,6 +53,12 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
+
+  useEffect(() => {
+    if (publicHost && !loading && !user) {
+      void retrySso()
+    }
+  }, [publicHost, loading, user, retrySso])
 
   if (!loading && user) {
     return <Navigate to="/" replace />

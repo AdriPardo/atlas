@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { useAuth } from './AuthContext'
-import { ssoErrorMessage } from '../../shared/api/authSession'
+import { isTerminalSsoFailure, ssoErrorMessage } from '../../shared/api/authSession'
 import { isAtlasPublicHost } from './authHost'
 
 export function ProtectedRoute() {
@@ -17,7 +17,7 @@ export function ProtectedRoute() {
 
   if (!user) {
     if (isAtlasPublicHost()) {
-      if (ssoFailure) {
+      if (ssoFailure && isTerminalSsoFailure(ssoFailure)) {
         return (
           <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" px={2}>
             <Stack spacing={2} maxWidth={480} textAlign="center">

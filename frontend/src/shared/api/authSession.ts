@@ -1,3 +1,4 @@
+import { authentikSignInUrl } from '../../features/auth/authHost'
 import { tokenStorage } from './tokenStorage'
 
 /** Full-page SSO bootstrap — ForwardAuth headers only on document navigation. */
@@ -5,7 +6,8 @@ export const SSO_BOOTSTRAP_PATH = '/api/v1/auth/sso/bootstrap'
 
 const SSO_REDIRECT_KEY = 'atlas.sso.redirect'
 const SSO_ERROR_KEY = 'atlas.sso.error'
-const SSO_REDIRECT_TTL_MS = 60_000
+/** Short TTL — only prevents double-redirect within the same tick, not recovery after stale JWT. */
+const SSO_REDIRECT_TTL_MS = 3_000
 
 export type SsoFailureCode =
   | 'redirect_blocked'
@@ -24,6 +26,10 @@ export function buildSsoBootstrapUrl(returnTo: string): string {
   return `${SSO_BOOTSTRAP_PATH}?returnTo=${encodeURIComponent(returnTo)}`
 }
 
+export function buildSsoBootstrapAbsoluteUrl(returnTo: string): string {
+  return `${window.location.origin}${buildSsoBootstrapUrl(returnTo)}`
+}
+
 export function clearSsoRedirectFlag(): void {
   sessionStorage.removeItem(SSO_REDIRECT_KEY)
 }
@@ -39,6 +45,11 @@ export function consumeSsoError(): SsoFailureCode | null {
   return code as SsoFailureCode
 }
 
+/** Errors that require admin/server fix — do not loop SSO redirects. */
+export function isTerminalSsoFailure(code: SsoFailureCode): boolean {
+  return code === 'sso_disabled' || code === 'user_not_found'
+}
+
 export function mapMeFailureStatus(status?: number): SsoFailureCode {
   if (status === 404) return 'user_not_found'
   if (status === 403) return 'jwt_invalid'
@@ -48,17 +59,17 @@ export function mapMeFailureStatus(status?: number): SsoFailureCode {
 export function ssoErrorMessage(code: SsoFailureCode): string {
   switch (code) {
     case 'redirect_blocked':
-      return 'El flujo SSO se interrumpió antes de guardar el token. Pulsa reintentar para volver a Authentik.'
+      return 'No se pudo iniciar el flujo SSO. Pulsa reintentar.'
     case 'jwt_invalid':
-      return 'Atlas no aceptó el JWT de sesión (inválido o caducado). Pulsa reintentar para obtener uno nuevo.'
+      return 'Sesión caducada. Redirigiendo a Authentik…'
     case 'user_not_found':
-      return 'El JWT es válido pero el usuario no existe en la base de datos Atlas. Contacta al administrador o reintenta el SSO.'
+      return 'Tu cuenta Authentik no está provisionada en Atlas. Contacta al administrador.'
     case 'token_rejected':
-      return 'Atlas rechazó la sesión tras el login. Reintenta el SSO.'
+      return 'Sesión rechazada. Redirigiendo a Authentik…'
     case 'sso_disabled':
       return 'SSO Authentik está desactivado en el servidor Atlas.'
     case 'identity_missing':
-      return 'Authentik no inyectó cabeceras X-authentik-* en el bootstrap. Revisa ForwardAuth en Traefik.'
+      return 'Authentik no inyectó cabeceras en el bootstrap. Revisa ForwardAuth en Traefik.'
     case 'mint_failed':
       return 'No se pudo generar el token de sesión tras el login Authentik.'
     default:
@@ -66,7 +77,7 @@ export function ssoErrorMessage(code: SsoFailureCode): string {
   }
 }
 
-/** True when we already sent the browser to SSO bootstrap recently (break redirect loops). */
+/** True when we redirected to SSO within the last few seconds (same navigation only). */
 export function isSsoRedirectInFlight(): boolean {
   const raw = sessionStorage.getItem(SSO_REDIRECT_KEY)
   if (!raw) return false
@@ -79,10 +90,10 @@ export function isSsoRedirectInFlight(): boolean {
 }
 
 /**
- * One-shot full-page SSO bootstrap. Traefik router `atlas-sso-bootstrap` runs ForwardAuth
- * so the backend receives X-authentik-* and mints JWT into a session cookie.
+ * Full-page Authentik login → SSO bootstrap → JWT cookie → SPA.
+ * Never hit bootstrap directly: ForwardAuth must run on outpost first.
  *
- * @returns false when a redirect is already in flight (caller must not retry).
+ * @returns false only when a redirect was fired within the last few ms (same tick).
  */
 export function redirectToSsoBootstrap(returnTo?: string): boolean {
   if (isSsoRedirectInFlight()) {
@@ -94,10 +105,20 @@ export function redirectToSsoBootstrap(returnTo?: string): boolean {
       ? returnTo
       : `${window.location.pathname}${window.location.search}`
 
+  const bootstrapUrl = buildSsoBootstrapAbsoluteUrl(path)
+
   sessionStorage.removeItem(SSO_ERROR_KEY)
   sessionStorage.setItem(SSO_REDIRECT_KEY, String(Date.now()))
-  window.location.replace(buildSsoBootstrapUrl(path))
+  window.location.replace(authentikSignInUrl(bootstrapUrl))
   return true
+}
+
+/** Clear Atlas JWT and force a fresh Authentik + bootstrap cycle. */
+export function forceSsoReauth(returnTo?: string): void {
+  tokenStorage.clear()
+  clearSsoRedirectFlag()
+  sessionStorage.removeItem(SSO_ERROR_KEY)
+  redirectToSsoBootstrap(returnTo)
 }
 
 /** Prod: JWT via bootstrap cookie or localStorage. Dev: stored local token. */

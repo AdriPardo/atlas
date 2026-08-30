@@ -69,8 +69,11 @@ api.interceptors.response.use(
       }
     }
 
-    if (status === 401) {
+    if (status === 401 || status === 403) {
       if (url.includes('/auth/sso')) {
+        return Promise.reject(error)
+      }
+      if (getAuthBootstrapPhase() === 'pending' && url.endsWith('/me')) {
         return Promise.reject(error)
       }
       tokenStorage.clear()
