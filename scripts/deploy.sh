@@ -68,6 +68,11 @@ if [[ -x scripts/remove-prod-sso-bootstrap-router.sh ]]; then
   bash scripts/remove-prod-sso-bootstrap-router.sh
 fi
 
+if [[ -x scripts/ensure-prod-sso-router.sh ]]; then
+  log "ensuring Traefik SSO mint router..."
+  bash scripts/ensure-prod-sso-router.sh
+fi
+
 if [[ -x scripts/ensure-prod-traefik-routers.sh ]]; then
   log "ensuring Traefik API routers..."
   bash scripts/ensure-prod-traefik-routers.sh

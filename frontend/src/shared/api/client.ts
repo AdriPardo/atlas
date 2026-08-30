@@ -1,18 +1,9 @@
-import axios, { type InternalAxiosRequestConfig } from 'axios'
+import axios from 'axios'
 import { isAtlasPublicHost } from '../../features/auth/authHost'
-import {
-  getAuthBootstrapPhase,
-  isAuthBootstrapReady,
-  waitForAuthBootstrap,
-} from './authBootstrap'
-import { isPublicAuthPath, refreshAuthToken } from './authSession'
+import { redirectToSsoMint } from './authSession'
 import { tokenStorage } from './tokenStorage'
 
 export { tokenStorage } from './tokenStorage'
-
-interface RetryableRequestConfig extends InternalAxiosRequestConfig {
-  _authRetry?: boolean
-}
 
 export const api = axios.create({
   baseURL: '/api/v1',
@@ -20,20 +11,7 @@ export const api = axios.create({
   withCredentials: true,
 })
 
-api.interceptors.request.use(async (config) => {
-  const url = String(config.url ?? '')
-
-  if (!isPublicAuthPath(url) && isAtlasPublicHost() && !isAuthBootstrapReady()) {
-    // AuthContext probes /me during pending bootstrap (no token yet) — must not deadlock here.
-    const bootstrapMe = url.endsWith('/me') && getAuthBootstrapPhase() === 'pending'
-    if (!bootstrapMe) {
-      const ready = await waitForAuthBootstrap()
-      if (!ready) {
-        return Promise.reject(new axios.CanceledError('Auth bootstrap incomplete'))
-      }
-    }
-  }
-
+api.interceptors.request.use((config) => {
   const token = tokenStorage.get()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -43,48 +21,17 @@ api.interceptors.request.use(async (config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const config = error.config as RetryableRequestConfig | undefined
+  (error) => {
     const status = error.response?.status
-    const url = String(config?.url ?? '')
+    const url = String(error.config?.url ?? '')
 
-    if (axios.isCancel(error)) {
-      return Promise.reject(error)
-    }
-
-    if (config && !config._authRetry && status === 401) {
-      if (isPublicAuthPath(url)) {
-        return Promise.reject(error)
-      }
-      // Bootstrap owns initial /me — interceptor refresh here caused /sso + /me storms.
-      if (getAuthBootstrapPhase() === 'pending') {
-        return Promise.reject(error)
-      }
-
-      const newToken = await refreshAuthToken()
-      if (newToken) {
-        config._authRetry = true
-        config.headers.Authorization = `Bearer ${newToken}`
-        return api.request(config)
-      }
-    }
-
-    if (status === 401) {
-      if (url.includes('/auth/sso')) {
-        return Promise.reject(error)
-      }
-      if (getAuthBootstrapPhase() === 'pending') {
-        return Promise.reject(error)
-      }
+    if (status === 401 && !url.includes('/auth/sso') && !url.includes('/auth/login')) {
       tokenStorage.clear()
-      if (!isAtlasPublicHost() && !window.location.pathname.startsWith('/login')) {
+      if (isAtlasPublicHost()) {
+        redirectToSsoMint()
+      } else if (!window.location.pathname.startsWith('/login')) {
         window.location.assign('/login')
       }
-    }
-
-    // 403 on /me during bootstrap is handled by AuthContext — never auto-redirect (loop).
-    if (status === 403 && !(getAuthBootstrapPhase() === 'pending' && url.endsWith('/me'))) {
-      return Promise.reject(error)
     }
 
     return Promise.reject(error)

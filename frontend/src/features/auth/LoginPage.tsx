@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -40,10 +40,9 @@ interface LoginPageProps {
 export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
   const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
-  const { login, user, loading, retrySso, ssoFailure } = useAuth()
+  const { login, user, loading, enterWithAuthentik } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
-  const [ssoBusy, setSsoBusy] = useState(false)
   const publicHost = isAtlasPublicHost()
   const directAccess = isDirectAccessHost()
   const localAllowed = allowLocalLogin()
@@ -54,22 +53,8 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
-  useEffect(() => {
-    if (publicHost && !loading && !user && !ssoFailure) {
-      void retrySso()
-    }
-  }, [publicHost, loading, user, ssoFailure, retrySso])
-
   if (!loading && user) {
     return <Navigate to="/" replace />
-  }
-
-  if (publicHost && !user) {
-    return (
-      <Box minHeight="100dvh" display="flex" alignItems="center" justifyContent="center">
-        <Typography color="text.secondary">Redirecting to Authentik…</Typography>
-      </Box>
-    )
   }
 
   const onSubmit = handleSubmit(async (values) => {
@@ -81,16 +66,6 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
       setError('Invalid username or password')
     }
   })
-
-  const continueWithAuthentik = () => {
-    setSsoBusy(true)
-    setError(null)
-    if (publicHost) {
-      void retrySso()
-      return
-    }
-    redirectToAuthentikSignIn(PUBLIC_ATLAS_URL)
-  }
 
   return (
     <Box
@@ -204,33 +179,20 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
                     Authentik SSO
                   </Typography>
                   <Typography color="text.secondary" variant="body2">
-                    Production uses Authentik via Traefik ForwardAuth. Local username/password is
-                    disabled on this host.
+                    Producción usa Authentik vía Traefik. Un clic y Traefik te lleva al login si hace
+                    falta.
                   </Typography>
                 </Box>
 
-                {error && (
-                  <Alert severity="error" variant="outlined">
-                    {error}
-                  </Alert>
-                )}
-
-                <Button
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  disabled={loading || ssoBusy}
-                  onClick={() => void continueWithAuthentik()}
-                >
-                  {ssoBusy || loading ? 'Connecting…' : 'Complete Authentik login'}
+                <Button variant="contained" size="large" fullWidth onClick={enterWithAuthentik}>
+                  Entrar con Authentik
                 </Button>
 
                 <Typography variant="caption" color="text.secondary">
-                  Opens Atlas through ForwardAuth (
+                  URL pública:{' '}
                   <Link href={PUBLIC_ATLAS_URL} underline="hover">
                     atlas.atlasops.dev
                   </Link>
-                  ).
                 </Typography>
               </>
             ) : (
@@ -241,24 +203,18 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
                   </Typography>
                   <Typography color="text.secondary" variant="body2">
                     {directAccess
-                      ? 'You opened Atlas via localhost or a LAN IP/port. Authentik only runs on '
-                      : 'Local development credentials. For SSO use '}
+                      ? 'Localhost o IP LAN. Para SSO usa '
+                      : 'Credenciales locales. SSO en '}
                     <Link href={PUBLIC_ATLAS_URL} underline="hover">
                       https://atlas.atlasops.dev
                     </Link>
-                    {directAccess ? ' — use that URL for SSO, or sign in locally below.' : '.'}
+                    {directAccess ? '.' : '.'}
                   </Typography>
                 </Box>
 
                 {directAccess && (
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    fullWidth
-                    disabled={ssoBusy}
-                    onClick={() => void continueWithAuthentik()}
-                  >
-                    Open Authentik SSO (public URL)
+                  <Button variant="outlined" size="large" fullWidth onClick={() => redirectToAuthentikSignIn(PUBLIC_ATLAS_URL)}>
+                    Abrir SSO (URL pública)
                   </Button>
                 )}
 

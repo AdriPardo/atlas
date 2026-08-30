@@ -1,6 +1,6 @@
 package com.atlas.infrastructure.security;
 
-/** Session cookie shared by SSO bootstrap and the SPA API client. */
+/** Session cookie shared by SSO mint and the SPA API client. */
 public final class AtlasAuthCookieNames {
 
     /** Must match {@code frontend/src/shared/api/tokenStorage.ts}. */

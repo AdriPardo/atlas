@@ -45,9 +45,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
-                    auth.requestMatchers(HttpMethod.GET, "/auth/sso/bootstrap").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/sso").permitAll();
-                    auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/sso/bootstrap").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/sso").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/webhooks/git/**").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/internal/pgweb/connect")

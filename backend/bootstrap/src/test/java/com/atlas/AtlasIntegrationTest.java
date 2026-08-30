@@ -22,7 +22,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.atlas.api.web.SsoBootstrapController;
+import com.atlas.infrastructure.security.AtlasAuthCookieNames;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -104,7 +104,7 @@ class AtlasIntegrationTest {
 
     @Test
     void authentikSsoProvisionsUserAndIssuesJwt() throws Exception {
-        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+        MvcResult sso = mockMvc.perform(post("/api/v1/auth/sso")
                         .header("X-authentik-username", "sso-user")
                         .header("X-authentik-groups", "Atlas Admins")
                         .header("X-authentik-email", "sso@example.com")
@@ -134,37 +134,8 @@ class AtlasIntegrationTest {
     }
 
     @Test
-    void authentikSsoWithoutHeadersReturnsUnauthorized() throws Exception {
-        mockMvc.perform(get("/api/v1/auth/sso")).andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void ssoBootstrapSetsSessionCookieAndRedirects() throws Exception {
-        MvcResult bootstrap = mockMvc.perform(get("/auth/sso/bootstrap")
-                        .header("X-authentik-username", "bootstrap-user")
-                        .header("X-authentik-groups", "Atlas Admins")
-                        .header("X-authentik-email", "bootstrap@example.com")
-                        .header("Host", "atlas.atlasops.dev")
-                        .header("X-Forwarded-Proto", "https"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
-                        .string("Location", org.hamcrest.Matchers.containsString("#atlas.token=")))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie()
-                        .exists(SsoBootstrapController.TOKEN_STORAGE_KEY))
-                .andReturn();
-
-        jakarta.servlet.http.Cookie cookie =
-                bootstrap.getResponse().getCookie(SsoBootstrapController.TOKEN_STORAGE_KEY);
-
-        mockMvc.perform(get("/api/v1/me").cookie(cookie))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("bootstrap-user"))
-                .andExpect(jsonPath("$.role").value("ADMIN"));
-    }
-
-    @Test
-    void ssoBootstrapWithoutHeadersRedirectsToOutpost() throws Exception {
-        mockMvc.perform(get("/auth/sso/bootstrap")
+    void authentikSsoWithoutHeadersRedirectsToOutpost() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/sso")
                         .header("Host", "atlas.atlasops.dev")
                         .header("X-Forwarded-Proto", "https"))
                 .andExpect(status().is3xxRedirection())
@@ -173,8 +144,31 @@ class AtlasIntegrationTest {
     }
 
     @Test
+    void ssoBrowserMintSetsCookieAndRedirectsHome() throws Exception {
+        MvcResult mint = mockMvc.perform(get("/api/v1/auth/sso")
+                        .header("X-authentik-username", "browser-user")
+                        .header("X-authentik-groups", "Atlas Admins")
+                        .header("X-authentik-email", "browser@example.com")
+                        .header("Host", "atlas.atlasops.dev")
+                        .header("X-Forwarded-Proto", "https"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                        .string("Location", "/"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie()
+                        .exists(AtlasAuthCookieNames.TOKEN))
+                .andReturn();
+
+        jakarta.servlet.http.Cookie cookie = mint.getResponse().getCookie(AtlasAuthCookieNames.TOKEN);
+
+        mockMvc.perform(get("/api/v1/me").cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("browser-user"))
+                .andExpect(jsonPath("$.role").value("ADMIN"));
+    }
+
+    @Test
     void authentikSsoMapsOperatorWithoutAdminGroup() throws Exception {
-        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+        MvcResult sso = mockMvc.perform(post("/api/v1/auth/sso")
                         .header("X-authentik-username", "ops-user")
                         .header("X-authentik-groups", "viewers|operators"))
                 .andExpect(status().isOk())
@@ -414,7 +408,7 @@ class AtlasIntegrationTest {
                 .andReturn();
         String projectId = com.jayway.jsonpath.JsonPath.read(project.getResponse().getContentAsString(), "$.id");
 
-        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+        MvcResult sso = mockMvc.perform(post("/api/v1/auth/sso")
                         .header("X-authentik-username", "ops-no-member")
                         .header("X-authentik-groups", "operators"))
                 .andExpect(status().isOk())
@@ -446,7 +440,7 @@ class AtlasIntegrationTest {
                 .andExpect(jsonPath("$.deletedPipelineRuns").isNumber())
                 .andExpect(jsonPath("$.ran").value(true));
 
-        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+        MvcResult sso = mockMvc.perform(post("/api/v1/auth/sso")
                         .header("X-authentik-username", "ops-purge")
                         .header("X-authentik-groups", "operators"))
                 .andExpect(status().isOk())
@@ -473,7 +467,7 @@ class AtlasIntegrationTest {
                 .andExpect(jsonPath("$.type").value("BACKUP_DATABASE"))
                 .andExpect(jsonPath("$.status").value("PENDING"));
 
-        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
+        MvcResult sso = mockMvc.perform(post("/api/v1/auth/sso")
                         .header("X-authentik-username", "ops-backup")
                         .header("X-authentik-groups", "operators"))
                 .andExpect(status().isOk())
@@ -687,7 +681,7 @@ class AtlasIntegrationTest {
                 .andReturn();
         String projectId = com.jayway.jsonpath.JsonPath.read(project.getResponse().getContentAsString(), "$.id");
 
-        MvcResult viewerSso = mockMvc.perform(get("/api/v1/auth/sso")
+        MvcResult viewerSso = mockMvc.perform(post("/api/v1/auth/sso")
                         .header("X-authentik-username", "role-viewer")
                         .header("X-authentik-groups", "operators"))
                 .andExpect(status().isOk())
@@ -700,7 +694,7 @@ class AtlasIntegrationTest {
         String viewerUserId =
                 com.jayway.jsonpath.JsonPath.read(viewerMe.getResponse().getContentAsString(), "$.id");
 
-        MvcResult developerSso = mockMvc.perform(get("/api/v1/auth/sso")
+        MvcResult developerSso = mockMvc.perform(post("/api/v1/auth/sso")
                         .header("X-authentik-username", "role-developer")
                         .header("X-authentik-groups", "operators"))
                 .andExpect(status().isOk())
