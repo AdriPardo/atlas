@@ -85,7 +85,8 @@ export function DashboardPage() {
         }}
       >
         <QueryState
-          isLoading={statsQuery.isLoading}
+          isLoading={!authReady || statsQuery.isLoading}
+          isFetching={statsQuery.isFetching}
           isError={statsQuery.isError}
           error={statsQuery.error}
           onRetry={() => statsQuery.refetch()}
@@ -165,7 +166,8 @@ export function DashboardPage() {
           </Box>
 
           <QueryState
-            isLoading={deploymentsQuery.isLoading}
+            isLoading={!authReady || deploymentsQuery.isLoading}
+            isFetching={deploymentsQuery.isFetching}
             isError={deploymentsQuery.isError}
             error={deploymentsQuery.error}
             onRetry={() => deploymentsQuery.refetch()}

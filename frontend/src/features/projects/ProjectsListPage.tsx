@@ -77,6 +77,7 @@ export function ProjectsListPage() {
       >
         <QueryState
           isLoading={!authReady || query.isLoading}
+          isFetching={query.isFetching}
           isError={query.isError}
           error={query.error}
           onRetry={() => query.refetch()}

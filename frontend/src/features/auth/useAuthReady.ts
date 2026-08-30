@@ -1,7 +1,8 @@
+import { tokenStorage } from '../../shared/api/client'
 import { useAuth } from './AuthContext'
 
-/** True when bootstrap finished and Atlas JWT session is ready for API queries. */
+/** True when JWT is stored, /me succeeded, and bootstrap finished. */
 export function useAuthReady(): boolean {
-  const { user, loading } = useAuth()
-  return !loading && !!user
+  const { authReady } = useAuth()
+  return authReady && !!tokenStorage.get()
 }

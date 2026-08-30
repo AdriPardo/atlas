@@ -10,7 +10,7 @@ export const queryClient = new QueryClient({
     queries: {
       retry: (failureCount, error) => {
         if (isForbiddenApiError(error) || isUnauthorizedApiError(error)) {
-          return false
+          return failureCount < 1
         }
         return failureCount < 3 && isTransientApiError(error)
       },

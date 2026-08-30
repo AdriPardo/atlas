@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { settingsApi } from '../../shared/api/endpoints'
 import type { FeatureFlags } from '../../shared/types/api'
-import { useAuth } from '../auth/AuthContext'
+import { useAuthReady } from '../auth/useAuthReady'
 
 const COMMUNITY_DEFAULTS: FeatureFlags = {
   planCode: 'community',
@@ -14,8 +14,7 @@ const COMMUNITY_DEFAULTS: FeatureFlags = {
 
 /** Installation plan + feature flags for nav/API gating. */
 export function useFeatureFlags() {
-  const { user, loading } = useAuth()
-  const authReady = !loading && !!user
+  const authReady = useAuthReady()
   const query = useQuery({
     queryKey: ['settings', 'features'],
     queryFn: () => settingsApi.features(),

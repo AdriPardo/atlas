@@ -4,9 +4,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
+import { queryClient } from '../../app/queryClient'
 import { meApi, authApi } from '../../shared/api/endpoints'
 import { tokenStorage } from '../../shared/api/client'
 import type { User } from '../../shared/types/api'
@@ -15,6 +17,8 @@ import { isAtlasPublicHost } from './authHost'
 interface AuthContextValue {
   user: User | null
   loading: boolean
+  /** True only after JWT is stored and /me returned 200. */
+  authReady: boolean
   /** True after bootstrap finished and Authentik SSO did not mint a session. */
   ssoFailed: boolean
   login: (username: string, password: string) => Promise<void>
@@ -30,21 +34,30 @@ async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function tryAuthentikSso(): Promise<User | null> {
+async function establishSession(): Promise<User | null> {
+  if (tokenStorage.get()) {
+    try {
+      return await meApi.get()
+    } catch {
+      tokenStorage.clear()
+    }
+  }
+
   try {
-    const result = await authApi.sso()
-    tokenStorage.set(result.accessToken)
+    const mint = await authApi.sso()
+    tokenStorage.set(mint.accessToken)
     return await meApi.get()
   } catch {
+    tokenStorage.clear()
     return null
   }
 }
 
 /** Retry SSO — covers brief backend restarts / 502 while Traefik already authenticated. */
-async function tryAuthentikSsoWithRetry(attempts = 3): Promise<User | null> {
+async function establishSessionWithRetry(attempts = 3): Promise<User | null> {
   for (let i = 0; i < attempts; i += 1) {
-    const user = await tryAuthentikSso()
-    if (user) return user
+    const user = await establishSession()
+    if (user && tokenStorage.get()) return user
     if (i < attempts - 1) {
       await sleep(350 * (i + 1))
     }
@@ -52,46 +65,64 @@ async function tryAuthentikSsoWithRetry(attempts = 3): Promise<User | null> {
   return null
 }
 
+function sessionReady(user: User | null): boolean {
+  return !!user && !!tokenStorage.get()
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [authReady, setAuthReady] = useState(false)
   const [ssoFailed, setSsoFailed] = useState(false)
+  const bootstrapGeneration = useRef(0)
+
+  const applySession = useCallback((profile: User | null) => {
+    const ready = sessionReady(profile)
+    setUser(ready ? profile : null)
+    setAuthReady(ready)
+    if (!ready) {
+      tokenStorage.clear()
+    }
+  }, [])
 
   const refreshUser = useCallback(async () => {
+    const generation = ++bootstrapGeneration.current
     setLoading(true)
+    setAuthReady(false)
     setSsoFailed(false)
-    try {
-      if (tokenStorage.get()) {
-        try {
-          setUser(await meApi.get())
-          return
-        } catch {
-          tokenStorage.clear()
-        }
-      }
 
-      // Behind Authentik ForwardAuth, Traefik injects X-authentik-* → mint Atlas JWT.
+    try {
       const attempts = isAtlasPublicHost() ? 4 : 2
-      const ssoUser = await tryAuthentikSsoWithRetry(attempts)
-      setUser(ssoUser)
-      setSsoFailed(!ssoUser)
+      const profile = await establishSessionWithRetry(attempts)
+      if (generation !== bootstrapGeneration.current) return
+      applySession(profile)
+      setSsoFailed(!profile)
     } finally {
-      setLoading(false)
+      if (generation === bootstrapGeneration.current) {
+        setLoading(false)
+      }
     }
-  }, [])
+  }, [applySession])
 
   const retrySso = useCallback(async () => {
+    const generation = ++bootstrapGeneration.current
     setLoading(true)
+    setAuthReady(false)
     setSsoFailed(false)
+
     try {
-      const ssoUser = await tryAuthentikSsoWithRetry(isAtlasPublicHost() ? 4 : 2)
-      setUser(ssoUser)
-      setSsoFailed(!ssoUser)
-      return ssoUser
+      const attempts = isAtlasPublicHost() ? 4 : 2
+      const profile = await establishSessionWithRetry(attempts)
+      if (generation !== bootstrapGeneration.current) return null
+      applySession(profile)
+      setSsoFailed(!profile)
+      return profile
     } finally {
-      setLoading(false)
+      if (generation === bootstrapGeneration.current) {
+        setLoading(false)
+      }
     }
-  }, [])
+  }, [applySession])
 
   useEffect(() => {
     void refreshUser()
@@ -101,18 +132,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await authApi.login(username, password)
     tokenStorage.set(result.accessToken)
     const profile = await meApi.get()
-    setUser(profile)
+    applySession(profile)
     setSsoFailed(false)
-  }, [])
+    await queryClient.invalidateQueries()
+  }, [applySession])
 
   const logout = useCallback(() => {
+    bootstrapGeneration.current += 1
     tokenStorage.clear()
     setUser(null)
+    setAuthReady(false)
+    queryClient.clear()
   }, [])
 
   const value = useMemo(
-    () => ({ user, loading, ssoFailed, login, logout, refreshUser, retrySso }),
-    [user, loading, ssoFailed, login, logout, refreshUser, retrySso],
+    () => ({ user, loading, authReady, ssoFailed, login, logout, refreshUser, retrySso }),
+    [user, loading, authReady, ssoFailed, login, logout, refreshUser, retrySso],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

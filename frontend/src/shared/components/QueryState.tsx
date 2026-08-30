@@ -8,6 +8,8 @@ import {
 
 interface QueryStateProps {
   isLoading: boolean
+  /** True while a background refetch/retry is in flight (e.g. after 401/403 session refresh). */
+  isFetching?: boolean
   isError: boolean
   /** Axios/query error — used to show status (502, network, …) when errorMessage omitted. */
   error?: unknown
@@ -55,6 +57,7 @@ function LoadingSkeleton({ variant }: { variant: 'page' | 'table' | 'detail' }) 
 
 export function QueryState({
   isLoading,
+  isFetching = false,
   isError,
   error,
   errorMessage,
@@ -62,7 +65,8 @@ export function QueryState({
   skeleton = 'page',
   children,
 }: QueryStateProps) {
-  if (isLoading) {
+  const showSkeleton = isLoading || (isFetching && isError)
+  if (showSkeleton) {
     return <LoadingSkeleton variant={skeleton} />
   }
   if (isError) {
