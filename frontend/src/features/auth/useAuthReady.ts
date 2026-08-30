@@ -1,4 +1,4 @@
-import { tokenStorage } from '../../shared/api/client'
+import { tokenStorage } from '../../shared/api/tokenStorage'
 import { useAuth } from './AuthContext'
 
 /** True when JWT is stored, /me succeeded, and bootstrap finished. */

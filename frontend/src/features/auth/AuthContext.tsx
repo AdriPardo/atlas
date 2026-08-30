@@ -10,8 +10,8 @@ import {
 } from 'react'
 import { queryClient } from '../../app/queryClient'
 import { meApi, authApi } from '../../shared/api/endpoints'
-import { tokenStorage } from '../../shared/api/client'
-import { bootstrapSession } from '../../shared/api/sessionBootstrap'
+import { tokenStorage } from '../../shared/api/tokenStorage'
+import { bootstrapSession, resetSessionCache } from '../../shared/api/sessionBootstrap'
 import type { User } from '../../shared/types/api'
 import { isAtlasPublicHost } from './authHost'
 
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [authReady, setAuthReady] = useState(false)
   const [ssoFailed, setSsoFailed] = useState(false)
-  const bootstrapGeneration = useRef(0)
+  const bootstrapStarted = useRef(false)
 
   const applySession = useCallback((profile: User | null) => {
     const ready = sessionReady(profile)
@@ -48,53 +48,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthReady(ready)
     if (!ready) {
       tokenStorage.clear()
+      resetSessionCache()
     }
   }, [])
 
-  const runBootstrap = useCallback(async (generation: number) => {
+  const runBootstrap = useCallback(async (force = false) => {
+    if (force) {
+      resetSessionCache()
+    }
     const attempts = isAtlasPublicHost() ? 4 : 2
     const profile = await bootstrapSession(attempts)
-    if (generation !== bootstrapGeneration.current) return profile
     applySession(profile)
     setSsoFailed(!profile)
     return profile
   }, [applySession])
 
   const refreshUser = useCallback(async () => {
-    const generation = ++bootstrapGeneration.current
     setLoading(true)
-    setAuthReady(false)
     setSsoFailed(false)
-
     try {
-      await runBootstrap(generation)
+      await runBootstrap(true)
     } finally {
-      if (generation === bootstrapGeneration.current) {
-        setLoading(false)
-      }
+      setLoading(false)
     }
   }, [runBootstrap])
 
   const retrySso = useCallback(async () => {
-    const generation = ++bootstrapGeneration.current
     setLoading(true)
-    setAuthReady(false)
     setSsoFailed(false)
-
     try {
-      return await runBootstrap(generation)
+      return await runBootstrap(true)
     } finally {
-      if (generation === bootstrapGeneration.current) {
-        setLoading(false)
-      }
+      setLoading(false)
     }
   }, [runBootstrap])
 
+  // Single bootstrap on mount — StrictMode-safe (ref guard, never authReady=false mid-session).
   useEffect(() => {
-    void refreshUser()
-  }, [refreshUser])
+    if (bootstrapStarted.current) return
+    bootstrapStarted.current = true
+
+    let cancelled = false
+    ;(async () => {
+      setLoading(true)
+      setSsoFailed(false)
+      try {
+        const attempts = isAtlasPublicHost() ? 4 : 2
+        const profile = await bootstrapSession(attempts)
+        if (!cancelled) {
+          applySession(profile)
+          setSsoFailed(!profile)
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [applySession])
 
   const login = useCallback(async (username: string, password: string) => {
+    resetSessionCache()
     const result = await authApi.login(username, password)
     tokenStorage.set(result.accessToken)
     const profile = await meApi.get()
@@ -104,8 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [applySession])
 
   const logout = useCallback(() => {
-    bootstrapGeneration.current += 1
     tokenStorage.clear()
+    resetSessionCache()
     setUser(null)
     setAuthReady(false)
     queryClient.clear()

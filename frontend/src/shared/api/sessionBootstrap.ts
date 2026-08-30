@@ -1,13 +1,21 @@
-import { api, tokenStorage, SKIP_AUTH_RETRY_HEADER } from './client'
+import axios from 'axios'
+import { api, SKIP_AUTH_RETRY_HEADER } from './client'
+import { tokenStorage } from './tokenStorage'
 import type { User } from '../types/api'
 
 const skipAuthRetry = { headers: { [SKIP_AUTH_RETRY_HEADER]: '1' } }
 
-/** Serializes SSO mint + /me probe — prevents parallel /auth/sso races. */
+/** Serializes SSO mint + /me probe — prevents parallel /auth/sso or /me races. */
 let sessionLock: Promise<User | null> | null = null
+let sessionResolved = false
+let cachedUser: User | null = null
 
 async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isUnauthorized(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 401
 }
 
 async function probeSessionOnce(): Promise<User | null> {
@@ -16,8 +24,11 @@ async function probeSessionOnce(): Promise<User | null> {
     try {
       const { data } = await api.get<User>('/me', skipAuthRetry)
       return data
-    } catch {
-      tokenStorage.clear()
+    } catch (error) {
+      // Only drop JWT on definitive 401 — 403 may be ForwardAuth timing, keep token.
+      if (isUnauthorized(error)) {
+        tokenStorage.clear()
+      }
     }
   }
 
@@ -27,13 +38,16 @@ async function probeSessionOnce(): Promise<User | null> {
     const { data } = await api.get<User>('/me', skipAuthRetry)
     return data
   } catch {
-    tokenStorage.clear()
     return null
   }
 }
 
-/** Bootstrap or refresh Atlas session (SSO mint → store JWT → verify /me). */
+/** Bootstrap or refresh Atlas session (SSO mint → store JWT → verify /me). Deduped globally. */
 export async function bootstrapSession(attempts = 1): Promise<User | null> {
+  if (sessionResolved && cachedUser && tokenStorage.get()) {
+    return cachedUser
+  }
+
   if (sessionLock) {
     return sessionLock
   }
@@ -42,12 +56,16 @@ export async function bootstrapSession(attempts = 1): Promise<User | null> {
     for (let i = 0; i < attempts; i += 1) {
       const user = await probeSessionOnce()
       if (user && tokenStorage.get()) {
+        cachedUser = user
+        sessionResolved = true
         return user
       }
       if (i < attempts - 1) {
         await sleep(350 * (i + 1))
       }
     }
+    sessionResolved = false
+    cachedUser = null
     return null
   })()
 
@@ -58,8 +76,15 @@ export async function bootstrapSession(attempts = 1): Promise<User | null> {
   }
 }
 
-/** Used by axios interceptor after 401/403. */
+/** Used by axios interceptor after 401. */
 export async function refreshAtlasSession(): Promise<boolean> {
+  sessionResolved = false
+  cachedUser = null
   const user = await bootstrapSession(1)
   return !!user && !!tokenStorage.get()
+}
+
+export function resetSessionCache(): void {
+  sessionResolved = false
+  cachedUser = null
 }

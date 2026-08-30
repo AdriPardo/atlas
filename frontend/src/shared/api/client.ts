@@ -1,14 +1,9 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
-import { refreshAtlasSession } from './sessionBootstrap'
+import { tokenStorage } from './tokenStorage'
 
-const TOKEN_KEY = 'atlas.token'
 export const SKIP_AUTH_RETRY_HEADER = 'X-Atlas-Skip-Auth-Retry'
 
-export const tokenStorage = {
-  get: () => localStorage.getItem(TOKEN_KEY),
-  set: (token: string) => localStorage.setItem(TOKEN_KEY, token),
-  clear: () => localStorage.removeItem(TOKEN_KEY),
-}
+export { tokenStorage } from './tokenStorage'
 
 type RetriableConfig = InternalAxiosRequestConfig & { _authRetry?: boolean }
 
@@ -22,6 +17,8 @@ api.interceptors.request.use((config) => {
   const token = tokenStorage.get()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  } else {
+    delete config.headers.Authorization
   }
   return config
 })
@@ -41,15 +38,28 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    if ((status === 401 || status === 403) && config && !config._authRetry) {
-      config._authRetry = true
-      const refreshed = await refreshAtlasSession()
-      if (refreshed) {
-        const token = tokenStorage.get()
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`
-        }
+    if (config && !config._authRetry) {
+      const token = tokenStorage.get()
+
+      // 403 with token: one immediate retry (ForwardAuth/JWT timing blip) — no /me bootstrap.
+      if (status === 403 && token) {
+        config._authRetry = true
+        config.headers.Authorization = `Bearer ${token}`
         return api(config)
+      }
+
+      // 401 or 403 without token: mint/verify session once, then retry original request.
+      if (status === 401 || (status === 403 && !token)) {
+        config._authRetry = true
+        const { refreshAtlasSession } = await import('./sessionBootstrap')
+        const refreshed = await refreshAtlasSession()
+        if (refreshed) {
+          const next = tokenStorage.get()
+          if (next) {
+            config.headers.Authorization = `Bearer ${next}`
+          }
+          return api(config)
+        }
       }
     }
 
