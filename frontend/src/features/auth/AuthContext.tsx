@@ -183,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearSsoRedirectFlag()
     sessionStorage.removeItem('atlas.sso.error')
     window.location.replace(
-      `${window.location.origin}/api/v1/auth/sso/bootstrap?returnTo=${encodeURIComponent('/')}`,
+      `${window.location.origin}/auth/sso/bootstrap?returnTo=${encodeURIComponent('/')}`,
     )
     return null
   }, [])

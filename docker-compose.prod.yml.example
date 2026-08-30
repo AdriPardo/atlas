@@ -102,14 +102,8 @@ services:
       - "traefik.http.routers.atlas.tls.certresolver=cloudflare"
       - "traefik.http.routers.atlas.middlewares=authentik,securityHeaders@file,gzip@file"
       - "traefik.http.routers.atlas.priority=1"
-      # SSO bootstrap needs ForwardAuth headers to mint JWT (document navigation only).
-      - "traefik.http.routers.atlas-sso-bootstrap.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/v1/auth/sso/bootstrap`)"
-      - "traefik.http.routers.atlas-sso-bootstrap.entrypoints=websecure"
-      - "traefik.http.routers.atlas-sso-bootstrap.tls=true"
-      - "traefik.http.routers.atlas-sso-bootstrap.tls.certresolver=cloudflare"
-      - "traefik.http.routers.atlas-sso-bootstrap.middlewares=authentik,securityHeaders@file,gzip@file"
-      - "traefik.http.routers.atlas-sso-bootstrap.service=atlas"
-      - "traefik.http.routers.atlas-sso-bootstrap.priority=110"
+      # SSO bootstrap: GET /auth/sso/bootstrap via atlas router (browser nav → 302 Authentik).
+      # Do NOT mount bootstrap under /api/ — atlas-api skips ForwardAuth and Authentik returns 403.
       # API XHR uses Bearer JWT — must NOT pass through ForwardAuth (302/403 loops).
       - "traefik.http.routers.atlas-api.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/`)"
       - "traefik.http.routers.atlas-api.entrypoints=websecure"

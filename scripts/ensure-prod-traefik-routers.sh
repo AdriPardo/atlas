@@ -26,14 +26,7 @@ import sys
 path = pathlib.Path(sys.argv[1])
 text = path.read_text()
 
-insert = """      - "traefik.http.routers.atlas-sso-bootstrap.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/v1/auth/sso/bootstrap`)"
-      - "traefik.http.routers.atlas-sso-bootstrap.entrypoints=websecure"
-      - "traefik.http.routers.atlas-sso-bootstrap.tls=true"
-      - "traefik.http.routers.atlas-sso-bootstrap.tls.certresolver=cloudflare"
-      - "traefik.http.routers.atlas-sso-bootstrap.middlewares=authentik,securityHeaders@file,gzip@file"
-      - "traefik.http.routers.atlas-sso-bootstrap.service=atlas"
-      - "traefik.http.routers.atlas-sso-bootstrap.priority=110"
-      - "traefik.http.routers.atlas-api.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/`)"
+insert = """      - "traefik.http.routers.atlas-api.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/`)"
       - "traefik.http.routers.atlas-api.entrypoints=websecure"
       - "traefik.http.routers.atlas-api.tls=true"
       - "traefik.http.routers.atlas-api.tls.certresolver=cloudflare"

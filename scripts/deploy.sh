@@ -63,6 +63,11 @@ git reset --hard "$TARGET_REF"
 NEW_SHA="$(git rev-parse HEAD)"
 log "deploying commit: $NEW_SHA"
 
+if [[ -x scripts/remove-prod-sso-bootstrap-router.sh ]]; then
+  log "removing deprecated Traefik SSO bootstrap router..."
+  bash scripts/remove-prod-sso-bootstrap-router.sh
+fi
+
 if [[ -x scripts/ensure-prod-traefik-routers.sh ]]; then
   log "ensuring Traefik API routers..."
   bash scripts/ensure-prod-traefik-routers.sh

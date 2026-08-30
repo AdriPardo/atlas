@@ -19,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -28,11 +27,15 @@ import org.springframework.web.bind.annotation.RequestParam;
  * cookie, then redirects back to the SPA (no inline JS — survives CSP on securityHeaders).
  */
 @Controller
-@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class SsoBootstrapController {
 
     private static final Logger log = LoggerFactory.getLogger(SsoBootstrapController.class);
+
+    /** Public browser path — Traefik atlas router (not /api/) so ForwardAuth returns 302, not 403. */
+    public static final String PUBLIC_BOOTSTRAP_PATH = "/auth/sso/bootstrap";
+
+    private static final String OUTPOST_START_PATH = "/outpost.goauthentik.io/start";
 
     /** Must match {@code frontend/src/shared/api/tokenStorage.ts}. */
     static final String TOKEN_STORAGE_KEY = AtlasAuthCookieNames.TOKEN;
@@ -43,7 +46,7 @@ public class SsoBootstrapController {
 
     private final AuthenticateFromAuthentikUseCase authenticateFromAuthentikUseCase;
 
-    @GetMapping("/sso/bootstrap")
+    @GetMapping({PUBLIC_BOOTSTRAP_PATH, "/api/v1/auth/sso/bootstrap"})
     public void bootstrap(
             HttpServletRequest request,
             HttpServletResponse response,
@@ -63,12 +66,10 @@ public class SsoBootstrapController {
                 safeReturnTo);
 
         if (!hasUsername) {
-            log.warn("SSO bootstrap: missing X-authentik-username — ForwardAuth headers not forwarded");
-            writeBootstrapErrorHtml(
-                    response,
-                    "identity_missing",
-                    "Authentik no inyectó cabeceras X-authentik-*. Comprueba Traefik forwardauth.authResponseHeaders.",
-                    safeReturnTo);
+            String bootstrapUrl = buildPublicBootstrapUrl(request, safeReturnTo);
+            String location = OUTPOST_START_PATH + "?rd=" + URLEncoder.encode(bootstrapUrl, StandardCharsets.UTF_8);
+            log.info("SSO bootstrap: no ForwardAuth headers — redirecting to Authentik outpost");
+            response.sendRedirect(location);
             return;
         }
 
@@ -133,6 +134,21 @@ public class SsoBootstrapController {
             return "n/a";
         }
         return email.substring(email.indexOf('@') + 1);
+    }
+
+    static String buildPublicBootstrapUrl(HttpServletRequest request, String returnTo) {
+        String scheme = forwarded(request, "X-Forwarded-Proto", request.getScheme());
+        String host = forwarded(request, "X-Forwarded-Host", request.getHeader("Host"));
+        if (host == null || host.isBlank()) {
+            host = request.getServerName();
+        }
+        String encodedReturnTo = URLEncoder.encode(returnTo, StandardCharsets.UTF_8);
+        return scheme + "://" + host + PUBLIC_BOOTSTRAP_PATH + "?returnTo=" + encodedReturnTo;
+    }
+
+    private static String forwarded(HttpServletRequest request, String name, String fallback) {
+        String value = request.getHeader(name);
+        return value == null || value.isBlank() ? fallback : value.split(",")[0].trim();
     }
 
     private void completeBootstrapSession(

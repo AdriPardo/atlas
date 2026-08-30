@@ -1,7 +1,7 @@
 import { tokenStorage } from './tokenStorage'
 
 /** Full-page SSO bootstrap — ForwardAuth headers only on document navigation. */
-export const SSO_BOOTSTRAP_PATH = '/api/v1/auth/sso/bootstrap'
+export const SSO_BOOTSTRAP_PATH = '/auth/sso/bootstrap'
 
 const SSO_REDIRECT_KEY = 'atlas.sso.redirect'
 const SSO_ERROR_KEY = 'atlas.sso.error'
