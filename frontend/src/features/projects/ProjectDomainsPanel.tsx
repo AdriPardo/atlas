@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -27,6 +27,7 @@ import {
   isCloudflareScopesFailure,
 } from './cloudflareScopesFailure'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 type PreviewState = {
   title: string
   body: string
@@ -71,7 +72,7 @@ export function ProjectDomainsPanel({
   const [copyStatus, setCopyStatus] = useState<string | null>(null)
   const [busyDomainId, setBusyDomainId] = useState<string | null>(null)
 
-  const domainsQuery = useQuery({
+  const domainsQuery = useAuthQuery({
     queryKey: ['projects', projectId, 'domains'],
     queryFn: () => domainsApi.list(projectId),
     enabled: !!projectId,

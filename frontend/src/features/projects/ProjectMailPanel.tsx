@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -16,6 +16,7 @@ import {
   MAIL_API_TOKEN_SECRET,
 } from '../secrets/knownSecretHints'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function ProjectMailPanel({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient()
   const [to, setTo] = useState('')
@@ -23,7 +24,7 @@ export function ProjectMailPanel({ projectId }: { projectId: string }) {
   const [textBody, setTextBody] = useState('')
   const [sendResult, setSendResult] = useState<string | null>(null)
 
-  const statusQuery = useQuery({
+  const statusQuery = useAuthQuery({
     queryKey: ['projects', projectId, 'mail'],
     queryFn: () => projectMailApi.status(projectId),
     enabled: !!projectId,

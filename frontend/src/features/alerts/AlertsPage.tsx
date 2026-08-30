@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Box,
@@ -30,6 +30,7 @@ import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 import type { AlertEventType, NotificationChannelType } from '../../shared/types/api'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function AlertsPage() {
   const queryClient = useQueryClient()
   const [channelOpen, setChannelOpen] = useState(false)
@@ -41,11 +42,11 @@ export function AlertsPage() {
   const [eventType, setEventType] = useState<AlertEventType>('DEPLOY_FAILED')
   const [channelId, setChannelId] = useState('')
 
-  const channelsQuery = useQuery({
+  const channelsQuery = useAuthQuery({
     queryKey: ['notification-channels'],
     queryFn: () => notificationChannelsApi.list(),
   })
-  const alertsQuery = useQuery({
+  const alertsQuery = useAuthQuery({
     queryKey: ['alerts'],
     queryFn: () => alertsApi.list(),
   })

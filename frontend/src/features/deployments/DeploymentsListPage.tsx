@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -26,8 +26,8 @@ import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
-import { useAuthReady } from '../auth/useAuthReady'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 const STATUS_FILTERS: Array<{ label: string; value: DeploymentStatus | 'ALL' }> = [
   { label: 'All', value: 'ALL' },
   { label: 'Pending', value: 'PENDING' },
@@ -41,12 +41,11 @@ export function DeploymentsListPage() {
   const [statusFilter, setStatusFilter] = useState<DeploymentStatus | 'ALL'>('ALL')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const authReady = useAuthReady()
 
-  const query = useQuery({
+  const query = useAuthQuery({
     queryKey: ['deployments'],
     queryFn: () => deploymentsApi.list({ page: 0, size: 50, sort: 'createdAt,desc' }),
-    enabled: authReady,
+    enabled: true,
   })
 
   const removeMutation = useMutation({
@@ -97,7 +96,7 @@ export function DeploymentsListPage() {
         }
       >
         <QueryState
-          isLoading={!authReady || query.isLoading}
+          isLoading={query.isLoading}
           isFetching={query.isFetching}
           isError={query.isError}
           error={query.error}

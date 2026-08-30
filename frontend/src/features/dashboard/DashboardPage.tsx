@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -21,8 +20,8 @@ import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { useAuth } from '../auth/AuthContext'
-import { useAuthReady } from '../auth/useAuthReady'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.round(diff / 60000)
@@ -37,17 +36,16 @@ function relativeTime(iso: string): string {
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const authReady = useAuthReady()
   const navigate = useNavigate()
-  const statsQuery = useQuery({
+  const statsQuery = useAuthQuery({
     queryKey: ['dashboard-stats'],
     queryFn: meApi.stats,
-    enabled: authReady,
+    enabled: true,
   })
-  const deploymentsQuery = useQuery({
+  const deploymentsQuery = useAuthQuery({
     queryKey: ['deployments', 'recent'],
     queryFn: () => deploymentsApi.list({ page: 0, size: 8, sort: 'createdAt,desc' }),
-    enabled: authReady,
+    enabled: true,
   })
 
   const projectCount = statsQuery.data?.projects ?? statsQuery.data?.applications ?? 0
@@ -85,7 +83,7 @@ export function DashboardPage() {
         }}
       >
         <QueryState
-          isLoading={!authReady || statsQuery.isLoading}
+          isLoading={statsQuery.isLoading}
           isFetching={statsQuery.isFetching}
           isError={statsQuery.isError}
           error={statsQuery.error}
@@ -166,7 +164,7 @@ export function DashboardPage() {
           </Box>
 
           <QueryState
-            isLoading={!authReady || deploymentsQuery.isLoading}
+            isLoading={deploymentsQuery.isLoading}
             isFetching={deploymentsQuery.isFetching}
             isError={deploymentsQuery.isError}
             error={deploymentsQuery.error}

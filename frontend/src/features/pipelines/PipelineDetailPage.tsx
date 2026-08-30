@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import {
   Alert,
@@ -26,6 +26,7 @@ import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { useMemo, useState } from 'react'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 function webhookUrlFor(token: string) {
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
   return `${origin}/api/v1/webhooks/git/${token}`
@@ -36,13 +37,13 @@ export function PipelineDetailPage() {
   const queryClient = useQueryClient()
   const [copied, setCopied] = useState(false)
 
-  const query = useQuery({
+  const query = useAuthQuery({
     queryKey: ['pipelines', id],
     queryFn: () => pipelinesApi.get(id),
     enabled: !!id,
   })
 
-  const runsQuery = useQuery({
+  const runsQuery = useAuthQuery({
     queryKey: ['pipelines', id, 'runs'],
     queryFn: () => pipelinesApi.listRuns(id, { page: 0, size: 50 }),
     enabled: !!id,

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -17,6 +17,7 @@ import { QueryState } from '../../shared/components/QueryState'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { DB_SCHEMA_SECRET, DB_URL_SECRET } from '../secrets/knownSecretHints'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient()
   const [profile, setProfile] = useState('db.read')
@@ -25,13 +26,13 @@ export function ProjectDatabasePanel({ projectId }: { projectId: string }) {
   const [copyLabel, setCopyLabel] = useState('Copy URL')
   const [consoleHint, setConsoleHint] = useState<string | null>(null)
 
-  const statusQuery = useQuery({
+  const statusQuery = useAuthQuery({
     queryKey: ['projects', projectId, 'database'],
     queryFn: () => projectDatabaseApi.status(projectId),
     enabled: !!projectId,
   })
 
-  const credentialsQuery = useQuery({
+  const credentialsQuery = useAuthQuery({
     queryKey: ['projects', projectId, 'database', 'credentials'],
     queryFn: () => projectDatabaseApi.listCredentials(projectId),
     enabled: !!projectId && !!statusQuery.data?.provisioned,

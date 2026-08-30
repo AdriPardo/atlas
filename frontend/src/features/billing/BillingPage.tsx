@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import {
   Button,
   Stack,
@@ -20,6 +19,7 @@ import type { UsageRecord } from '../../shared/types/api'
 import { useAuth } from '../auth/AuthContext'
 import { useFeatureFlags } from '../platform/useFeatureFlags'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 function exportUsageCsv(rows: UsageRecord[]) {
   const header = ['createdAt', 'meter', 'quantity', 'periodStart', 'periodEnd', 'dimensions']
   const lines = [
@@ -49,13 +49,13 @@ export function BillingPage() {
   const isAdmin = user?.role === 'ADMIN'
   const { planCode, billingEnabled, isEnterprise } = useFeatureFlags()
 
-  const entitlementsQuery = useQuery({
+  const entitlementsQuery = useAuthQuery({
     queryKey: ['billing', 'entitlements'],
     queryFn: () => billingApi.entitlements(),
     enabled: isAdmin && billingEnabled,
   })
 
-  const usageQuery = useQuery({
+  const usageQuery = useAuthQuery({
     queryKey: ['billing', 'usage'],
     queryFn: () => billingApi.usage({ page: 0, size: 200, sort: 'createdAt,desc' }),
     enabled: isAdmin && billingEnabled,

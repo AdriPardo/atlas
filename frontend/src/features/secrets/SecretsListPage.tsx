@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Box,
@@ -30,6 +30,7 @@ import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { CloudflareTokenScopesHint } from './CloudflareTokenScopesHint'
 import { secretNameHelperText } from './knownSecretHints'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function SecretsListPage() {
   const queryClient = useQueryClient()
   const [createOpen, setCreateOpen] = useState(false)
@@ -38,7 +39,7 @@ export function SecretsListPage() {
   const [rotateName, setRotateName] = useState<string | null>(null)
   const [rotateValue, setRotateValue] = useState('')
 
-  const query = useQuery({
+  const query = useAuthQuery({
     queryKey: ['secrets'],
     queryFn: () => secretsApi.list(),
   })

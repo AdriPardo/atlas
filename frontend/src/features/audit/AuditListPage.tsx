@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import { Button, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
 import { auditApi } from '../../shared/api/endpoints'
@@ -11,6 +10,7 @@ import type { AuditEntry } from '../../shared/types/api'
 import { useAuth } from '../auth/AuthContext'
 import { useFeatureFlags } from '../platform/useFeatureFlags'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 function exportAuditJson(rows: AuditEntry[]) {
   const blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json;charset=utf-8' })
   const url = URL.createObjectURL(blob)
@@ -26,7 +26,7 @@ export function AuditListPage() {
   const isAdmin = user?.role === 'ADMIN'
   const { auditExportEnabled } = useFeatureFlags()
 
-  const query = useQuery({
+  const query = useAuthQuery({
     queryKey: ['audit'],
     queryFn: () => auditApi.list({ page: 0, size: 100 }),
     enabled: isAdmin,

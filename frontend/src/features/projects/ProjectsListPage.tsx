@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -24,20 +24,19 @@ import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
-import { useAuthReady } from '../auth/useAuthReady'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function ProjectsListPage() {
   const [name, setName] = useState('')
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const authReady = useAuthReady()
 
-  const query = useQuery({
+  const query = useAuthQuery({
     queryKey: ['projects', name],
     queryFn: () => projectsApi.list({ name: name || undefined, page: 0, size: 50 }),
-    enabled: authReady,
+    enabled: true,
   })
 
   const removeMutation = useMutation({
@@ -76,7 +75,7 @@ export function ProjectsListPage() {
         }
       >
         <QueryState
-          isLoading={!authReady || query.isLoading}
+          isLoading={query.isLoading}
           isFetching={query.isFetching}
           isError={query.isError}
           error={query.error}

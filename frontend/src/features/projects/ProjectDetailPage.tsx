@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import {
   Accordion,
@@ -36,13 +36,12 @@ import { ProjectDatabasePanel } from './ProjectDatabasePanel'
 import { ProjectMailPanel } from './ProjectMailPanel'
 import { ProjectAutoDeployPanel } from './ProjectAutoDeployPanel'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
-import { useAuthReady } from '../auth/useAuthReady'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function ProjectDetailPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const authReady = useAuthReady()
   const [deployOpen, setDeployOpen] = useState(false)
   const [detailTab, setDetailTab] = useState(0)
   const [hostId, setHostId] = useState('')
@@ -50,19 +49,19 @@ export function ProjectDetailPage() {
   const [exposure, setExposure] = useState<ServiceExposure>('PUBLIC')
   const [placementMode, setPlacementMode] = useState<PlacementMode>('SHARED')
 
-  const query = useQuery({
+  const query = useAuthQuery({
     queryKey: ['projects', id],
     queryFn: () => projectsApi.get(id),
-    enabled: authReady && !!id,
+    enabled: !!id,
   })
 
-  const servicesQuery = useQuery({
+  const servicesQuery = useAuthQuery({
     queryKey: ['projects', id, 'services'],
     queryFn: () => projectsApi.listServices(id, { size: 50 }),
-    enabled: authReady && !!id && !query.isError,
+    enabled: !!id && !query.isError,
   })
 
-  const hostsQuery = useQuery({
+  const hostsQuery = useAuthQuery({
     queryKey: ['hosts', 'deploy-picker'],
     queryFn: () => hostsApi.list({ size: 100, sort: 'hostname,asc' }),
     enabled: deployOpen,

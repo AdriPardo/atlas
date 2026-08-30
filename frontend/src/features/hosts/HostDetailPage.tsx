@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import {
   Alert,
@@ -25,31 +25,32 @@ import { LogViewer } from '../../shared/components/LogViewer'
 import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import type { ContainerSnapshot } from '../../shared/types/api'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function HostDetailPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [selected, setSelected] = useState<ContainerSnapshot | null>(null)
 
-  const query = useQuery({
+  const query = useAuthQuery({
     queryKey: ['hosts', id],
     queryFn: () => hostsApi.get(id),
     enabled: !!id,
   })
 
-  const containersQuery = useQuery({
+  const containersQuery = useAuthQuery({
     queryKey: ['hosts', id, 'containers'],
     queryFn: () => hostsApi.containers(id),
     enabled: !!id,
     refetchInterval: 15_000,
   })
 
-  const obsQuery = useQuery({
+  const obsQuery = useAuthQuery({
     queryKey: ['settings', 'observability'],
     queryFn: () => settingsApi.observability(),
   })
 
-  const logsQuery = useQuery({
+  const logsQuery = useAuthQuery({
     queryKey: ['hosts', id, 'containers', selected?.name ?? selected?.id, 'logs'],
     queryFn: () => hostsApi.containerLogs(id, selected!.name || selected!.id, 200),
     enabled: !!id && !!selected,

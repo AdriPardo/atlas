@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -21,6 +21,7 @@ import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { useAuth } from '../auth/AuthContext'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 const ROLE_HELP: Record<string, string> = {
   VIEWER: 'Read project, services, pipelines',
   DEVELOPER: 'Write services/pipelines (no deploy)',
@@ -34,13 +35,13 @@ export function ProjectMembersPanel({ projectId }: { projectId: string }) {
   const [userId, setUserId] = useState('')
   const [role, setRole] = useState('VIEWER')
 
-  const membersQuery = useQuery({
+  const membersQuery = useAuthQuery({
     queryKey: ['projects', projectId, 'memberships'],
     queryFn: () => membershipsApi.list(projectId),
     enabled: !!projectId,
   })
 
-  const usersQuery = useQuery({
+  const usersQuery = useAuthQuery({
     queryKey: ['users'],
     queryFn: () => usersApi.list(),
     enabled: isAdmin,

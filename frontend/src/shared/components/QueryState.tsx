@@ -1,5 +1,6 @@
 import { Alert, Box, Button, Skeleton, Stack } from '@mui/material'
 import type { ReactNode } from 'react'
+import { useAuth } from '../../features/auth/AuthContext'
 import {
   getApiErrorMessage,
   isForbiddenApiError,
@@ -65,14 +66,17 @@ export function QueryState({
   skeleton = 'page',
   children,
 }: QueryStateProps) {
-  const showSkeleton = isLoading || (isFetching && isError)
+  const { loading, authReady } = useAuth()
+  const waitForAuth = loading || !authReady
+  const showSkeleton = waitForAuth || isLoading || (isFetching && isError)
+
   if (showSkeleton) {
     return <LoadingSkeleton variant={skeleton} />
   }
   if (isError) {
     const authBlocked = isForbiddenApiError(error) || isUnauthorizedApiError(error)
     const message = authBlocked
-      ? 'Session not ready or access denied. Wait a moment, then retry — or reload if this persists.'
+      ? 'Sesión no lista. Espera un momento o pulsa Reintentar.'
       : getApiErrorMessage(error, errorMessage)
     return (
       <Alert
@@ -81,7 +85,7 @@ export function QueryState({
         action={
           onRetry ? (
             <Button color="inherit" size="small" onClick={onRetry}>
-              Retry
+              Reintentar
             </Button>
           ) : undefined
         }

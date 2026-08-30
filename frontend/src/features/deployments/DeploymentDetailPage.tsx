@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { Alert, Box, Button, LinearProgress, Link, Stack, Typography } from '@mui/material'
 import { deploymentsApi } from '../../shared/api/endpoints'
@@ -9,6 +8,7 @@ import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { LogViewer } from '../../shared/components/LogViewer'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 const ACTIVE = new Set(['PENDING', 'RUNNING'])
 
 function progressHint(status: string): string {
@@ -22,7 +22,7 @@ function progressHint(status: string): string {
 
 export function DeploymentDetailPage() {
   const { id = '' } = useParams()
-  const query = useQuery({
+  const query = useAuthQuery({
     queryKey: ['deployments', id],
     queryFn: () => deploymentsApi.get(id),
     enabled: !!id,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
@@ -20,6 +20,7 @@ import { hostsApi, pipelinesApi, projectsApi, servicesApi } from '../../shared/a
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function PipelineFormPage() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
@@ -28,11 +29,11 @@ export function PipelineFormPage() {
   const [hostId, setHostId] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const projectsQuery = useQuery({
+  const projectsQuery = useAuthQuery({
     queryKey: ['projects', 'pipeline-form'],
     queryFn: () => projectsApi.list({ page: 0, size: 100 }),
   })
-  const servicesQuery = useQuery({
+  const servicesQuery = useAuthQuery({
     queryKey: ['services', 'pipeline-form', projectId],
     queryFn: () =>
       projectId
@@ -40,7 +41,7 @@ export function PipelineFormPage() {
         : servicesApi.list({ page: 0, size: 100 }),
     enabled: !!projectId,
   })
-  const hostsQuery = useQuery({
+  const hostsQuery = useAuthQuery({
     queryKey: ['hosts', 'pipeline-form'],
     queryFn: () => hostsApi.list({ page: 0, size: 100 }),
   })

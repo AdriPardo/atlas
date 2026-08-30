@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link as RouterLink } from 'react-router-dom'
 import {
   Alert,
@@ -16,6 +16,7 @@ import { pipelinesApi } from '../../shared/api/endpoints'
 import type { AutoDeployResult, Service } from '../../shared/types/api'
 import { DetailField, DetailPanel } from '../../shared/components/DetailPanel'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 function webhookUrlFor(token: string) {
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
   return `${origin}/api/v1/webhooks/git/${token}`
@@ -32,7 +33,7 @@ export function ProjectAutoDeployPanel({ projectId, services }: Props) {
   const [lastResult, setLastResult] = useState<AutoDeployResult | null>(null)
   const [activeServiceId, setActiveServiceId] = useState<string | null>(null)
 
-  const pipelinesQuery = useQuery({
+  const pipelinesQuery = useAuthQuery({
     queryKey: ['pipelines', 'project', projectId],
     queryFn: () => pipelinesApi.list({ projectId, page: 0, size: 50 }),
     enabled: !!projectId,

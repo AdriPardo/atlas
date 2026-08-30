@@ -1,13 +1,14 @@
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Alert, Box, Button, MenuItem, Stack, TextField } from '@mui/material'
 import { deploymentsApi, hostsApi, servicesApi } from '../../shared/api/endpoints'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 const schema = z.object({
   serviceId: z.string().uuid(),
   hostId: z.string().uuid(),
@@ -19,11 +20,11 @@ export function DeploymentFormPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const servicesQuery = useQuery({
+  const servicesQuery = useAuthQuery({
     queryKey: ['services', 'options'],
     queryFn: () => servicesApi.list({ page: 0, size: 100 }),
   })
-  const hostsQuery = useQuery({
+  const hostsQuery = useAuthQuery({
     queryKey: ['hosts', 'options'],
     queryFn: () => hostsApi.list({ page: 0, size: 100 }),
   })

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -28,6 +28,7 @@ import { CloudflareTokenScopesHint } from '../secrets/CloudflareTokenScopesHint'
 import { secretNameHelperText } from '../secrets/knownSecretHints'
 import { useAuth } from '../auth/AuthContext'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
@@ -40,13 +41,13 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
   const [rotateName, setRotateName] = useState<string | null>(null)
   const [rotateValue, setRotateValue] = useState('')
 
-  const secretsQuery = useQuery({
+  const secretsQuery = useAuthQuery({
     queryKey: ['projects', projectId, 'secrets'],
     queryFn: () => projectSecretsApi.list(projectId),
     enabled: !!projectId,
   })
 
-  const orgSecretsQuery = useQuery({
+  const orgSecretsQuery = useAuthQuery({
     queryKey: ['secrets', 'org'],
     queryFn: () => secretsApi.list(),
     enabled: !!projectId,
@@ -212,7 +213,10 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
         )}
         {orgSecretsQuery.isError && (
           <Alert severity="warning" variant="outlined">
-            Could not load organization secrets.
+            No se pudieron cargar los secretos de organización.{' '}
+            <Button size="small" onClick={() => orgSecretsQuery.refetch()}>
+              Reintentar
+            </Button>
           </Alert>
         )}
       </Stack>

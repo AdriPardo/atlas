@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -29,6 +29,7 @@ import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 import type { CronTargetType } from '../../shared/types/api'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function CronJobsPage() {
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
@@ -37,11 +38,11 @@ export function CronJobsPage() {
   const [targetType, setTargetType] = useState<CronTargetType>('SYNC_HOST')
   const [targetId, setTargetId] = useState('')
 
-  const cronQuery = useQuery({
+  const cronQuery = useAuthQuery({
     queryKey: ['cron-jobs'],
     queryFn: () => cronJobsApi.list(),
   })
-  const hostsQuery = useQuery({
+  const hostsQuery = useAuthQuery({
     queryKey: ['hosts'],
     queryFn: () => hostsApi.list({ page: 0, size: 100 }),
   })

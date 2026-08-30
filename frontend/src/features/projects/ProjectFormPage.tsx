@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, Box, Button, MenuItem, Stack, TextField } from '@mui/material'
 import { projectsApi, servicesApi } from '../../shared/api/endpoints'
@@ -11,6 +11,7 @@ import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 const statuses: ProjectStatus[] = [
   'REGISTERED',
   'READY',
@@ -38,13 +39,13 @@ export function ProjectFormPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const detailQuery = useQuery({
+  const detailQuery = useAuthQuery({
     queryKey: ['projects', id],
     queryFn: () => projectsApi.get(id!),
     enabled: isEdit,
   })
 
-  const servicesQuery = useQuery({
+  const servicesQuery = useAuthQuery({
     queryKey: ['projects', id, 'services'],
     queryFn: () => projectsApi.listServices(id!, { size: 10 }),
     enabled: isEdit,

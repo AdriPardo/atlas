@@ -11,6 +11,7 @@ import {
 import { queryClient } from '../../app/queryClient'
 import { meApi, authApi } from '../../shared/api/endpoints'
 import { tokenStorage } from '../../shared/api/client'
+import { bootstrapSession } from '../../shared/api/sessionBootstrap'
 import type { User } from '../../shared/types/api'
 import { isAtlasPublicHost } from './authHost'
 
@@ -29,41 +30,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
-
-async function sleep(ms: number) {
-  await new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-async function establishSession(): Promise<User | null> {
-  if (tokenStorage.get()) {
-    try {
-      return await meApi.get()
-    } catch {
-      tokenStorage.clear()
-    }
-  }
-
-  try {
-    const mint = await authApi.sso()
-    tokenStorage.set(mint.accessToken)
-    return await meApi.get()
-  } catch {
-    tokenStorage.clear()
-    return null
-  }
-}
-
-/** Retry SSO — covers brief backend restarts / 502 while Traefik already authenticated. */
-async function establishSessionWithRetry(attempts = 3): Promise<User | null> {
-  for (let i = 0; i < attempts; i += 1) {
-    const user = await establishSession()
-    if (user && tokenStorage.get()) return user
-    if (i < attempts - 1) {
-      await sleep(350 * (i + 1))
-    }
-  }
-  return null
-}
 
 function sessionReady(user: User | null): boolean {
   return !!user && !!tokenStorage.get()
@@ -85,6 +51,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const runBootstrap = useCallback(async (generation: number) => {
+    const attempts = isAtlasPublicHost() ? 4 : 2
+    const profile = await bootstrapSession(attempts)
+    if (generation !== bootstrapGeneration.current) return profile
+    applySession(profile)
+    setSsoFailed(!profile)
+    return profile
+  }, [applySession])
+
   const refreshUser = useCallback(async () => {
     const generation = ++bootstrapGeneration.current
     setLoading(true)
@@ -92,17 +67,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSsoFailed(false)
 
     try {
-      const attempts = isAtlasPublicHost() ? 4 : 2
-      const profile = await establishSessionWithRetry(attempts)
-      if (generation !== bootstrapGeneration.current) return
-      applySession(profile)
-      setSsoFailed(!profile)
+      await runBootstrap(generation)
     } finally {
       if (generation === bootstrapGeneration.current) {
         setLoading(false)
       }
     }
-  }, [applySession])
+  }, [runBootstrap])
 
   const retrySso = useCallback(async () => {
     const generation = ++bootstrapGeneration.current
@@ -111,18 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSsoFailed(false)
 
     try {
-      const attempts = isAtlasPublicHost() ? 4 : 2
-      const profile = await establishSessionWithRetry(attempts)
-      if (generation !== bootstrapGeneration.current) return null
-      applySession(profile)
-      setSsoFailed(!profile)
-      return profile
+      return await runBootstrap(generation)
     } finally {
       if (generation === bootstrapGeneration.current) {
         setLoading(false)
       }
     }
-  }, [applySession])
+  }, [runBootstrap])
 
   useEffect(() => {
     void refreshUser()

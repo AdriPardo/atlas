@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Alert,
@@ -19,6 +19,7 @@ import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
 import { PageShell } from '../../shared/components/PageShell'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 const schema = z.object({
   hostname: z.string().min(1).max(255),
   ip: z.string().min(1).max(64),
@@ -39,13 +40,13 @@ export function HostFormPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const detailQuery = useQuery({
+  const detailQuery = useAuthQuery({
     queryKey: ['hosts', id],
     queryFn: () => hostsApi.get(id!),
     enabled: isEdit,
   })
 
-  const secretsQuery = useQuery({
+  const secretsQuery = useAuthQuery({
     queryKey: ['secrets'],
     queryFn: () => secretsApi.list(),
   })

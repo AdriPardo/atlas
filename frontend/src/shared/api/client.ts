@@ -1,4 +1,5 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
+import { refreshAtlasSession } from './sessionBootstrap'
 
 const TOKEN_KEY = 'atlas.token'
 export const SKIP_AUTH_RETRY_HEADER = 'X-Atlas-Skip-Auth-Retry'
@@ -14,6 +15,7 @@ type RetriableConfig = InternalAxiosRequestConfig & { _authRetry?: boolean }
 export const api = axios.create({
   baseURL: '/api/v1',
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 api.interceptors.request.use((config) => {
@@ -41,7 +43,6 @@ api.interceptors.response.use(
 
     if ((status === 401 || status === 403) && config && !config._authRetry) {
       config._authRetry = true
-      const { refreshAtlasSession } = await import('./sessionRefresh')
       const refreshed = await refreshAtlasSession()
       if (refreshed) {
         const token = tokenStorage.get()

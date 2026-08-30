@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -24,6 +24,7 @@ import { DataTableFrame } from '../../shared/components/DataTableFrame'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 
+import { useAuthQuery } from '../auth/useAuthQuery'
 export function PipelinesListPage() {
   const [name, setName] = useState('')
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -31,7 +32,7 @@ export function PipelinesListPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const query = useQuery({
+  const query = useAuthQuery({
     queryKey: ['pipelines', name],
     queryFn: () => pipelinesApi.list({ name: name || undefined, page: 0, size: 50 }),
   })
