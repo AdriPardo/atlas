@@ -14,12 +14,11 @@ import {
   resolveAuthBootstrap,
 } from '../../shared/api/authBootstrap'
 import {
-  clearSsoAttempt,
   clearSsoRedirectFlag,
   consumeSsoError,
-  hasExhaustedSsoAttempts,
   isSsoRedirectInFlight,
   isTerminalSsoFailure,
+  markBootstrapReturn,
   redirectToSsoBootstrap,
   type SsoFailureCode,
 } from '../../shared/api/authSession'
@@ -47,38 +46,44 @@ type EstablishResult = {
   failure?: SsoFailureCode
 }
 
-function syncTokenFromCookie(): void {
-  if (tokenStorage.get()) return
+function syncTokenFromCookie(): boolean {
+  if (tokenStorage.get()) return true
   const fromCookie = document.cookie
     .split(';')
     .map((part) => part.trim())
     .find((part) => part.startsWith('atlas.token='))
-  if (!fromCookie) return
+  if (!fromCookie) return false
   const value = decodeURIComponent(fromCookie.slice('atlas.token='.length))
-  if (value) tokenStorage.set(value)
+  if (!value) return false
+  tokenStorage.set(value)
+  return true
 }
 
-/** Bootstrap redirect may pass JWT in hash — read once then strip from URL. */
-function syncTokenFromHash(): void {
-  if (tokenStorage.get()) return
+/** Bootstrap redirect passes JWT in hash — read once then strip from URL. */
+function syncTokenFromHash(): boolean {
+  if (tokenStorage.get()) return true
   const hash = window.location.hash
-  if (!hash.startsWith('#atlas.token=')) return
+  if (!hash.startsWith('#atlas.token=')) return false
   const value = decodeURIComponent(hash.slice('#atlas.token='.length))
-  if (!value) return
+  if (!value) return false
   tokenStorage.set(value)
   window.history.replaceState(null, '', window.location.pathname + window.location.search)
+  return true
 }
 
-function syncTokenFromBootstrap(): void {
-  syncTokenFromHash()
-  syncTokenFromCookie()
+function syncTokenFromBootstrap(): boolean {
+  const fromBootstrap = syncTokenFromHash() || syncTokenFromCookie()
+  if (fromBootstrap) {
+    markBootstrapReturn()
+  }
+  return fromBootstrap
 }
 
 /**
  * Prod SSO:
- * 1. Bootstrap cookie from prior redirect → sync to localStorage → /me
- * 2. No JWT → one full-page bootstrap (Authentik session already exists from Traefik)
- * 3. Bootstrap fail or /me fail after bootstrap → error ONCE, no auto-retry loop
+ * 1. Returning from bootstrap → sync JWT from hash/cookie → /me
+ * 2. No JWT yet → full-page bootstrap (Authentik session exists from Traefik)
+ * 3. Bootstrap/server errors → show once; user retries manually
  */
 async function establishSession(): Promise<EstablishResult> {
   if (isAtlasPublicHost()) {
@@ -87,38 +92,33 @@ async function establishSession(): Promise<EstablishResult> {
       return { user: null, failure: bootstrapError }
     }
 
-    syncTokenFromBootstrap()
+    const returnedFromBootstrap = syncTokenFromBootstrap()
 
     if (tokenStorage.get()) {
       try {
         const profile = await meApi.get()
-        clearSsoRedirectFlag()
-        clearSsoAttempt()
+        markBootstrapReturn()
         return { user: profile }
       } catch {
         tokenStorage.clear()
         clearSsoRedirectFlag()
-        if (hasExhaustedSsoAttempts()) {
-          return {
-            user: null,
-            failure: bootstrapError ?? 'token_rejected',
-          }
+        if (bootstrapError) {
+          return { user: null, failure: bootstrapError }
         }
       }
+    } else if (bootstrapError) {
+      return { user: null, failure: bootstrapError }
     }
 
-    if (hasExhaustedSsoAttempts()) {
-      return {
-        user: null,
-        failure: bootstrapError ?? 'redirect_blocked',
-      }
+    if (returnedFromBootstrap) {
+      return { user: null, failure: bootstrapError ?? 'token_rejected' }
     }
 
     if (redirectToSsoBootstrap('/')) {
       return { user: null, redirecting: true }
     }
 
-    return { user: null, failure: bootstrapError ?? 'redirect_blocked' }
+    return { user: null, failure: 'redirect_blocked' }
   }
 
   if (!tokenStorage.get()) {
@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       setUser(null)
-      setSsoFailure(hasExhaustedSsoAttempts() ? 'mint_failed' : null)
+      setSsoFailure('mint_failed')
       finishBootstrap(null)
     } finally {
       if (!isSsoRedirectInFlight()) {
@@ -179,14 +179,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const retrySso = useCallback(async () => {
     setLoading(true)
     setSsoFailure(null)
-    clearSsoAttempt()
-    clearSsoRedirectFlag()
     tokenStorage.clear()
-    if (redirectToSsoBootstrap('/')) {
-      return null
-    }
-    setSsoFailure('redirect_blocked')
-    setLoading(false)
+    clearSsoRedirectFlag()
+    sessionStorage.removeItem('atlas.sso.error')
+    window.location.replace(
+      `${window.location.origin}/api/v1/auth/sso/bootstrap?returnTo=${encodeURIComponent('/')}`,
+    )
     return null
   }, [])
 
@@ -200,8 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const profile = await meApi.get()
     setUser(profile)
     setSsoFailure(null)
-    clearSsoRedirectFlag()
-    clearSsoAttempt()
+    markBootstrapReturn()
     finishBootstrap(profile)
     await queryClient.invalidateQueries()
   }, [])
@@ -209,7 +206,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     tokenStorage.clear()
     clearSsoRedirectFlag()
-    clearSsoAttempt()
     setUser(null)
     setSsoFailure(null)
     queryClient.clear()
