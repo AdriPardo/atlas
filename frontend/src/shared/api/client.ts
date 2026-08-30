@@ -24,9 +24,8 @@ api.interceptors.request.use(async (config) => {
   const url = String(config.url ?? '')
 
   if (!isPublicAuthPath(url) && isAtlasPublicHost() && !isAuthBootstrapReady()) {
-    const token = tokenStorage.get()
-    // Bootstrap calls /me right after /sso mints JWT — must not wait on self.
-    const bootstrapMe = token && url.endsWith('/me')
+    // AuthContext probes /me during pending bootstrap (no token yet) — must not deadlock here.
+    const bootstrapMe = url.endsWith('/me') && getAuthBootstrapPhase() === 'pending'
     if (!bootstrapMe) {
       const ready = await waitForAuthBootstrap()
       if (!ready) {
