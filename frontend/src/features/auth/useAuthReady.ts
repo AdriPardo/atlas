@@ -1,7 +1,7 @@
 import { useAuth } from './AuthContext'
 
-/** True when SSO session is ready for API queries. */
+/** True when bootstrap finished and Atlas JWT session is ready for API queries. */
 export function useAuthReady(): boolean {
-  const { authReady } = useAuth()
-  return authReady
+  const { user, loading } = useAuth()
+  return !loading && !!user
 }

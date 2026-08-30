@@ -1,6 +1,5 @@
 package com.atlas.api.config;
 
-import com.atlas.infrastructure.security.AuthentikHeaderAuthenticationFilter;
 import com.atlas.infrastructure.security.JwtAuthenticationFilter;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +28,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final AuthentikHeaderAuthenticationFilter authentikHeaderAuthenticationFilter;
     private final Environment environment;
 
     @Value("${atlas.security.cors.allowed-origins}")
@@ -44,10 +42,10 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/v1/auth/**").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/sso").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/sso").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/webhooks/git/**").permitAll();
-                    auth.requestMatchers(HttpMethod.POST, "/api/v1/internal/pgweb/connect")
-                            .permitAll();
                     auth.requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info")
                             .permitAll();
                     if (docsEnabled) {
@@ -59,8 +57,7 @@ public class SecurityConfig {
                     }
                     auth.anyRequest().authenticated();
                 })
-                .addFilterBefore(authentikHeaderAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, AuthentikHeaderAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

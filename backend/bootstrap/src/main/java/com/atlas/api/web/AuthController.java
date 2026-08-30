@@ -5,7 +5,6 @@ import com.atlas.api.dto.response.LoginResponse;
 import com.atlas.application.auth.AuthenticateFromAuthentikUseCase;
 import com.atlas.application.auth.AuthenticateFromAuthentikUseCase.AuthentikIdentity;
 import com.atlas.application.auth.AuthenticateUserUseCase;
-import com.atlas.infrastructure.security.AuthentikHeaderNames;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
+    public static final String HEADER_USERNAME = "X-authentik-username";
+    public static final String HEADER_GROUPS = "X-authentik-groups";
+    public static final String HEADER_EMAIL = "X-authentik-email";
+    public static final String HEADER_NAME = "X-authentik-name";
+    public static final String HEADER_UID = "X-authentik-uid";
+
     private final AuthenticateUserUseCase authenticateUserUseCase;
     private final AuthenticateFromAuthentikUseCase authenticateFromAuthentikUseCase;
 
@@ -31,24 +36,27 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(result.accessToken(), result.tokenType(), result.expiresIn()));
     }
 
-    /** Prod SSO mint — Traefik ForwardAuth injects X-authentik-* on fetch (same-origin, credentials). */
+    /**
+     * SSO via Authentik ForwardAuth headers injected by Traefik.
+     * Returns the same JWT shape as {@code /login}.
+     */
     @GetMapping("/sso")
     public ResponseEntity<LoginResponse> ssoGet(HttpServletRequest request) {
-        return mintSso(request);
+        return sso(request);
     }
 
     @PostMapping("/sso")
     public ResponseEntity<LoginResponse> ssoPost(HttpServletRequest request) {
-        return mintSso(request);
+        return sso(request);
     }
 
-    private ResponseEntity<LoginResponse> mintSso(HttpServletRequest request) {
+    private ResponseEntity<LoginResponse> sso(HttpServletRequest request) {
         var result = authenticateFromAuthentikUseCase.execute(new AuthentikIdentity(
-                header(request, AuthentikHeaderNames.USERNAME),
-                header(request, AuthentikHeaderNames.GROUPS),
-                header(request, AuthentikHeaderNames.EMAIL),
-                header(request, AuthentikHeaderNames.NAME),
-                header(request, AuthentikHeaderNames.UID)));
+                header(request, HEADER_USERNAME),
+                header(request, HEADER_GROUPS),
+                header(request, HEADER_EMAIL),
+                header(request, HEADER_NAME),
+                header(request, HEADER_UID)));
         return ResponseEntity.ok(new LoginResponse(result.accessToken(), result.tokenType(), result.expiresIn()));
     }
 

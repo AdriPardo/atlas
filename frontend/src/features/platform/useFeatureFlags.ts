@@ -14,7 +14,8 @@ const COMMUNITY_DEFAULTS: FeatureFlags = {
 
 /** Installation plan + feature flags for nav/API gating. */
 export function useFeatureFlags() {
-  const { authReady } = useAuth()
+  const { user, loading } = useAuth()
+  const authReady = !loading && !!user
   const query = useQuery({
     queryKey: ['settings', 'features'],
     queryFn: () => settingsApi.features(),

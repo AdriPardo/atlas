@@ -1,13 +1,16 @@
 import axios from 'axios'
-import { isAtlasPublicHost, redirectToAuthentikSignIn } from '../../features/auth/authHost'
-import { tokenStorage } from './tokenStorage'
 
-export { tokenStorage } from './tokenStorage'
+const TOKEN_KEY = 'atlas.token'
+
+export const tokenStorage = {
+  get: () => localStorage.getItem(TOKEN_KEY),
+  set: (token: string) => localStorage.setItem(TOKEN_KEY, token),
+  clear: () => localStorage.removeItem(TOKEN_KEY),
+}
 
 export const api = axios.create({
   baseURL: '/api/v1',
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
 })
 
 api.interceptors.request.use((config) => {
@@ -21,18 +24,17 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const status = error.response?.status
-    const url = String(error.config?.url ?? '')
-
-    if (status === 401 && !url.includes('/auth/sso') && !url.includes('/auth/login')) {
+    if (error.response?.status === 401) {
+      const url = String(error.config?.url ?? '')
+      // SSO probe failing is expected without Authentik headers (local/dev).
+      if (url.includes('/auth/sso')) {
+        return Promise.reject(error)
+      }
       tokenStorage.clear()
-      if (isAtlasPublicHost()) {
-        redirectToAuthentikSignIn(`${window.location.origin}/`)
-      } else if (!window.location.pathname.startsWith('/login')) {
+      if (!window.location.pathname.startsWith('/login')) {
         window.location.assign('/login')
       }
     }
-
     return Promise.reject(error)
   },
 )
