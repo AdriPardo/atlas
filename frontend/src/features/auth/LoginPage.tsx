@@ -40,7 +40,7 @@ interface LoginPageProps {
 export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
   const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
-  const { login, user, loading, retrySso } = useAuth()
+  const { login, user, loading, retrySso, ssoFailure } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [ssoBusy, setSsoBusy] = useState(false)
@@ -55,10 +55,10 @@ export function LoginPage({ mode, onToggleMode }: LoginPageProps) {
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
   useEffect(() => {
-    if (publicHost && !loading && !user) {
+    if (publicHost && !loading && !user && !ssoFailure) {
       void retrySso()
     }
-  }, [publicHost, loading, user, retrySso])
+  }, [publicHost, loading, user, ssoFailure, retrySso])
 
   if (!loading && user) {
     return <Navigate to="/" replace />

@@ -37,10 +37,9 @@ public class SsoBootstrapController {
     /** Must match {@code frontend/src/shared/api/tokenStorage.ts}. */
     static final String TOKEN_STORAGE_KEY = AtlasAuthCookieNames.TOKEN;
 
-    static final String SSO_ERROR_STORAGE_KEY = "atlas.sso.error";
+    private static final String SSO_ERROR_STORAGE_KEY = "atlas.sso.error";
     static final String SSO_REDIRECT_STORAGE_KEY = "atlas.sso.redirect";
-
-    private static final String OUTPOST_START_PATH = "/outpost.goauthentik.io/start";
+    static final String TOKEN_HASH_PREFIX = "#atlas.token=";
 
     private final AuthenticateFromAuthentikUseCase authenticateFromAuthentikUseCase;
 
@@ -64,9 +63,12 @@ public class SsoBootstrapController {
                 safeReturnTo);
 
         if (!hasUsername) {
-            String bootstrapUrl = buildBootstrapUrl(request, safeReturnTo);
-            String location = OUTPOST_START_PATH + "?rd=" + URLEncoder.encode(bootstrapUrl, StandardCharsets.UTF_8);
-            response.sendRedirect(location);
+            log.warn("SSO bootstrap: missing X-authentik-username — ForwardAuth headers not forwarded");
+            writeBootstrapErrorHtml(
+                    response,
+                    "identity_missing",
+                    "Authentik no inyectó cabeceras X-authentik-*. Comprueba Traefik forwardauth.authResponseHeaders.",
+                    safeReturnTo);
             return;
         }
 
@@ -133,21 +135,6 @@ public class SsoBootstrapController {
         return email.substring(email.indexOf('@') + 1);
     }
 
-    private static String buildBootstrapUrl(HttpServletRequest request, String returnTo) {
-        String scheme = forwarded(request, "X-Forwarded-Proto", request.getScheme());
-        String host = forwarded(request, "X-Forwarded-Host", request.getHeader("Host"));
-        if (host == null || host.isBlank()) {
-            host = request.getServerName();
-        }
-        String encodedReturnTo = URLEncoder.encode(returnTo, StandardCharsets.UTF_8);
-        return scheme + "://" + host + "/api/v1/auth/sso/bootstrap?returnTo=" + encodedReturnTo;
-    }
-
-    private static String forwarded(HttpServletRequest request, String name, String fallback) {
-        String value = request.getHeader(name);
-        return value == null || value.isBlank() ? fallback : value.split(",")[0].trim();
-    }
-
     private void completeBootstrapSession(
             HttpServletResponse response, String accessToken, long maxAgeSeconds, String returnTo)
             throws IOException {
@@ -159,7 +146,8 @@ public class SsoBootstrapController {
                 .httpOnly(false)
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        response.sendRedirect(returnTo);
+        String location = returnTo + TOKEN_HASH_PREFIX + URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+        response.sendRedirect(location);
     }
 
     private static void writeBootstrapErrorHtml(

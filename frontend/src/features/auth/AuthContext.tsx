@@ -14,9 +14,10 @@ import {
   resolveAuthBootstrap,
 } from '../../shared/api/authBootstrap'
 import {
+  clearSsoAttempt,
   clearSsoRedirectFlag,
   consumeSsoError,
-  forceSsoReauth,
+  hasExhaustedSsoAttempts,
   isSsoRedirectInFlight,
   isTerminalSsoFailure,
   redirectToSsoBootstrap,
@@ -57,11 +58,27 @@ function syncTokenFromCookie(): void {
   if (value) tokenStorage.set(value)
 }
 
+/** Bootstrap redirect may pass JWT in hash — read once then strip from URL. */
+function syncTokenFromHash(): void {
+  if (tokenStorage.get()) return
+  const hash = window.location.hash
+  if (!hash.startsWith('#atlas.token=')) return
+  const value = decodeURIComponent(hash.slice('#atlas.token='.length))
+  if (!value) return
+  tokenStorage.set(value)
+  window.history.replaceState(null, '', window.location.pathname + window.location.search)
+}
+
+function syncTokenFromBootstrap(): void {
+  syncTokenFromHash()
+  syncTokenFromCookie()
+}
+
 /**
- * Prod SSO flow:
- * 1. Probe /me with stored Bearer (or bootstrap cookie).
- * 2. On failure → clear stale JWT and full-page redirect: Authentik outpost → bootstrap → JWT → SPA.
- * 3. Never show jwt_invalid without attempting Authentik login.
+ * Prod SSO:
+ * 1. Bootstrap cookie from prior redirect → sync to localStorage → /me
+ * 2. No JWT → one full-page bootstrap (Authentik session already exists from Traefik)
+ * 3. Bootstrap fail or /me fail after bootstrap → error ONCE, no auto-retry loop
  */
 async function establishSession(): Promise<EstablishResult> {
   if (isAtlasPublicHost()) {
@@ -70,20 +87,38 @@ async function establishSession(): Promise<EstablishResult> {
       return { user: null, failure: bootstrapError }
     }
 
-    try {
-      const profile = await meApi.get()
-      syncTokenFromCookie()
-      clearSsoRedirectFlag()
-      return { user: profile }
-    } catch {
-      tokenStorage.clear()
-      clearSsoRedirectFlag()
+    syncTokenFromBootstrap()
 
-      if (redirectToSsoBootstrap()) {
-        return { user: null, redirecting: true }
+    if (tokenStorage.get()) {
+      try {
+        const profile = await meApi.get()
+        clearSsoRedirectFlag()
+        clearSsoAttempt()
+        return { user: profile }
+      } catch {
+        tokenStorage.clear()
+        clearSsoRedirectFlag()
+        if (hasExhaustedSsoAttempts()) {
+          return {
+            user: null,
+            failure: bootstrapError ?? 'token_rejected',
+          }
+        }
       }
-      return { user: null, failure: 'redirect_blocked' }
     }
+
+    if (hasExhaustedSsoAttempts()) {
+      return {
+        user: null,
+        failure: bootstrapError ?? 'redirect_blocked',
+      }
+    }
+
+    if (redirectToSsoBootstrap('/')) {
+      return { user: null, redirecting: true }
+    }
+
+    return { user: null, failure: bootstrapError ?? 'redirect_blocked' }
   }
 
   if (!tokenStorage.get()) {
@@ -132,10 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       setUser(null)
-      if (isAtlasPublicHost()) {
-        forceSsoReauth('/')
-        return
-      }
+      setSsoFailure(hasExhaustedSsoAttempts() ? 'mint_failed' : null)
       finishBootstrap(null)
     } finally {
       if (!isSsoRedirectInFlight()) {
@@ -147,7 +179,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const retrySso = useCallback(async () => {
     setLoading(true)
     setSsoFailure(null)
-    forceSsoReauth('/')
+    clearSsoAttempt()
+    clearSsoRedirectFlag()
+    tokenStorage.clear()
+    if (redirectToSsoBootstrap('/')) {
+      return null
+    }
+    setSsoFailure('redirect_blocked')
+    setLoading(false)
     return null
   }, [])
 
@@ -162,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile)
     setSsoFailure(null)
     clearSsoRedirectFlag()
+    clearSsoAttempt()
     finishBootstrap(profile)
     await queryClient.invalidateQueries()
   }, [])
@@ -169,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     tokenStorage.clear()
     clearSsoRedirectFlag()
+    clearSsoAttempt()
     setUser(null)
     setSsoFailure(null)
     queryClient.clear()

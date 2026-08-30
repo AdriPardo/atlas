@@ -5,7 +5,7 @@ import {
   isAuthBootstrapReady,
   waitForAuthBootstrap,
 } from './authBootstrap'
-import { isPublicAuthPath, redirectToSsoBootstrap, refreshAuthToken } from './authSession'
+import { isPublicAuthPath, refreshAuthToken } from './authSession'
 import { tokenStorage } from './tokenStorage'
 
 export { tokenStorage } from './tokenStorage'
@@ -69,19 +69,22 @@ api.interceptors.response.use(
       }
     }
 
-    if (status === 401 || status === 403) {
+    if (status === 401) {
       if (url.includes('/auth/sso')) {
         return Promise.reject(error)
       }
-      if (getAuthBootstrapPhase() === 'pending' && url.endsWith('/me')) {
+      if (getAuthBootstrapPhase() === 'pending') {
         return Promise.reject(error)
       }
       tokenStorage.clear()
-      if (isAtlasPublicHost()) {
-        redirectToSsoBootstrap()
-      } else if (!window.location.pathname.startsWith('/login')) {
+      if (!isAtlasPublicHost() && !window.location.pathname.startsWith('/login')) {
         window.location.assign('/login')
       }
+    }
+
+    // 403 on /me during bootstrap is handled by AuthContext — never auto-redirect (loop).
+    if (status === 403 && !(getAuthBootstrapPhase() === 'pending' && url.endsWith('/me'))) {
+      return Promise.reject(error)
     }
 
     return Promise.reject(error)
