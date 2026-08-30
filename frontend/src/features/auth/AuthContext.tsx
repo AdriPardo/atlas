@@ -2,18 +2,20 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from 'react'
 import { queryClient } from '../../app/queryClient'
-import { meApi, authApi } from '../../shared/api/endpoints'
-import { tokenStorage } from '../../shared/api/tokenStorage'
-import { bootstrapSession, resetSessionCache } from '../../shared/api/sessionBootstrap'
+import { authApi } from '../../shared/api/endpoints'
+import {
+  activateSessionToken,
+  bootstrapAuthSession,
+  getSessionUser,
+  isSessionReady,
+  resetAuthSession,
+} from '../../shared/api/authSession'
 import type { User } from '../../shared/types/api'
-import { isAtlasPublicHost } from './authHost'
 
 interface AuthContextValue {
   user: User | null
@@ -31,101 +33,56 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-function sessionReady(user: User | null): boolean {
-  return !!user && !!tokenStorage.get()
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [authReady, setAuthReady] = useState(false)
-  const [ssoFailed, setSsoFailed] = useState(false)
-  const bootstrapStarted = useRef(false)
+  const [user, setUser] = useState<User | null>(() => getSessionUser())
+  const [authReady, setAuthReady] = useState(() => isSessionReady())
+  const [loading, setLoading] = useState(false)
+  const [ssoFailed, setSsoFailed] = useState(() => !isSessionReady())
 
-  const applySession = useCallback((profile: User | null) => {
-    const ready = sessionReady(profile)
-    setUser(ready ? profile : null)
-    setAuthReady(ready)
-    if (!ready) {
-      tokenStorage.clear()
-      resetSessionCache()
-    }
-  }, [])
-
-  const runBootstrap = useCallback(async (force = false) => {
-    if (force) {
-      resetSessionCache()
-    }
-    const attempts = isAtlasPublicHost() ? 4 : 2
-    const profile = await bootstrapSession(attempts)
-    applySession(profile)
+  const applyFromSession = useCallback((profile: User | null) => {
+    setUser(profile)
+    setAuthReady(isSessionReady())
     setSsoFailed(!profile)
-    return profile
-  }, [applySession])
+  }, [])
 
   const refreshUser = useCallback(async () => {
     setLoading(true)
-    setSsoFailed(false)
     try {
-      await runBootstrap(true)
+      resetAuthSession()
+      const profile = await bootstrapAuthSession()
+      applyFromSession(profile)
     } finally {
       setLoading(false)
     }
-  }, [runBootstrap])
+  }, [applyFromSession])
 
   const retrySso = useCallback(async () => {
     setLoading(true)
-    setSsoFailed(false)
     try {
-      return await runBootstrap(true)
+      resetAuthSession()
+      const profile = await bootstrapAuthSession()
+      applyFromSession(profile)
+      return profile
     } finally {
       setLoading(false)
     }
-  }, [runBootstrap])
+  }, [applyFromSession])
 
-  // Single bootstrap on mount — StrictMode-safe (ref guard, never authReady=false mid-session).
-  useEffect(() => {
-    if (bootstrapStarted.current) return
-    bootstrapStarted.current = true
-
-    let cancelled = false
-    ;(async () => {
-      setLoading(true)
-      setSsoFailed(false)
-      try {
-        const attempts = isAtlasPublicHost() ? 4 : 2
-        const profile = await bootstrapSession(attempts)
-        if (!cancelled) {
-          applySession(profile)
-          setSsoFailed(!profile)
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [applySession])
-
-  const login = useCallback(async (username: string, password: string) => {
-    resetSessionCache()
-    const result = await authApi.login(username, password)
-    tokenStorage.set(result.accessToken)
-    const profile = await meApi.get()
-    applySession(profile)
-    setSsoFailed(false)
-    await queryClient.invalidateQueries()
-  }, [applySession])
+  const login = useCallback(
+    async (username: string, password: string) => {
+      const result = await authApi.login(username, password)
+      const profile = await activateSessionToken(result.accessToken)
+      applyFromSession(profile)
+      await queryClient.invalidateQueries()
+    },
+    [applyFromSession],
+  )
 
   const logout = useCallback(() => {
-    tokenStorage.clear()
-    resetSessionCache()
+    resetAuthSession()
     setUser(null)
     setAuthReady(false)
+    setSsoFailed(true)
     queryClient.clear()
   }, [])
 

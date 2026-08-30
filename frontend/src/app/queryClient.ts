@@ -9,14 +9,16 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
+        // Never retry auth failures — avoids 403 storms and duplicate requests.
         if (isForbiddenApiError(error) || isUnauthorizedApiError(error)) {
-          return failureCount < 1
+          return false
         }
-        return failureCount < 3 && isTransientApiError(error)
+        return failureCount < 2 && isTransientApiError(error)
       },
       retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 4000),
       refetchOnWindowFocus: false,
-      staleTime: 15_000,
+      refetchOnReconnect: false,
+      staleTime: 30_000,
     },
   },
 })
