@@ -48,6 +48,7 @@ import type {
 export const authApi = {
   login: (username: string, password: string) =>
     api.post<LoginResponse>('/auth/login', { username, password }).then((r) => r.data),
+  sso: () => api.get<LoginResponse>('/auth/sso').then((r) => r.data),
 }
 
 export const meApi = {

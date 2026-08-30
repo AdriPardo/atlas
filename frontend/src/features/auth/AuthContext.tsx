@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from 'react'
 import { queryClient } from '../../app/queryClient'
-import { redirectToSsoMint } from '../../shared/api/authSession'
 import { tokenStorage } from '../../shared/api/client'
 import { meApi, authApi } from '../../shared/api/endpoints'
 import type { User } from '../../shared/types/api'
@@ -51,14 +50,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const profile = await meApi.get()
           setUser(profile)
-          setLoading(false)
           return
         } catch {
           tokenStorage.clear()
         }
       }
 
-      redirectToSsoMint()
+      try {
+        const mint = await authApi.sso()
+        tokenStorage.set(mint.accessToken)
+        setUser(await meApi.get())
+      } catch {
+        tokenStorage.clear()
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
       return
     }
 
@@ -80,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const enterWithAuthentik = useCallback(() => {
     tokenStorage.clear()
-    redirectToSsoMint()
+    window.location.assign('/')
   }, [])
 
   useEffect(() => {

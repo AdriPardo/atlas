@@ -44,9 +44,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
-                    auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/sso").permitAll();
-                    auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/sso").permitAll();
+                    auth.requestMatchers("/api/v1/auth/**").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/webhooks/git/**").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/internal/pgweb/connect")
                             .permitAll();

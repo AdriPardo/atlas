@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Ensure atlas-sso Traefik router exists (ForwardAuth on GET /api/v1/auth/sso).
+# Ensure atlas-auth Traefik router (ForwardAuth on /api/v1/auth/** for SSO mint fetch).
 set -euo pipefail
 
 APP_DIR="${ATLAS_APP_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
@@ -12,28 +12,46 @@ if [[ ! -f "$PROD" ]]; then
   exit 0
 fi
 
-if grep -q 'traefik.http.routers.atlas-sso.rule' "$PROD"; then
-  log "atlas-sso router already present"
-  exit 0
-fi
-
-log "patching $PROD with atlas-sso router"
-
 python3 - "$PROD" <<'PY'
 import pathlib
+import re
 import sys
 
 path = pathlib.Path(sys.argv[1])
 text = path.read_text()
 
-insert = """      - "traefik.http.routers.atlas-sso.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/v1/auth/sso`)"
-      - "traefik.http.routers.atlas-sso.entrypoints=websecure"
-      - "traefik.http.routers.atlas-sso.tls=true"
-      - "traefik.http.routers.atlas-sso.tls.certresolver=cloudflare"
-      - "traefik.http.routers.atlas-sso.middlewares=authentik,securityHeaders@file,gzip@file"
-      - "traefik.http.routers.atlas-sso.service=atlas"
-      - "traefik.http.routers.atlas-sso.priority=95"
-"""
+AUTH_RULE = (
+    '      - "traefik.http.routers.atlas-auth.rule=Host(`atlas.atlasops.dev`) && PathPrefix(`/api/v1/auth`)"\n'
+    '      - "traefik.http.routers.atlas-auth.entrypoints=websecure"\n'
+    '      - "traefik.http.routers.atlas-auth.tls=true"\n'
+    '      - "traefik.http.routers.atlas-auth.tls.certresolver=cloudflare"\n'
+    '      - "traefik.http.routers.atlas-auth.middlewares=authentik,securityHeaders@file,gzip@file"\n'
+    '      - "traefik.http.routers.atlas-auth.service=atlas"\n'
+    '      - "traefik.http.routers.atlas-auth.priority=95"\n'
+)
+
+if 'traefik.http.routers.atlas-auth.rule' in text:
+    print('atlas-auth router already present')
+    sys.exit(0)
+
+# Migrate legacy atlas-sso (narrow /sso path) → atlas-auth
+if 'traefik.http.routers.atlas-sso.rule' in text:
+    text = re.sub(
+        r'      - "traefik\.http\.routers\.atlas-sso\.[^"]+"\n',
+        '',
+        text,
+    )
+    anchors = [
+        '      - "traefik.http.routers.atlas-api.rule',
+        '      - "traefik.http.routers.atlas-webhooks.rule',
+        '      - "traefik.http.services.atlas.loadbalancer.server.port=80"',
+    ]
+    for anchor in anchors:
+        if anchor in text:
+            text = text.replace(anchor, AUTH_RULE + anchor, 1)
+            path.write_text(text)
+            print('migrated atlas-sso → atlas-auth')
+            sys.exit(0)
 
 anchors = [
     '      - "traefik.http.routers.atlas-api.rule',
@@ -43,12 +61,12 @@ anchors = [
 
 for anchor in anchors:
     if anchor in text:
-        text = text.replace(anchor, insert + anchor, 1)
+        text = text.replace(anchor, AUTH_RULE + anchor, 1)
         path.write_text(text)
-        print("patched via anchor:", anchor[:48])
+        print('inserted atlas-auth router')
         sys.exit(0)
 
-print("ERROR: no anchor found in docker-compose.prod.yml", file=sys.stderr)
+print('ERROR: no anchor found in docker-compose.prod.yml', file=sys.stderr)
 sys.exit(1)
 PY
 

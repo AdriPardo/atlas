@@ -22,7 +22,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.atlas.infrastructure.security.AtlasAuthCookieNames;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -134,33 +133,28 @@ class AtlasIntegrationTest {
     }
 
     @Test
-    void authentikSsoWithoutHeadersRedirectsToOutpost() throws Exception {
+    void authentikSsoWithoutHeadersReturnsUnauthorized() throws Exception {
         mockMvc.perform(get("/api/v1/auth/sso")
                         .header("Host", "atlas.atlasops.dev")
                         .header("X-Forwarded-Proto", "https"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
-                        .string("Location", org.hamcrest.Matchers.containsString("outpost.goauthentik.io/start")));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void ssoBrowserMintSetsCookieAndRedirectsHome() throws Exception {
-        MvcResult mint = mockMvc.perform(get("/api/v1/auth/sso")
+    void ssoGetMintReturnsToken() throws Exception {
+        MvcResult sso = mockMvc.perform(get("/api/v1/auth/sso")
                         .header("X-authentik-username", "browser-user")
                         .header("X-authentik-groups", "Atlas Admins")
                         .header("X-authentik-email", "browser@example.com")
                         .header("Host", "atlas.atlasops.dev")
                         .header("X-Forwarded-Proto", "https"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
-                        .string("Location", "/"))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie()
-                        .exists(AtlasAuthCookieNames.TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andReturn();
 
-        jakarta.servlet.http.Cookie cookie = mint.getResponse().getCookie(AtlasAuthCookieNames.TOKEN);
+        String token = com.jayway.jsonpath.JsonPath.read(sso.getResponse().getContentAsString(), "$.accessToken");
 
-        mockMvc.perform(get("/api/v1/me").cookie(cookie))
+        mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("browser-user"))
                 .andExpect(jsonPath("$.role").value("ADMIN"));
