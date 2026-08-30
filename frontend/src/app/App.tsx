@@ -1,10 +1,18 @@
 import { useMemo, useState } from 'react'
 import { CssBaseline, ThemeProvider } from '@mui/material'
-import { QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '../features/auth/AuthContext'
-import { queryClient } from './queryClient'
 import { createAtlasTheme } from './theme'
 import { AppRouter } from './AppRouter'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 const THEME_KEY = 'atlas.theme'
 

@@ -4,11 +4,10 @@ import {
   type UseQueryOptions,
   type UseQueryResult,
 } from '@tanstack/react-query'
-import { useAuthReady } from './useAuthReady'
+import { useAuth } from './AuthContext'
 
 /**
- * React Query wrapper — all data fetches wait for authReady (JWT stored + /me OK).
- * Pass `enabled: false` or extra conditions via options.enabled as usual.
+ * React Query wrapper — data fetches wait until auth bootstrap finished and user exists.
  */
 export function useAuthQuery<
   TQueryFnData = unknown,
@@ -18,10 +17,10 @@ export function useAuthQuery<
 >(
   options: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
 ): UseQueryResult<TData, TError> {
-  const authReady = useAuthReady()
+  const { loading, user } = useAuth()
   const userEnabled = options.enabled ?? true
   return useQuery({
     ...options,
-    enabled: authReady && userEnabled,
+    enabled: !loading && user != null && userEnabled,
   })
 }

@@ -66,8 +66,8 @@ export function QueryState({
   skeleton = 'page',
   children,
 }: QueryStateProps) {
-  const { loading, authReady } = useAuth()
-  const waitForAuth = loading || !authReady
+  const { loading } = useAuth()
+  const waitForAuth = loading
   const showSkeleton = waitForAuth || isLoading || (isFetching && isError)
 
   if (showSkeleton) {
