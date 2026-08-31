@@ -35,6 +35,7 @@ import { ProjectSecretsPanel } from './ProjectSecretsPanel'
 import { ProjectDatabasePanel } from './ProjectDatabasePanel'
 import { ProjectMailPanel } from './ProjectMailPanel'
 import { ProjectAutoDeployPanel } from './ProjectAutoDeployPanel'
+import { ProjectMigrationPanel } from './ProjectMigrationPanel'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 
 import { useAuthQuery } from '../auth/useAuthQuery'
@@ -192,6 +193,13 @@ export function ProjectDetailPage() {
                   projectId={id}
                   services={servicesQuery.data?.content ?? []}
                 />
+
+                <CollapsibleSection
+                  title="Migrations"
+                  summary="Post-deploy Prisma/Flyway (docker compose exec)"
+                >
+                  <ProjectMigrationPanel projectId={id} serviceId={defaultService?.id} />
+                </CollapsibleSection>
               </Stack>
             )}
 

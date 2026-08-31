@@ -28,6 +28,10 @@ public class ServiceJpaMapper {
                 entity.getEnvironment(),
                 exposure,
                 ServiceStatus.valueOf(entity.getStatus()),
+                entity.getMigrationEnabled(),
+                entity.getMigrationStrategy(),
+                entity.getMigrationCommand(),
+                entity.getMigrationContainer(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
     }
@@ -48,6 +52,10 @@ public class ServiceJpaMapper {
         entity.setEnvironment(domain.getEnvironment());
         entity.setExposure(domain.getExposure() == null ? ServiceExposure.PUBLIC.name() : domain.getExposure().name());
         entity.setStatus(domain.getStatus().name());
+        entity.setMigrationEnabled(domain.getMigrationEnabled());
+        entity.setMigrationStrategy(domain.getMigrationStrategy());
+        entity.setMigrationCommand(domain.getMigrationCommand());
+        entity.setMigrationContainer(domain.getMigrationContainer());
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setUpdatedAt(domain.getUpdatedAt());
         return entity;

@@ -41,6 +41,18 @@ public class ServiceJpaEntity {
     @Column(nullable = false, length = 50)
     private String status;
 
+    @Column(name = "migration_enabled")
+    private Boolean migrationEnabled;
+
+    @Column(name = "migration_strategy", length = 30)
+    private String migrationStrategy;
+
+    @Column(name = "migration_command", length = 500)
+    private String migrationCommand;
+
+    @Column(name = "migration_container", length = 100)
+    private String migrationContainer;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -125,6 +137,38 @@ public class ServiceJpaEntity {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Boolean getMigrationEnabled() {
+        return migrationEnabled;
+    }
+
+    public void setMigrationEnabled(Boolean migrationEnabled) {
+        this.migrationEnabled = migrationEnabled;
+    }
+
+    public String getMigrationStrategy() {
+        return migrationStrategy;
+    }
+
+    public void setMigrationStrategy(String migrationStrategy) {
+        this.migrationStrategy = migrationStrategy;
+    }
+
+    public String getMigrationCommand() {
+        return migrationCommand;
+    }
+
+    public void setMigrationCommand(String migrationCommand) {
+        this.migrationCommand = migrationCommand;
+    }
+
+    public String getMigrationContainer() {
+        return migrationContainer;
+    }
+
+    public void setMigrationContainer(String migrationContainer) {
+        this.migrationContainer = migrationContainer;
     }
 
     public Instant getCreatedAt() {

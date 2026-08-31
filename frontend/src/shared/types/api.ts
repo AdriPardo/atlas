@@ -74,6 +74,10 @@ export interface Service {
   environment: string
   exposure?: ServiceExposure
   status: ServiceStatus
+  migrationEnabled?: boolean | null
+  migrationStrategy?: string | null
+  migrationCommand?: string | null
+  migrationContainer?: string | null
   createdAt: string
   updatedAt: string
 }

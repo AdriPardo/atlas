@@ -2,6 +2,7 @@ package com.atlas.application.manifest;
 
 import com.atlas.domain.manifest.EnvFromSecretRef;
 import com.atlas.domain.manifest.ProjectManifest;
+import com.atlas.domain.manifest.RuntimeMigrationSpec;
 import com.atlas.domain.runtime.RuntimeCapability;
 import com.atlas.domain.shared.DomainException;
 import java.nio.file.Path;
@@ -26,6 +27,7 @@ public final class ComposePathResolver {
             Source source,
             Optional<String> manifestFileName,
             Optional<String> migrateCommand,
+            Optional<RuntimeMigrationSpec> runtimeMigration,
             boolean minifyEnabled,
             boolean requireTlsEnabled,
             List<EnvFromSecretRef> envFromSecrets,
@@ -37,6 +39,9 @@ public final class ComposePathResolver {
             }
             if (migrateCommand == null) {
                 migrateCommand = Optional.empty();
+            }
+            if (runtimeMigration == null) {
+                runtimeMigration = Optional.empty();
             }
             if (envFromSecrets == null) {
                 envFromSecrets = List.of();
@@ -87,6 +92,7 @@ public final class ComposePathResolver {
             }
 
             Optional<String> migrate = manifest.getMigrateCommand();
+            Optional<RuntimeMigrationSpec> runtimeMigration = manifest.getRuntimeMigration();
             List<EnvFromSecretRef> envFrom = manifest.getEnvFromSecrets();
             RuntimeCapability capability = manifest.requiredRuntimeCapability();
             Optional<String> fromManifest = manifest.getComposeFile();
@@ -96,6 +102,7 @@ public final class ComposePathResolver {
                         Source.MANIFEST,
                         Optional.of(manifest.getSourceFileName()),
                         migrate,
+                        runtimeMigration,
                         manifest.isMinifyEnabled(),
                         manifest.isRequireTlsEnabled(),
                         envFrom,
@@ -107,6 +114,7 @@ public final class ComposePathResolver {
                         Source.COMPOSE_PATH,
                         Optional.of(manifest.getSourceFileName()),
                         migrate,
+                        runtimeMigration,
                         manifest.isMinifyEnabled(),
                         manifest.isRequireTlsEnabled(),
                         envFrom,
@@ -124,6 +132,7 @@ public final class ComposePathResolver {
             return new Resolution(
                     synthesized.getComposeFile().orElseThrow(),
                     Source.COMPOSE_PATH,
+                    Optional.empty(),
                     Optional.empty(),
                     Optional.empty(),
                     synthesized.isMinifyEnabled(),

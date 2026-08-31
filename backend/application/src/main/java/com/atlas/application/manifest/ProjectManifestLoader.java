@@ -1,7 +1,9 @@
 package com.atlas.application.manifest;
 
+import com.atlas.domain.deployment.MigrationStrategy;
 import com.atlas.domain.manifest.EnvFromSecretRef;
 import com.atlas.domain.manifest.ProjectManifest;
+import com.atlas.domain.manifest.RuntimeMigrationSpec;
 import com.atlas.domain.shared.DomainException;
 import java.io.IOException;
 import java.io.Reader;
@@ -70,12 +72,14 @@ public final class ProjectManifestLoader {
             String runtimeKind = null;
             String composeFile = null;
             String migrateCommand = null;
+            RuntimeMigrationSpec runtimeMigration = null;
             List<EnvFromSecretRef> runtimeEnvFrom = List.of();
             Object runtimeNode = root.get("runtime");
             if (runtimeNode instanceof Map<?, ?> runtime) {
                 runtimeKind = stringField(runtime, "kind");
                 composeFile = stringField(runtime, "composeFile");
                 migrateCommand = stringField(runtime, "migrateCommand");
+                runtimeMigration = parseRuntimeMigration(runtime.get("migration"), fileName);
                 runtimeEnvFrom = parseEnvFromList(runtime.get("envFrom"), fileName + " runtime.envFrom");
             } else if (runtimeNode != null) {
                 throw new DomainException("Invalid " + fileName + ": runtime must be a mapping");
@@ -106,6 +110,7 @@ public final class ProjectManifestLoader {
                     runtimeKind,
                     composeFile,
                     migrateCommand,
+                    runtimeMigration,
                     minify,
                     requireTls,
                     envFromSecrets,
@@ -135,6 +140,21 @@ public final class ProjectManifestLoader {
             byEnvKey.putIfAbsent(ref.resolveEnvKey(), ref);
         }
         return List.copyOf(byEnvKey.values());
+    }
+
+    private static RuntimeMigrationSpec parseRuntimeMigration(Object migrationNode, String fileName) {
+        if (migrationNode == null) {
+            return null;
+        }
+        if (!(migrationNode instanceof Map<?, ?> migration)) {
+            throw new DomainException("Invalid " + fileName + ": runtime.migration must be a mapping");
+        }
+        Boolean enabled = booleanField(migration, "enabled", fileName);
+        String strategyWire = stringField(migration, "strategy");
+        String command = stringField(migration, "command");
+        String container = stringField(migration, "container");
+        MigrationStrategy strategy = strategyWire == null ? MigrationStrategy.CUSTOM : MigrationStrategy.fromWire(strategyWire);
+        return new RuntimeMigrationSpec(enabled == null || enabled, strategy, command, container);
     }
 
     private static List<EnvFromSecretRef> parseServicesEnvFrom(Object servicesNode, String fileName) {

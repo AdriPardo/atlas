@@ -63,6 +63,7 @@ public class ExecuteDeployServiceJobUseCase {
     private final EnsureDomainTunnelIngressUseCase ensureDomainTunnelIngressUseCase;
     private final EnsureDomainDnsCnameUseCase ensureDomainDnsCnameUseCase;
     private final ComposePathResolver composePathResolver;
+    private final DeployMigrationResolver deployMigrationResolver;
     private final ProvisionProjectMailUseCase provisionProjectMailUseCase;
     private final ProjectSmtpProvisionerPort smtpProvisioner;
     private final TransactionTemplate transactionTemplate;
@@ -102,6 +103,7 @@ public class ExecuteDeployServiceJobUseCase {
                 provisionProjectMailUseCase,
                 smtpProvisioner,
                 new ComposePathResolver(),
+                new DeployMigrationResolver(),
                 transactionManager);
     }
 
@@ -122,6 +124,7 @@ public class ExecuteDeployServiceJobUseCase {
             ProvisionProjectMailUseCase provisionProjectMailUseCase,
             ProjectSmtpProvisionerPort smtpProvisioner,
             ComposePathResolver composePathResolver,
+            DeployMigrationResolver deployMigrationResolver,
             PlatformTransactionManager transactionManager) {
         this.deploymentRepository = deploymentRepository;
         this.serviceRepository = serviceRepository;
@@ -139,6 +142,7 @@ public class ExecuteDeployServiceJobUseCase {
         this.provisionProjectMailUseCase = provisionProjectMailUseCase;
         this.smtpProvisioner = smtpProvisioner;
         this.composePathResolver = composePathResolver;
+        this.deployMigrationResolver = deployMigrationResolver;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
@@ -216,12 +220,15 @@ public class ExecuteDeployServiceJobUseCase {
 
             // Optional app-owned migrate hook (ADR-0014). Atlas does not interpret Prisma/Flyway/etc.
             // Prefer omit when the container entrypoint already migrates (avoid double-migrate).
-            if (compose.migrateCommand().isPresent()) {
-                String migrate = compose.migrateCommand().orElseThrow();
-                logSink.accept("Running runtime.migrateCommand from "
-                        + compose.manifestFileName().orElse("atlas.yml"));
-                hostCommand.run(new HostCommandPort.HostCommand(host, workspace, migrate, sshKey, logSink));
-                logSink.accept("migrateCommand finished");
+            Optional<DeployMigrationResolver.ResolvedMigration> migration =
+                    deployMigrationResolver.resolve(loaded.service(), compose);
+            if (migration.isPresent()) {
+                DeployMigrationResolver.ResolvedMigration resolved = migration.get();
+                logSink.accept("Running post-deploy migration (" + resolved.source() + ")");
+                logSink.accept("migrate: " + resolved.shellCommand());
+                hostCommand.run(new HostCommandPort.HostCommand(
+                        host, workspace, resolved.shellCommand(), sshKey, logSink));
+                logSink.accept("migrate finished successfully");
             }
 
             transactionTemplate.executeWithoutResult(status -> {

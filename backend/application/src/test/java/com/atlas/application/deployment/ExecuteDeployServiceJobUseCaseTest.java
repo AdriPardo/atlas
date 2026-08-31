@@ -119,6 +119,8 @@ class ExecuteDeployServiceJobUseCaseTest {
                 ensureDomainDnsCnameUseCase,
                 provisionProjectMailUseCase,
                 smtpProvisioner,
+                new com.atlas.application.manifest.ComposePathResolver(),
+                new DeployMigrationResolver(),
                 transactionManager);
     }
 

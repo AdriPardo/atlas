@@ -16,17 +16,36 @@ El migrator, el orden de scripts y la idempotencia son **responsabilidad del rep
 runtime:
   kind: compose
   composeFile: docker-compose.atlas.yml
-  # Opcional. Solo si quieres un hook explícito de plataforma:
-  migrateCommand: npm run db:migrate:deploy
+  # Opcional — hook estructurado (recomendado para Prisma/Flyway en contenedor api):
+  migration:
+    enabled: true
+    strategy: prisma          # prisma | flyway | custom
+    container: api              # default api — docker compose exec -T
+    command: npm run migrate:deploy -w @autotube/database
+  # Legacy (shell en workspace, sin wrap exec):
+  # migrateCommand: npm run db:migrate:deploy
 ```
 
-Ejemplos válidos (Atlas no interpreta el contenido):
+Ejemplos válidos (Atlas no interpreta el contenido del migrator):
 
-| App | `migrateCommand` tipico |
-|-----|-------------------------|
-| Prisma | `npm run db:migrate:deploy` |
-| Flyway (CLI en imagen) | `docker compose -f docker-compose.atlas.yml run --rm api flyway migrate` |
-| Django | `docker compose exec -T api python manage.py migrate --noinput` |
+| App | Config tipica |
+|-----|----------------|
+| Prisma (Reelpath/Autotube) | `strategy: prisma`, `container: api`, `command: npm run migrate:deploy -w @autotube/database` |
+| Flyway (CLI en imagen) | `strategy: flyway`, `container: api` |
+| Django / shell libre | `strategy: custom`, `command: docker compose exec -T api python manage.py migrate --noinput` (o `migrateCommand` legacy) |
+
+### Override en Atlas UI (Service)
+
+En **Project → Deploy → Migrations** puedes fijar por servicio (sin tocar el repo):
+
+| Campo | Uso |
+|-------|-----|
+| `migrationEnabled` | `true` fuerza migrate post-deploy; `false` lo desactiva aunque el manifiesto lo declare |
+| `migrationStrategy` | `prisma` \| `flyway` \| `custom` |
+| `migrationCommand` | Comando inner (p. ej. Reelpath: `npm run migrate:deploy -w @autotube/database`) |
+| `migrationContainer` | Servicio Compose (default `api`) — Atlas envuelve con `docker compose exec -T` |
+
+Prioridad: **Service override** → `runtime.migration` → `runtime.migrateCommand` (legacy).
 
 ## Orden en el deploy
 
@@ -35,8 +54,9 @@ Ejemplos válidos (Atlas no interpreta el contenido):
 3. Resolver `runtime.composeFile` + `envFrom.secretRef`
 4. Inyectar secrets declarados en `.env` (`db.url` → `DATABASE_URL`; no loguea valores)
 5. `compose up` (DB y servicios)
-6. **Si** hay `runtime.migrateCommand` → ejecutarlo en el workspace (LOCAL o SSH)
-7. Tunnel / DNS Autopilot
+6. **Si** hay migración resuelta (`runtime.migration`, legacy `migrateCommand`, o Service override) → ejecutar shell en workspace (LOCAL o SSH). Con `container` declarado, Atlas usa `docker compose exec -T <container> sh -c '<command>'`.
+7. Fallo de migrate → deploy **FAILED** (logs en deployment).
+8. Tunnel / DNS Autopilot
 
 DB del stack ya está arriba antes del hook (healthchecks Compose suelen bastar). El comando debe poder alcanzar la DB (hostname de red Docker, `docker compose exec`, etc.).
 
@@ -65,6 +85,27 @@ Dos patrones válidos; **elige uno**:
 | **A — hook Atlas** | `migrateCommand` declarado | No correr migrate otra vez |
 | **B — migrate on start** | **omitir** `migrateCommand` | `migrate && start` (idempotente) |
 
-**Reelpath hoy:** patrón B — `api` corre `npm run migrate:deploy:ci` al arrancar. Mientras eso siga, **no** poner `migrateCommand` en `atlas.yml` (evita doble apply innecesario). Cuando el repo quite migrate del entrypoint, declarar el hook.
+**Reelpath / Autotube (patrón A — hook Atlas):**
 
-Prisma `migrate deploy` suele ser idempotente, pero doble corrida en cada redeploy sigue siendo ruido y riesgo ops. Preferir un solo dueño.
+1. Quitar migrate del entrypoint del contenedor `api` (evitar doble apply).
+2. En `atlas.yml`:
+
+```yaml
+runtime:
+  migration:
+    enabled: true
+    strategy: prisma
+    container: api
+    command: npm run migrate:deploy -w @autotube/database
+```
+
+O en Atlas UI (Service → Migrations): `migrationEnabled=true`, strategy `prisma`, container `api`, mismo command.
+
+**Fallback manual** (SSH al host, cwd workspace del deployment):
+
+```bash
+cd /var/lib/atlas/workspaces/<deployment-id>
+docker compose -f docker-compose.atlas.yml exec -T api sh -c 'npm run migrate:deploy -w @autotube/database'
+```
+
+Prisma `migrate deploy` es idempotente; doble corrida en cada redeploy sigue siendo ruido ops. Preferir un solo dueño (entrypoint **o** hook Atlas).

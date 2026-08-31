@@ -20,6 +20,7 @@ public final class ProjectManifest {
     private final String runtimeKind;
     private final String composeFile;
     private final String migrateCommand;
+    private final RuntimeMigrationSpec runtimeMigration;
     private final Boolean minify;
     private final Boolean requireTls;
     private final List<EnvFromSecretRef> envFromSecrets;
@@ -34,7 +35,17 @@ public final class ProjectManifest {
             String composeFile,
             String migrateCommand,
             String sourceFileName) {
-        this(apiVersion, kind, runtimeKind, composeFile, migrateCommand, null, null, List.of(), sourceFileName);
+        this(
+                apiVersion,
+                kind,
+                runtimeKind,
+                composeFile,
+                migrateCommand,
+                null,
+                null,
+                null,
+                List.of(),
+                sourceFileName);
     }
 
     public ProjectManifest(
@@ -46,7 +57,17 @@ public final class ProjectManifest {
             Boolean minify,
             Boolean requireTls,
             String sourceFileName) {
-        this(apiVersion, kind, runtimeKind, composeFile, migrateCommand, minify, requireTls, List.of(), sourceFileName);
+        this(
+                apiVersion,
+                kind,
+                runtimeKind,
+                composeFile,
+                migrateCommand,
+                null,
+                minify,
+                requireTls,
+                List.of(),
+                sourceFileName);
     }
 
     public ProjectManifest(
@@ -59,11 +80,36 @@ public final class ProjectManifest {
             Boolean requireTls,
             List<EnvFromSecretRef> envFromSecrets,
             String sourceFileName) {
+        this(
+                apiVersion,
+                kind,
+                runtimeKind,
+                composeFile,
+                migrateCommand,
+                null,
+                minify,
+                requireTls,
+                envFromSecrets,
+                sourceFileName);
+    }
+
+    public ProjectManifest(
+            String apiVersion,
+            String kind,
+            String runtimeKind,
+            String composeFile,
+            String migrateCommand,
+            RuntimeMigrationSpec runtimeMigration,
+            Boolean minify,
+            Boolean requireTls,
+            List<EnvFromSecretRef> envFromSecrets,
+            String sourceFileName) {
         this.apiVersion = requireText(apiVersion, "apiVersion");
         this.kind = requireText(kind, "kind");
         this.runtimeKind = blankToNull(runtimeKind);
         this.composeFile = blankToNull(composeFile);
         this.migrateCommand = blankToNull(migrateCommand);
+        this.runtimeMigration = runtimeMigration;
         this.minify = minify;
         this.requireTls = requireTls;
         this.envFromSecrets = envFromSecrets == null || envFromSecrets.isEmpty()
@@ -79,7 +125,16 @@ public final class ProjectManifest {
     public static ProjectManifest synthesizeFromComposePath(String composePath) {
         String path = requireText(composePath, "composePath");
         return new ProjectManifest(
-                API_VERSION_V1_ALPHA1, KIND_PROJECT, "compose", path, null, null, null, List.of(), SYNTHESIZED_SOURCE);
+                API_VERSION_V1_ALPHA1,
+                KIND_PROJECT,
+                "compose",
+                path,
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                SYNTHESIZED_SOURCE);
     }
 
     public boolean isSynthesized() {
@@ -108,6 +163,11 @@ public final class ProjectManifest {
      */
     public Optional<String> getMigrateCommand() {
         return Optional.ofNullable(migrateCommand);
+    }
+
+    /** Structured {@code runtime.migration} block; empty when omitted. */
+    public Optional<RuntimeMigrationSpec> getRuntimeMigration() {
+        return Optional.ofNullable(runtimeMigration);
     }
 
     /**

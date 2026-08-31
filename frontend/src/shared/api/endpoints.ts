@@ -104,6 +104,10 @@ export const servicesApi = {
       domain?: string
       environment?: string
       status: string
+      migrationEnabled?: boolean | null
+      migrationStrategy?: string
+      migrationCommand?: string
+      migrationContainer?: string
     },
   ) => api.put<Service>(`/services/${id}`, body).then((r) => r.data),
   remove: (id: string) => api.delete(`/services/${id}`),

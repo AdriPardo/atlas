@@ -71,7 +71,11 @@ public class ServiceController {
                         request.composePath(),
                         request.domain(),
                         request.environment(),
-                        request.status()));
+                        request.status(),
+                        request.migrationEnabled(),
+                        request.migrationStrategy(),
+                        request.migrationCommand(),
+                        request.migrationContainer()));
         return ResponseEntity.ok(apiMapper.toServiceResponse(service));
     }
 

@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.atlas.domain.deployment.MigrationStrategy;
 import com.atlas.domain.manifest.ProjectManifest;
+import com.atlas.domain.manifest.RuntimeMigrationSpec;
 import com.atlas.domain.shared.DomainException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -87,6 +89,31 @@ class ProjectManifestLoaderTest {
 
         ProjectManifest manifest = loader.load(workspace).orElseThrow();
         assertEquals(Optional.of("npm run db:migrate:deploy"), manifest.getMigrateCommand());
+    }
+
+    @Test
+    void loadsStructuredRuntimeMigration() throws Exception {
+        Files.writeString(
+                workspace.resolve("atlas.yml"),
+                """
+                apiVersion: atlas/v1alpha1
+                kind: Project
+                runtime:
+                  composeFile: docker-compose.atlas.yml
+                  migration:
+                    enabled: true
+                    strategy: prisma
+                    container: api
+                    command: npm run migrate:deploy -w @autotube/database
+                """);
+
+        ProjectManifest manifest = loader.load(workspace).orElseThrow();
+        RuntimeMigrationSpec spec = manifest.getRuntimeMigration().orElseThrow();
+        assertTrue(spec.isEnabled());
+        assertEquals(MigrationStrategy.PRISMA, spec.getStrategy());
+        assertEquals("api", spec.resolveContainer());
+        assertEquals(
+                Optional.of("npm run migrate:deploy -w @autotube/database"), spec.getCommand());
     }
 
     @Test

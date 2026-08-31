@@ -15,10 +15,14 @@ runtime:
   # Migration bridge: existing docker-compose.atlas.yml / composePath
   # For kind podman-compose Atlas runs `podman compose` against the same composeFile.
   composeFile: docker-compose.atlas.yml
-  # Optional. Atlas runs this shell command after stack apply (cwd = clone workspace).
-  # App owns the migrator (Prisma / Flyway / etc.). Omit if the container already migrates on start.
-  # See docs/deployment/app-migrations.md
-  migrateCommand: npm run db:migrate:deploy
+  # Optional. Atlas runs post-deploy migration after stack apply (see docs/deployment/app-migrations.md).
+  migration:
+    enabled: true
+    strategy: prisma
+    container: api
+    command: npm run migrate:deploy -w @autotube/database
+  # Legacy shell hook (no docker exec wrap):
+  # migrateCommand: npm run db:migrate:deploy
   # Optional. Inject project secrets into workspace .env before compose (ADR-0015 / ADR-0017).
   # Create secrets in Atlas UI (Project → Secrets); reference them here. Redeploy to materialize.
   # db.url → DATABASE_URL; ai.openai → OPENAI_API_KEY; other names → SCREAMING_SNAKE.

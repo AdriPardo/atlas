@@ -12,4 +12,8 @@ public record UpdateServiceRequest(
         @Size(max = 500) String composePath,
         String domain,
         String environment,
-        @NotNull ServiceStatus status) {}
+        @NotNull ServiceStatus status,
+        Boolean migrationEnabled,
+        @Size(max = 30) String migrationStrategy,
+        @Size(max = 500) String migrationCommand,
+        @Size(max = 100) String migrationContainer) {}

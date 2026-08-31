@@ -24,6 +24,10 @@ public class ServiceUnit {
     private String environment;
     private ServiceExposure exposure;
     private ServiceStatus status;
+    private Boolean migrationEnabled;
+    private String migrationStrategy;
+    private String migrationCommand;
+    private String migrationContainer;
     private final Instant createdAt;
     private Instant updatedAt;
 
@@ -38,12 +42,29 @@ public class ServiceUnit {
             String environment,
             ServiceExposure exposure,
             ServiceStatus status,
+            Boolean migrationEnabled,
+            String migrationStrategy,
+            String migrationCommand,
+            String migrationContainer,
             Instant createdAt,
             Instant updatedAt) {
         this.id = Objects.requireNonNull(id, "id is required");
         this.projectId = Objects.requireNonNull(projectId, "projectId is required");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
-        apply(name, repositoryUrl, branch, composePath, domain, environment, exposure, status, updatedAt);
+        apply(
+                name,
+                repositoryUrl,
+                branch,
+                composePath,
+                domain,
+                environment,
+                exposure,
+                status,
+                migrationEnabled,
+                migrationStrategy,
+                migrationCommand,
+                migrationContainer,
+                updatedAt);
     }
 
     public static ServiceUnit createDefault(
@@ -64,6 +85,10 @@ public class ServiceUnit {
                 "default",
                 ServiceExposure.PUBLIC,
                 ServiceStatus.REGISTERED,
+                null,
+                null,
+                null,
+                null,
                 now,
                 now);
     }
@@ -88,6 +113,10 @@ public class ServiceUnit {
                 environment == null || environment.isBlank() ? "default" : environment,
                 ServiceExposure.PUBLIC,
                 ServiceStatus.REGISTERED,
+                null,
+                null,
+                null,
+                null,
                 now,
                 now);
     }
@@ -103,6 +132,10 @@ public class ServiceUnit {
             String environment,
             ServiceExposure exposure,
             ServiceStatus status,
+            Boolean migrationEnabled,
+            String migrationStrategy,
+            String migrationCommand,
+            String migrationContainer,
             Instant createdAt,
             Instant updatedAt) {
         return new ServiceUnit(
@@ -116,6 +149,10 @@ public class ServiceUnit {
                 environment,
                 exposure == null ? ServiceExposure.PUBLIC : exposure,
                 status,
+                migrationEnabled,
+                migrationStrategy,
+                migrationCommand,
+                migrationContainer,
                 createdAt,
                 updatedAt);
     }
@@ -128,6 +165,32 @@ public class ServiceUnit {
             String domain,
             String environment,
             ServiceStatus status) {
+        update(
+                name,
+                repositoryUrl,
+                branch,
+                composePath,
+                domain,
+                environment,
+                status,
+                migrationEnabled,
+                migrationStrategy,
+                migrationCommand,
+                migrationContainer);
+    }
+
+    public void update(
+            String name,
+            String repositoryUrl,
+            String branch,
+            String composePath,
+            String domain,
+            String environment,
+            ServiceStatus status,
+            Boolean migrationEnabled,
+            String migrationStrategy,
+            String migrationCommand,
+            String migrationContainer) {
         apply(
                 name,
                 repositoryUrl,
@@ -137,11 +200,28 @@ public class ServiceUnit {
                 environment == null || environment.isBlank() ? "default" : environment,
                 exposure,
                 status,
+                migrationEnabled,
+                migrationStrategy,
+                migrationCommand,
+                migrationContainer,
                 Instant.now());
     }
 
     public void updateStatus(ServiceStatus status) {
-        apply(name, repositoryUrl, branch, composePath, domain, environment, exposure, status, Instant.now());
+        apply(
+                name,
+                repositoryUrl,
+                branch,
+                composePath,
+                domain,
+                environment,
+                exposure,
+                status,
+                migrationEnabled,
+                migrationStrategy,
+                migrationCommand,
+                migrationContainer,
+                Instant.now());
     }
 
     public void updateExposure(ServiceExposure exposure) {
@@ -154,11 +234,28 @@ public class ServiceUnit {
                 environment,
                 exposure == null ? ServiceExposure.PUBLIC : exposure,
                 status,
+                migrationEnabled,
+                migrationStrategy,
+                migrationCommand,
+                migrationContainer,
                 Instant.now());
     }
 
     public void updateDomain(String domain) {
-        apply(name, repositoryUrl, branch, composePath, domain, environment, exposure, status, Instant.now());
+        apply(
+                name,
+                repositoryUrl,
+                branch,
+                composePath,
+                domain,
+                environment,
+                exposure,
+                status,
+                migrationEnabled,
+                migrationStrategy,
+                migrationCommand,
+                migrationContainer,
+                Instant.now());
     }
 
     private void apply(
@@ -170,6 +267,10 @@ public class ServiceUnit {
             String environment,
             ServiceExposure exposure,
             ServiceStatus status,
+            Boolean migrationEnabled,
+            String migrationStrategy,
+            String migrationCommand,
+            String migrationContainer,
             Instant updatedAt) {
         this.name = requireText(name, "name");
         this.repositoryUrl = requireText(repositoryUrl, "repositoryUrl");
@@ -180,6 +281,10 @@ public class ServiceUnit {
         this.environment = requireText(environment, "environment");
         this.exposure = Objects.requireNonNull(exposure, "exposure is required");
         this.status = Objects.requireNonNull(status, "status is required");
+        this.migrationEnabled = migrationEnabled;
+        this.migrationStrategy = blankToNull(migrationStrategy);
+        this.migrationCommand = blankToNull(migrationCommand);
+        this.migrationContainer = blankToNull(migrationContainer);
         this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt is required");
     }
 
@@ -191,6 +296,13 @@ public class ServiceUnit {
     private static String requireText(String value, String field) {
         if (value == null || value.isBlank()) {
             throw new DomainException(field + " is required");
+        }
+        return value.trim();
+    }
+
+    private static String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
         }
         return value.trim();
     }

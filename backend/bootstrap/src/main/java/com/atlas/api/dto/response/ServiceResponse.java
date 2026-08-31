@@ -16,5 +16,9 @@ public record ServiceResponse(
         String environment,
         ServiceExposure exposure,
         ServiceStatus status,
+        Boolean migrationEnabled,
+        String migrationStrategy,
+        String migrationCommand,
+        String migrationContainer,
         Instant createdAt,
         Instant updatedAt) {}

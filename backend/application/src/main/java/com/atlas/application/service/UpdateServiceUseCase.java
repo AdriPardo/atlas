@@ -36,7 +36,11 @@ public class UpdateServiceUseCase {
                 command.composePath(),
                 command.domain(),
                 command.environment(),
-                command.status());
+                command.status(),
+                command.migrationEnabled(),
+                command.migrationStrategy(),
+                command.migrationCommand(),
+                command.migrationContainer());
         return serviceRepository.save(service);
     }
 
@@ -47,5 +51,9 @@ public class UpdateServiceUseCase {
             String composePath,
             String domain,
             String environment,
-            ServiceStatus status) {}
+            ServiceStatus status,
+            Boolean migrationEnabled,
+            String migrationStrategy,
+            String migrationCommand,
+            String migrationContainer) {}
 }
