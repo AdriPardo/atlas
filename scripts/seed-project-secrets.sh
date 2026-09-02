@@ -62,6 +62,8 @@ MAPPINGS=(
   "AI_API_KEY|ai.api_key"
   "AI_BASE_URL|ai.base_url"
   "GIT_TOKEN|git.token"
+  "MOCHI_JWT_SECRET|MOCHI_JWT_SECRET"
+  "MOCHI_ADMIN_API_KEY|MOCHI_ADMIN_API_KEY"
   "CLOUDFLARE_API_TOKEN|cloudflare.api.token"
   "DB_URL|db.url"
   "STRIPE_SECRET_KEY|stripe.secret"
