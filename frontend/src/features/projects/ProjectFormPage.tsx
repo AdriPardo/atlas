@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, Box, Button, MenuItem, Stack, TextField } from '@mui/material'
 import { projectsApi, servicesApi } from '../../shared/api/endpoints'
+import { getApiErrorMessage } from '../../shared/api/queryErrors'
 import type { ProjectStatus } from '../../shared/types/api'
 import { QueryState } from '../../shared/components/QueryState'
 import { PageHeader } from '../../shared/components/PageHeader'
@@ -57,6 +58,7 @@ export function ProjectFormPage() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -72,17 +74,16 @@ export function ProjectFormPage() {
   })
 
   useEffect(() => {
-    if (detailQuery.data && defaultService) {
-      reset({
-        name: detailQuery.data.name,
-        description: detailQuery.data.description,
-        repositoryUrl: defaultService.repositoryUrl,
-        branch: defaultService.branch,
-        composePath: defaultService.composePath ?? '',
-        domain: defaultService.domain,
-        status: detailQuery.data.status,
-      })
-    }
+    if (!detailQuery.data) return
+    reset({
+      name: detailQuery.data.name,
+      description: detailQuery.data.description,
+      repositoryUrl: defaultService?.repositoryUrl ?? '',
+      branch: defaultService?.branch ?? 'main',
+      composePath: defaultService?.composePath ?? '',
+      domain: defaultService?.domain ?? '',
+      status: detailQuery.data.status,
+    })
   }, [detailQuery.data, defaultService, reset])
 
   const mutation = useMutation({
@@ -134,12 +135,19 @@ export function ProjectFormPage() {
         description={
           isEdit
             ? 'Update project metadata and default service settings.'
-            : 'Creates a project with a default deployable service.'
+            : 'Creates a project with a default deployable service. Private GitHub clones use the organization secret git.token. Autopilot places the deploy on the shared LOCAL host.'
         }
       />
       <QueryState
-        isLoading={isEdit && (detailQuery.isLoading || servicesQuery.isLoading)}
-        isError={isEdit && (detailQuery.isError || servicesQuery.isError)}
+        isLoading={isEdit && (detailQuery.isLoading || (servicesQuery.isLoading && !servicesQuery.isError))}
+        isFetching={isEdit && (detailQuery.isFetching || servicesQuery.isFetching)}
+        isError={isEdit && detailQuery.isError}
+        error={detailQuery.error}
+        errorMessage="Could not load this project."
+        onRetry={() => {
+          void detailQuery.refetch()
+          void servicesQuery.refetch()
+        }}
       >
         <Box
           component="form"
@@ -151,9 +159,24 @@ export function ProjectFormPage() {
             p: { xs: 2.5, sm: 3 },
           }}
         >
+          {servicesQuery.isError && (
+            <Alert
+              severity="error"
+              variant="outlined"
+              sx={{ mb: 2 }}
+              action={
+                <Button color="inherit" size="small" onClick={() => servicesQuery.refetch()}>
+                  Reintentar
+                </Button>
+              }
+            >
+              {getApiErrorMessage(servicesQuery.error, 'Could not load the default service.')} Project
+              fields stay editable; service fields save after the service loads.
+            </Alert>
+          )}
           {mutation.isError && (
             <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
-              Unable to save project
+              {getApiErrorMessage(mutation.error, 'Unable to save project')}
             </Alert>
           )}
           <Stack spacing={2}>
@@ -199,13 +222,19 @@ export function ProjectFormPage() {
               {...register('domain')}
             />
             {isEdit && (
-              <TextField select label="Status" defaultValue="REGISTERED" {...register('status')}>
-                {statuses.map((status) => (
-                  <MenuItem key={status} value={status}>
-                    {status}
-                  </MenuItem>
-                ))}
-              </TextField>
+              <Controller
+                name="status"
+                control={control}
+                render={({ field }) => (
+                  <TextField select label="Status" {...field}>
+                    {statuses.map((status) => (
+                      <MenuItem key={status} value={status}>
+                        {status}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
             )}
             <Box display="flex" gap={1} pt={0.5}>
               <Button type="submit" variant="contained" disabled={isSubmitting || mutation.isPending}>

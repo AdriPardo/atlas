@@ -1,11 +1,7 @@
 import { Alert, Box, Button, Skeleton, Stack } from '@mui/material'
 import type { ReactNode } from 'react'
 import { useAuth } from '../../features/auth/AuthContext'
-import {
-  getApiErrorMessage,
-  isForbiddenApiError,
-  isUnauthorizedApiError,
-} from '../api/queryErrors'
+import { getApiErrorMessage, isUnauthorizedApiError } from '../api/queryErrors'
 
 interface QueryStateProps {
   isLoading: boolean
@@ -74,13 +70,15 @@ export function QueryState({
     return <LoadingSkeleton variant={skeleton} />
   }
   if (isError) {
-    const authBlocked = isForbiddenApiError(error) || isUnauthorizedApiError(error)
-    const message = authBlocked
+    // 401 is a session that is not ready yet. 403 is a real permission failure
+    // (org role or project membership) and must show the API message.
+    const sessionBlocked = isUnauthorizedApiError(error)
+    const message = sessionBlocked
       ? 'Sesión no lista. Espera un momento o pulsa Reintentar.'
       : getApiErrorMessage(error, errorMessage)
     return (
       <Alert
-        severity={authBlocked ? 'warning' : 'error'}
+        severity={sessionBlocked ? 'warning' : 'error'}
         variant="outlined"
         action={
           onRetry ? (
