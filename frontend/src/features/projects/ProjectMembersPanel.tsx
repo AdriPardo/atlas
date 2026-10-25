@@ -19,6 +19,7 @@ import { EmptyState } from '../../shared/components/EmptyState'
 import { QueryState } from '../../shared/components/QueryState'
 import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
+import { getApiErrorMessage } from '../../shared/api/queryErrors'
 import { useAuth } from '../auth/AuthContext'
 
 import { useAuthQuery } from '../auth/useAuthQuery'
@@ -91,6 +92,9 @@ export function ProjectMembersPanel({ projectId }: { projectId: string }) {
             onChange={(e) => setUserId(e.target.value)}
             sx={{ minWidth: 200 }}
           >
+            <MenuItem value="">
+              <em>Select user</em>
+            </MenuItem>
             {users.map((u) => (
               <MenuItem key={u.id} value={u.id}>
                 {u.username} ({u.role})
@@ -123,10 +127,27 @@ export function ProjectMembersPanel({ projectId }: { projectId: string }) {
       )}
       {addMutation.isError && (
         <Alert severity="error" variant="outlined">
-          Unable to add member (need OPERATOR membership or ADMIN).
+          {getApiErrorMessage(addMutation.error, 'Unable to add member')}
         </Alert>
       )}
-      <QueryState isLoading={membersQuery.isLoading} isError={membersQuery.isError}>
+      {updateMutation.isError && (
+        <Alert severity="error" variant="outlined">
+          {getApiErrorMessage(updateMutation.error, 'Unable to update member')}
+        </Alert>
+      )}
+      {removeMutation.isError && (
+        <Alert severity="error" variant="outlined">
+          {getApiErrorMessage(removeMutation.error, 'Unable to remove member')}
+        </Alert>
+      )}
+      <QueryState
+        isLoading={membersQuery.isLoading}
+        isFetching={membersQuery.isFetching}
+        isError={membersQuery.isError}
+        error={membersQuery.error}
+        onRetry={() => membersQuery.refetch()}
+        skeleton="table"
+      >
         {rows.length === 0 ? (
           <EmptyState title="No members" description="Project creator is added as OPERATOR automatically." />
         ) : (

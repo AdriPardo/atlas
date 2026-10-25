@@ -91,6 +91,24 @@ class ManageProjectSecretsUseCaseTest {
     }
 
     @Test
+    void upsertOwnedAcceptsAdminSecretName() {
+        Project project = Project.create("flarecost", "d");
+        projectId = project.getId();
+        doNothing().when(authorizationService).require(projectId, ProjectPermission.DEPLOY);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+        when(bindingRepository.existsByProjectIdAndAlias(projectId, "ADMIN_SECRET")).thenReturn(false);
+        when(secretRepository.findByProjectIdAndName(projectId, "ADMIN_SECRET")).thenReturn(Optional.empty());
+        when(secretCipher.encrypt("s3cret")).thenReturn("cipher");
+        when(secretRepository.save(any(Secret.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        var result = useCase.upsertOwned(projectId, "ADMIN_SECRET", "s3cret");
+
+        assertEquals(false, result.updated());
+        assertEquals("ADMIN_SECRET", result.secret().getName());
+        verify(authorizationService).require(projectId, ProjectPermission.DEPLOY);
+    }
+
+    @Test
     void upsertOwnedReplacesCiphertext() {
         Project project = Project.create("demo", "d");
         projectId = project.getId();

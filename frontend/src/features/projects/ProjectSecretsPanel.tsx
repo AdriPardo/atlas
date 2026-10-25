@@ -26,6 +26,7 @@ import { RowOverflowMenu } from '../../shared/components/RowOverflowMenu'
 import { StatusChip } from '../../shared/components/StatusChip'
 import { CloudflareTokenScopesHint } from '../secrets/CloudflareTokenScopesHint'
 import { secretNameHelperText } from '../secrets/knownSecretHints'
+import { getApiErrorMessage } from '../../shared/api/queryErrors'
 import { useAuth } from '../auth/AuthContext'
 
 import { useAuthQuery } from '../auth/useAuthQuery'
@@ -154,7 +155,7 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
       </Stack>
       {saveMutation.isError && (
         <Alert severity="error" variant="outlined">
-          Unable to save project secret (need OPERATOR membership, or name is a linked org alias)
+          {getApiErrorMessage(saveMutation.error, 'Unable to save project secret')}
         </Alert>
       )}
 
@@ -173,17 +174,14 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
             sx={{ minWidth: 200 }}
             disabled={linkable.length === 0}
           >
-            {linkable.length === 0 ? (
-              <MenuItem value="" disabled>
-                No org secrets available
+            <MenuItem value="">
+              <em>{linkable.length === 0 ? 'No org secrets available' : 'Select secret'}</em>
+            </MenuItem>
+            {linkable.map((s) => (
+              <MenuItem key={s.id} value={s.id}>
+                {s.name}
               </MenuItem>
-            ) : (
-              linkable.map((s) => (
-                <MenuItem key={s.id} value={s.id}>
-                  {s.name}
-                </MenuItem>
-              ))
-            )}
+            ))}
           </TextField>
           <TextField
             label="Alias"
@@ -208,7 +206,7 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
         </Stack>
         {linkMutation.isError && (
           <Alert severity="error" variant="outlined">
-            Unable to link secret (need OPERATOR membership, or alias may already exist)
+            {getApiErrorMessage(linkMutation.error, 'Unable to link secret')}
           </Alert>
         )}
         {orgSecretsQuery.isError && (
@@ -222,7 +220,14 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
       </Stack>
 
       <DataTableFrame>
-        <QueryState isLoading={secretsQuery.isLoading} isError={secretsQuery.isError}>
+        <QueryState
+          isLoading={secretsQuery.isLoading}
+          isFetching={secretsQuery.isFetching}
+          isError={secretsQuery.isError}
+          error={secretsQuery.error}
+          onRetry={() => secretsQuery.refetch()}
+          skeleton="table"
+        >
           {rows.length === 0 ? (
             <EmptyState
               title="No project secrets"
@@ -308,7 +313,7 @@ export function ProjectSecretsPanel({ projectId }: { projectId: string }) {
           <Stack spacing={2} sx={{ pt: 1 }}>
             {rotateMutation.isError && (
               <Alert severity="error" variant="outlined">
-                Unable to rotate secret
+                {getApiErrorMessage(rotateMutation.error, 'Unable to rotate secret')}
               </Alert>
             )}
             <TextField label="Name" value={rotateName ?? ''} fullWidth disabled className="atlas-mono" />
