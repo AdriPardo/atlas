@@ -964,4 +964,54 @@ class AtlasIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void apiKeyActsAsTheAdminWhoCreatedIt() throws Exception {
+        String token = loginAdmin();
+        MvcResult created = mockMvc.perform(post("/api/v1/api-keys")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"grok-bot"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.key").isNotEmpty())
+                .andExpect(jsonPath("$.prefix").value(org.hamcrest.Matchers.startsWith("atlas_")))
+                .andReturn();
+        String apiKey = com.jayway.jsonpath.JsonPath.read(created.getResponse().getContentAsString(), "$.key");
+        String keyId = com.jayway.jsonpath.JsonPath.read(created.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + apiKey))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("admin"))
+                .andExpect(jsonPath("$.role").value("ADMIN"));
+
+        mockMvc.perform(get("/api/v1/projects").header("X-Api-Key", apiKey))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/api-keys").header("Authorization", "Bearer " + apiKey))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("grok-bot"))
+                .andExpect(jsonPath("$[0].key").doesNotExist());
+
+        mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer atlas_not-a-real-key"))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(delete("/api/v1/api-keys/" + keyId).header("Authorization", "Bearer " + apiKey))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + apiKey))
+                .andExpect(status().isForbidden());
+    }
+
+    private String loginAdmin() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"admin","password":"test-password"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        return com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+    }
+
 }
